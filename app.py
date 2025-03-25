@@ -2,11 +2,11 @@ from flask import Flask, render_template, request, session
 import json
 import os
 
-
 app = Flask(__name__)
 app.secret_key = "secret_key"
 SESSIONS_DIR = "sessions"
 os.makedirs(SESSIONS_DIR, exist_ok=True)
+
 
 def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
@@ -91,7 +91,7 @@ def organize_matches(players, courts, match_type, num_matches):
             matchups[i].append(match)
 
     opponent_averages = {
-        name: round(sum(grades)/len(grades), 2) if grades else 0
+        name: round(sum(grades) / len(grades), 2) if grades else 0
         for name, grades in opponent_grades.items()
     }
 
@@ -101,6 +101,7 @@ def organize_matches(players, courts, match_type, num_matches):
     }
 
     return matchups, match_counts, opponent_averages, opponent_diff
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -134,14 +135,23 @@ def index():
             })
 
             if "add_player" in request.form:
-                name = request.form.get("name")
-                grade = int(request.form.get("grade", 1))
-                if name:
+                name = request.form.get("name", "").strip()
+                try:
+                    grade = int(request.form.get("grade"))
+                except (TypeError, ValueError):
+                    grade = None
+
+                if not name or grade not in [1, 2, 3]:
+                    session["error"] = "Please enter a valid name and select a grade between 1 and 3."
+                else:
                     players.append({"name": name, "grade": grade})
                     session["players"] = players
+                    session.pop("error", None)  # Clear error
 
             elif "organize_matches" in request.form:
-                matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(players, courts, match_type, num_matches)
+                matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
+                    players, courts, match_type, num_matches
+                )
 
             elif "save_session" in request.form and session_name:
                 file_path = os.path.join(SESSIONS_DIR, f"{session_name}.json")
@@ -181,8 +191,10 @@ def index():
         session_name=session_name,
         player_match_counts=player_match_counts,
         opponent_averages=opponent_averages,
-        opponent_diff=opponent_diff
+        opponent_diff=opponent_diff,
+        error=session.pop("error", None)
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)

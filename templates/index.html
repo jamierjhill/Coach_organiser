@@ -43,6 +43,7 @@
       margin: 3px 0;
       background-color: #388e3c;
       border-radius: 5px;
+      cursor: move;
     }
     .btn {
       background-color: #ffeb3b;
@@ -129,15 +130,44 @@
     function printPage() {
       window.print();
     }
+
+    function enableDragDrop() {
+      const items = document.querySelectorAll('.match');
+      items.forEach(item => {
+        item.setAttribute('draggable', 'true');
+        item.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', e.target.id);
+        });
+      });
+
+      const courts = document.querySelectorAll('.court-schedule');
+      courts.forEach(court => {
+        court.addEventListener('dragover', e => e.preventDefault());
+        court.addEventListener('drop', e => {
+          e.preventDefault();
+          const id = e.dataTransfer.getData('text/plain');
+          const match = document.getElementById(id);
+          if (match && e.target.classList.contains('court-schedule')) {
+            e.target.appendChild(match);
+          }
+        });
+      });
+    }
+
+    window.onload = function () {
+      const display = document.getElementById('main-timer-display');
+      updateClockDisplay(display);
+      enableDragDrop();
+    };
   </script>
 </head>
 <body>
-  <h2>Wardle Organizer</h2>
+  <h2>🎾 Wardle Organizer 🎾</h2>
   <form method="POST">
-    <label>Session Name:</label>
+    <!--label>Session Name:</label>
     <input type="text" name="session_name" value="{{ session_name }}">
     <button type="submit" name="save_session" class="btn">Save Session</button>
-    <button type="submit" name="load_session" class="btn">Load Session</button>
+    <button type="submit" name="load_session" class="btn">Load Session</button-->
     <br>
     <label>Number of Courts:</label>
     <input type="number" name="courts" min="1" value="{{ courts }}">
@@ -153,36 +183,41 @@
     <input type="text" name="name">
     <label>Grade:</label>
     <input type="number" name="grade" min="1" max="3">
-    <button type="submit" name="add_player" class="btn">Add Player</button>
-    <button type="submit" name="reset" class="btn">Reset</button>
-    <button class="btn" onclick="printPage()">Print as PDF</button>
-    <button type="submit" name="organize_matches" class="btn">Organize Matches</button>
+    <button type="submit" name="add_player" class="btn">➕ Add Player</button>
+    <button type="submit" name="reset" class="btn">🔁 Reset</button>
+    <button class="btn print-btn" onclick="printPage()">🖨️ Print as PDF</button>
+    <button type="submit" name="organize_matches" class="btn">🎯 Organize Matches</button>
   </form>
 
-  <h3>Players ({{ players|length }}):</h3>
+  {% if error %}
+    <p style="color: yellow; font-weight: bold;">⚠️ {{ error }}</p>
+  {% endif %}
+
+  <h3>👟 Players ({{ players|length }}):</h3>
   <ul>
     {% for player in players %}
       <li>
-        {{ player.name }} (Grade {{ player.grade }})
+        🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
         <form method="POST" style="display:inline;">
           <input type="hidden" name="remove_player" value="{{ player.name }}">
-          <button type="submit" class="btn">Remove</button>
+          <button type="submit" class="btn">🗑️ Remove</button>
         </form>
       </li>
     {% endfor %}
   </ul>
 
-  <h3>Match Schedules (with round number):</h3>
+  <h3>📋 Match Schedules (Drag & Drop):</h3>
   <div class="court-schedule-container">
     {% for court_number in range(1, courts + 1) %}
-      <div class="court-schedule">
+      <div class="court-schedule" id="court-{{ court_number }}">
         <h3>Court {{ court_number }}</h3>
         {% if matchups[court_number - 1] %}
           {% for match, round_num in matchups[court_number - 1] %}
+            {% set match_id = 'match-' ~ court_number ~ '-' ~ loop.index0 %}
             {% if match|length == 2 %}
-              <p class="match">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})<br><small>Round {{ round_num }}</small></p>
+              <p class="match" id="{{ match_id }}">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})<br><small>Round {{ round_num }}</small></p>
             {% elif match|length == 4 %}
-              <p class="match">{{ match[0].name }} & {{ match[1].name }} (g{{ match[0].grade }}) vs. {{ match[2].name }} & {{ match[3].name }} (g{{ match[2].grade }})<br><small>Round {{ round_num }}</small></p>
+              <p class="match" id="{{ match_id }}">{{ match[0].name }} & {{ match[1].name }} (g{{ match[0].grade }}) vs. {{ match[2].name }} & {{ match[3].name }} (g{{ match[2].grade }})<br><small>Round {{ round_num }}</small></p>
             {% endif %}
           {% endfor %}
         {% else %}
@@ -193,27 +228,33 @@
   </div>
 
   <div class="matches-box">
-    <h3>Player Summary:</h3>
+    <h3>🧮 Player Summary:</h3>
     <ul>
       {% for player, match_count in player_match_counts.items() %}
-        <li>
-          <strong>{{ player }}</strong>:
-          {{ match_count }} match{{ 'es' if match_count != 1 else '' }},
-          Avg Opponent Grade: {{ opponent_averages[player] }},
-          Diff: {{ opponent_diff[player] }}
-        </li>
+        <li><strong>{{ player }}</strong>: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
       {% endfor %}
     </ul>
   </div>
 
   <div class="timer-controls">
-    <h3>Match Timer</h3>
+    <h3>⏱️ Match Timer</h3>
     <div id="main-timer-display">20:00</div>
-    <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">Start</button>
-    <button class="btn" onclick="pauseClock()">Pause</button>
+    <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
+    <button class="btn" onclick="pauseClock()">⏸️ Pause</button>
     <br>
     <input type="number" id="custom-minutes" min="1" max="200" value="20">
     <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+  </div>
+
+  <div class="matches-box" style="margin-top: 30px;">
+    <h3>📋 How the Matching Works</h3>
+    <p style="text-align: left;">
+      ✅ Players are matched with others who are close in grade (ability level).<br>
+      ✅ Everyone gets a similar number of matches — no one is left out.<br>
+      ✅ In doubles, balanced teams are made and matched based on team grade.<br>
+      ✅ Repeat matchups are avoided unless necessary.<br>
+      ✅ Prioritizes fairness, fun, and variety throughout the session. 🎯
+    </p>
   </div>
 </body>
 </html>
