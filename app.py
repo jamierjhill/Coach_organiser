@@ -4,7 +4,8 @@ import os
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
-SESSION_FILE = "saved_session.json"
+SESSIONS_DIR = "sessions"
+os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
@@ -31,6 +32,28 @@ def organize_matches(players, courts, match_type, num_matches):
                 return candidate
         return None
 
+    def find_best_doubles_group(available):
+        best_group = None
+        best_diff = float('inf')
+
+        for i in range(len(available)):
+            for j in range(i+1, len(available)):
+                for k in range(len(available)):
+                    for l in range(k+1, len(available)):
+                        group = [available[i], available[j], available[k], available[l]]
+                        names = [p['name'] for p in group]
+                        if len(set(names)) < 4:
+                            continue
+                        team1 = [group[0], group[1]]
+                        team2 = [group[2], group[3]]
+                        team1_avg = sum(p['grade'] for p in team1) / 2
+                        team2_avg = sum(p['grade'] for p in team2) / 2
+                        diff = abs(team1_avg - team2_avg)
+                        if diff < best_diff:
+                            best_diff = diff
+                            best_group = group
+        return best_group
+
     for round_num in range(num_matches):
         available_players = sorted(players, key=lambda p: match_counts[p['name']])
         used_names = set()
@@ -38,19 +61,11 @@ def organize_matches(players, courts, match_type, num_matches):
 
         while len(round_matchups) < courts and len(available_players) - len(used_names) >= (4 if match_type == "doubles" else 2):
             if match_type == "doubles":
-                group = []
-                for _ in range(4):
-                    for p in available_players:
-                        if p['name'] not in used_names:
-                            partner = find_best_partner(p, [q for q in available_players if q['name'] not in used_names and q['name'] != p['name']], round_num)
-                            if partner:
-                                group.extend([p, partner])
-                                used_names.update([p['name'], partner['name']])
-                                break
-                    if len(group) == 4:
-                        break
-                if len(group) < 4:
+                candidates = [p for p in available_players if p['name'] not in used_names]
+                group = find_best_doubles_group(candidates)
+                if not group:
                     break
+                used_names.update(p['name'] for p in group)
                 pair = group
             else:
                 p1 = next((p for p in available_players if p['name'] not in used_names), None)
@@ -69,12 +84,22 @@ def organize_matches(players, courts, match_type, num_matches):
                         played_matches[p['name']].add(opp['name'])
                         opponent_grades[p['name']].append(opp['grade'])
 
-            round_matchups.append((pair, False))
+            round_matchups.append((pair, round_num + 1))
 
         for i, match in enumerate(round_matchups):
             matchups[i].append(match)
 
-    return matchups, match_counts
+    opponent_averages = {
+        name: round(sum(grades)/len(grades), 2) if grades else 0
+        for name, grades in opponent_grades.items()
+    }
+
+    opponent_diff = {
+        name: round(abs(opponent_averages[name] - next(p['grade'] for p in players if p['name'] == name)), 2)
+        for name in opponent_averages
+    }
+
+    return matchups, match_counts, opponent_averages, opponent_diff
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -85,6 +110,8 @@ def index():
     session_name = session.get("session_name", "")
     matchups = []
     player_match_counts = {}
+    opponent_averages = {}
+    opponent_diff = {}
 
     if request.method == "POST":
         if "remove_player" in request.form:
@@ -98,10 +125,12 @@ def index():
             num_matches = int(request.form.get("num_matches", 1))
             match_type = request.form.get("match_type", "singles")
 
-            session["courts"] = courts
-            session["num_matches"] = num_matches
-            session["match_type"] = match_type
-            session["session_name"] = session_name
+            session.update({
+                "courts": courts,
+                "num_matches": num_matches,
+                "match_type": match_type,
+                "session_name": session_name
+            })
 
             if "add_player" in request.form:
                 name = request.form.get("name")
@@ -111,10 +140,11 @@ def index():
                     session["players"] = players
 
             elif "organize_matches" in request.form:
-                matchups, player_match_counts = organize_matches(players, courts, match_type, num_matches)
+                matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(players, courts, match_type, num_matches)
 
-            elif "save_session" in request.form:
-                with open(SESSION_FILE, "w") as f:
+            elif "save_session" in request.form and session_name:
+                file_path = os.path.join(SESSIONS_DIR, f"{session_name}.json")
+                with open(file_path, "w") as f:
                     json.dump({
                         "players": players,
                         "courts": courts,
@@ -123,15 +153,17 @@ def index():
                         "session_name": session_name
                     }, f)
 
-            elif "load_session" in request.form and os.path.exists(SESSION_FILE):
-                with open(SESSION_FILE, "r") as f:
-                    saved = json.load(f)
-                    players = saved.get("players", [])
-                    courts = saved.get("courts", 1)
-                    num_matches = saved.get("num_matches", 1)
-                    match_type = saved.get("match_type", "singles")
-                    session_name = saved.get("session_name", "")
-                    session.update(saved)
+            elif "load_session" in request.form and session_name:
+                file_path = os.path.join(SESSIONS_DIR, f"{session_name}.json")
+                if os.path.exists(file_path):
+                    with open(file_path, "r") as f:
+                        saved = json.load(f)
+                        players = saved.get("players", [])
+                        courts = saved.get("courts", 1)
+                        num_matches = saved.get("num_matches", 1)
+                        match_type = saved.get("match_type", "singles")
+                        session_name = saved.get("session_name", "")
+                        session.update(saved)
 
             elif "reset" in request.form:
                 players = []
@@ -146,7 +178,9 @@ def index():
         num_matches=num_matches,
         match_type=match_type,
         session_name=session_name,
-        player_match_counts=player_match_counts
+        player_match_counts=player_match_counts,
+        opponent_averages=opponent_averages,
+        opponent_diff=opponent_diff
     )
 
 if __name__ == "__main__":
