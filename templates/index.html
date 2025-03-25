@@ -1,251 +1,219 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tennis Match Organizer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #2e7d32;
-            color: #fff;
-            margin: 20px;
-            text-align: center;
-        }
-        h2, h3, label {
-            color: #fff;
-        }
-        input, select, button {
-            margin: 5px;
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #fff;
-        }
-        .player-list, .court-schedule-container {
-            margin: 15px 0;
-        }
-        .court-schedule-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .court-schedule {
-            border: 2px solid #ffffff;
-            background-color: #1b5e20;
-            padding: 10px;
-            border-radius: 8px;
-            width: 250px;
-            min-height: 100px;
-        }
-        .match {
-            padding: 5px;
-            margin: 3px 0;
-            background-color: #388e3c;
-            border-radius: 5px;
-        }
-        .btn {
-            background-color: #ffeb3b;
-            color: #1b5e20;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .btn:hover {
-            background-color: #fdd835;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background-color: #388e3c;
-            padding: 5px;
-            margin: 5px 0;
-            border-radius: 5px;
-        }
-        .matches-box {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #1b5e20;
-            border: 2px solid #fff;
-            border-radius: 8px;
-            width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .timer-controls {
-            margin: 20px auto;
-            padding: 10px;
-            background-color: #1b5e20;
-            border: 2px solid #fff;
-            border-radius: 8px;
-            width: 300px;
-        }
-        .print-btn {
-            margin-top: 20px;
-            background-color: #81c784;
-        }
-        .draggable {
-            cursor: move;
-        }
-    </style>
-    <script>
-        let timerInterval;
-        let remainingTime = 1200; // default 20 minutes
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tennis Match Organizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #2e7d32;
+      color: #fff;
+      margin: 20px;
+      text-align: center;
+    }
+    h2, h3, label {
+      color: #fff;
+    }
+    input, select, button {
+      margin: 5px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #fff;
+    }
+    .player-list, .court-schedule-container {
+      margin: 15px 0;
+    }
+    .court-schedule-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .court-schedule {
+      border: 2px solid #ffffff;
+      background-color: #1b5e20;
+      padding: 10px;
+      border-radius: 8px;
+      width: 250px;
+      min-height: 100px;
+    }
+    .match {
+      padding: 5px;
+      margin: 3px 0;
+      background-color: #388e3c;
+      border-radius: 5px;
+    }
+    .btn {
+      background-color: #ffeb3b;
+      color: #1b5e20;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background-color: #fdd835;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background-color: #388e3c;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+    .matches-box {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #1b5e20;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .timer-controls {
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #1b5e20;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      width: 300px;
+    }
+    .print-btn {
+      margin-top: 20px;
+      background-color: #81c784;
+    }
+  </style>
+  <script>
+    let timerInterval;
+    let remainingTime = 1200;
 
-        function updateClockDisplay(display) {
-            const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-            const seconds = String(remainingTime % 60).padStart(2, '0');
-            display.textContent = `${minutes}:${seconds}`;
+    function updateClockDisplay(display) {
+      const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
+      const seconds = String(remainingTime % 60).padStart(2, '0');
+      display.textContent = `${minutes}:${seconds}`;
+    }
+
+    function startClock(display) {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (remainingTime > 0) {
+          remainingTime--;
+          updateClockDisplay(display);
+        } else {
+          clearInterval(timerInterval);
+          display.textContent = "Time's up!";
         }
+      }, 1000);
+    }
 
-        function startClock(display) {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (remainingTime > 0) {
-                    remainingTime--;
-                    updateClockDisplay(display);
-                } else {
-                    clearInterval(timerInterval);
-                    display.textContent = "Time's up!";
-                }
-            }, 1000);
-        }
+    function pauseClock() {
+      clearInterval(timerInterval);
+    }
 
-        function pauseClock() {
-            clearInterval(timerInterval);
-        }
+    function setClockInput(display) {
+      const minutes = parseInt(document.getElementById('custom-minutes').value);
+      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
+        remainingTime = minutes * 60;
+        updateClockDisplay(display);
+      } else {
+        alert("Please enter a number between 1 and 200.");
+      }
+    }
 
-        function setClockInput(display) {
-            const minutes = parseInt(document.getElementById('custom-minutes').value);
-            if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
-                remainingTime = minutes * 60;
-                updateClockDisplay(display);
-            } else {
-                alert("Please enter a number between 1 and 200.");
-            }
-        }
-
-        function printPage() {
-            window.print();
-        }
-
-        function enableDragDrop() {
-            const items = document.querySelectorAll('.match');
-            items.forEach(item => {
-                item.setAttribute('draggable', 'true');
-                item.addEventListener('dragstart', e => {
-                    e.dataTransfer.setData('text/plain', e.target.id);
-                });
-            });
-
-            const courts = document.querySelectorAll('.court-schedule');
-            courts.forEach(court => {
-                court.addEventListener('dragover', e => e.preventDefault());
-                court.addEventListener('drop', e => {
-                    e.preventDefault();
-                    const id = e.dataTransfer.getData('text/plain');
-                    const match = document.getElementById(id);
-                    if (match && e.target.classList.contains('court-schedule')) {
-                        e.target.appendChild(match);
-                    }
-                });
-            });
-        }
-
-        window.onload = function() {
-            enableDragDrop();
-            const display = document.getElementById('main-timer-display');
-            updateClockDisplay(display);
-        };
-    </script>
+    function printPage() {
+      window.print();
+    }
+  </script>
 </head>
 <body>
-    <h2>Wardle Organizer</h2>
-    <form method="POST">
-        <!--label>Session Name:</label>
-        <input type="text" name="session_name" value="{{ session_name }}"-->
-        <br>
-        <label>Number of Courts:</label>
-        <input type="number" name="courts" min="1" value="{{ courts }}">
-        <label>Number of Matches per Player:</label>
-        <input type="number" name="num_matches" min="1" value="{{ num_matches }}">
-        <label>Format:</label>
-        <select name="match_type">
-            <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
-            <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
-        </select>
-        <br>
-        <label>Player Name:</label>
-        <input type="text" name="name">
-        <label>Grade:</label>
-        <input type="number" name="grade" min="1" max="3">
-        <button type="submit" name="add_player" class="btn">Add Player</button>
-        <button type="submit" name="reset" class="btn">Reset</button>
-        <button class="btn" onclick="printPage()">Print as PDF</button>
-        <button type="submit" name="organize_matches" class="btn">Organize Matches</button>
-    </form>
+  <h2>Wardle Organizer</h2>
+  <form method="POST">
+    <label>Session Name:</label>
+    <input type="text" name="session_name" value="{{ session_name }}">
+    <button type="submit" name="save_session" class="btn">Save Session</button>
+    <button type="submit" name="load_session" class="btn">Load Session</button>
+    <br>
+    <label>Number of Courts:</label>
+    <input type="number" name="courts" min="1" value="{{ courts }}">
+    <label>Number of Matches per Player:</label>
+    <input type="number" name="num_matches" min="1" value="{{ num_matches }}">
+    <label>Format:</label>
+    <select name="match_type">
+      <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
+      <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
+    </select>
+    <br>
+    <label>Player Name:</label>
+    <input type="text" name="name">
+    <label>Grade:</label>
+    <input type="number" name="grade" min="1" max="3">
+    <button type="submit" name="add_player" class="btn">Add Player</button>
+    <button type="submit" name="reset" class="btn">Reset</button>
+    <button class="btn" onclick="printPage()">Print as PDF</button>
+    <button type="submit" name="organize_matches" class="btn">Organize Matches</button>
+  </form>
 
-    <!--form method="POST" style="margin-top: 10px;">
-        <button type="submit" name="save_session" class="btn">Save Session</button>
-        <button type="submit" name="load_session" class="btn">Load Session</button>
-    </form-->
+  <h3>Players ({{ players|length }}):</h3>
+  <ul>
+    {% for player in players %}
+      <li>
+        {{ player.name }} (Grade {{ player.grade }})
+        <form method="POST" style="display:inline;">
+          <input type="hidden" name="remove_player" value="{{ player.name }}">
+          <button type="submit" class="btn">Remove</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
 
-    
-
-    <h3>Players ({{ players|length }}):</h3>
-    <ul>
-        {% for player in players %}
-            <li>
-                {{ player.name }} (Grade {{ player.grade }})
-                <form method="POST" style="display:inline;">
-                    <input type="hidden" name="remove_player" value="{{ player.name }}">
-                    <button type="submit" class="btn">Remove</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
-
-    <h3>Match Schedules (can drag and drop):</h3>
-    <div class="court-schedule-container">
-        {% for court_number in range(1, courts + 1) %}
-        <div class="court-schedule" id="court-{{ court_number }}">
-            <h3>Court {{ court_number }}</h3>
-            {% if matchups[court_number - 1] %}
-                {% for match, _ in matchups[court_number - 1] %}
-                    {% if match|length == 2 %}
-                        <p class="match draggable" id="match-{{ loop.index0 }}-{{ court_number }}">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})</p>
-                    {% elif match|length == 4 %}
-                        <p class="match draggable" id="match-{{ loop.index0 }}-{{ court_number }}">{{ match[0].name }} & {{ match[1].name }} (g{{ match[0].grade }}) vs. {{ match[2].name }} & {{ match[3].name }} (g{{ match[2].grade }})</p>
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                <p>No matches scheduled yet.</p>
+  <h3>Match Schedules (with round number):</h3>
+  <div class="court-schedule-container">
+    {% for court_number in range(1, courts + 1) %}
+      <div class="court-schedule">
+        <h3>Court {{ court_number }}</h3>
+        {% if matchups[court_number - 1] %}
+          {% for match, round_num in matchups[court_number - 1] %}
+            {% if match|length == 2 %}
+              <p class="match">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})<br><small>Round {{ round_num }}</small></p>
+            {% elif match|length == 4 %}
+              <p class="match">{{ match[0].name }} & {{ match[1].name }} (g{{ match[0].grade }}) vs. {{ match[2].name }} & {{ match[3].name }} (g{{ match[2].grade }})<br><small>Round {{ round_num }}</small></p>
             {% endif %}
-        </div>
-        {% endfor %}
-    </div>
+          {% endfor %}
+        {% else %}
+          <p>No matches scheduled yet.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
 
-    <div class="matches-box">
-        <h3>Matches per Player:</h3>
-        <ul>
-            {% for player, match_count in player_match_counts.items() %}
-                <li>{{ player }}: {{ match_count }} matches</li>
-            {% endfor %}
-        </ul>
-    </div>
+  <div class="matches-box">
+    <h3>Player Summary:</h3>
+    <ul>
+      {% for player, match_count in player_match_counts.items() %}
+        <li>
+          <strong>{{ player }}</strong>:
+          {{ match_count }} match{{ 'es' if match_count != 1 else '' }},
+          Avg Opponent Grade: {{ opponent_averages[player] }},
+          Diff: {{ opponent_diff[player] }}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 
-    <div class="timer-controls">
-        <h3>Match Timer</h3>
-        <div id="main-timer-display">20:00</div>
-        <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">Start</button>
-        <button class="btn" onclick="pauseClock()">Pause</button>
-        <br>
-        <input type="number" id="custom-minutes" min="1" max="200" value="20">
-        <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
-    </div>
+  <div class="timer-controls">
+    <h3>Match Timer</h3>
+    <div id="main-timer-display">20:00</div>
+    <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">Start</button>
+    <button class="btn" onclick="pauseClock()">Pause</button>
+    <br>
+    <input type="number" id="custom-minutes" min="1" max="200" value="20">
+    <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+  </div>
 </body>
 </html>
