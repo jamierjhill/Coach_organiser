@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session
 import json
 import os
 
+
 app = Flask(__name__)
 app.secret_key = "secret_key"
 SESSIONS_DIR = "sessions"
