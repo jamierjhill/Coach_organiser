@@ -216,8 +216,14 @@
             {% set match_id = 'match-' ~ court_number ~ '-' ~ loop.index0 %}
             {% if match|length == 2 %}
               <p class="match" id="{{ match_id }}">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})<br><small>Round {{ round_num }}</small></p>
-            {% elif match|length == 4 %}
-              <p class="match" id="{{ match_id }}">{{ match[0].name }} & {{ match[1].name }} (g{{ match[0].grade }}) vs. {{ match[2].name }} & {{ match[3].name }} (g{{ match[2].grade }})<br><small>Round {{ round_num }}</small></p>
+              {% elif match|length == 4 %}
+              {% set team1_avg = ((match[0].grade + match[1].grade) / 2) | round(1) %}
+              {% set team2_avg = ((match[2].grade + match[3].grade) / 2) | round(1) %}
+              <p class="match" id="{{ match_id }}">
+                {{ match[0].name }} & {{ match[1].name }} (Avg g{{ team1_avg }}) vs. {{ match[2].name }} & {{ match[3].name }} (Avg g{{ team2_avg }})
+                <br><small>Round {{ round_num }}</small>
+              </p>
+            
             {% endif %}
           {% endfor %}
         {% else %}
