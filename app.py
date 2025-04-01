@@ -1,19 +1,24 @@
 from flask import Flask, render_template, request, session
 import json
 import os
+import csv
+from io import TextIOWrapper
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
 SESSIONS_DIR = "sessions"
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
-
-def organize_matches(players, courts, match_type, num_matches):
+def organize_matches(players, courts, match_type, num_matches, played_matches=None, previous_partners=None):
     matchups = [[] for _ in range(courts)]
     match_counts = {p['name']: 0 for p in players}
-    played_matches = {p['name']: set() for p in players}
     opponent_grades = {p['name']: [] for p in players}
     seen_doubles_matchups = set()
+
+    if played_matches is None:
+        played_matches = {p['name']: set() for p in players}
+    if previous_partners is None:
+        previous_partners = {p['name']: set() for p in players}
 
     def grade_distance(g1, g2):
         return abs(g1 - g2)
@@ -57,6 +62,9 @@ def organize_matches(players, courts, match_type, num_matches):
                         if match_key in seen_matchups:
                             continue
 
+                        if any(p2['name'] in previous_partners[p1['name']] for p1, p2 in [(team1[0], team1[1]), (team2[0], team2[1])]):
+                            continue
+
                         team1_avg = sum(p['grade'] for p in team1) / 2
                         team2_avg = sum(p['grade'] for p in team2) / 2
                         diff = abs(team1_avg - team2_avg)
@@ -82,6 +90,10 @@ def organize_matches(players, courts, match_type, num_matches):
                 seen_doubles_matchups.add(match_key)
                 used_names.update(p['name'] for p in group)
                 pair = group
+                previous_partners[group[0]['name']].add(group[1]['name'])
+                previous_partners[group[1]['name']].add(group[0]['name'])
+                previous_partners[group[2]['name']].add(group[3]['name'])
+                previous_partners[group[3]['name']].add(group[2]['name'])
             else:
                 p1 = next((p for p in available_players if p['name'] not in used_names), None)
                 if not p1:
@@ -114,11 +126,7 @@ def organize_matches(players, courts, match_type, num_matches):
         for name in opponent_averages
     }
 
-    return matchups, match_counts, opponent_averages, opponent_diff
-
-
-
-
+    return matchups, match_counts, opponent_averages, opponent_diff, played_matches, previous_partners
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -127,6 +135,8 @@ def index():
     num_matches = session.get("num_matches", 1)
     match_type = session.get("match_type", "singles")
     session_name = session.get("session_name", "")
+    played_matches = {k: set(v) for k, v in session.get("played_matches", {}).items()}
+    previous_partners = {k: set(v) for k, v in session.get("previous_partners", {}).items()}
     matchups = []
     player_match_counts = {}
     opponent_averages = {}
@@ -138,17 +148,55 @@ def index():
             players = [p for p in players if p["name"] != name_to_remove]
             session["players"] = players
 
+        elif "upload_csv" in request.form and "csv_file" in request.files:
+            try:
+                courts = int(request.form.get("courts", courts))
+                num_matches = int(request.form.get("num_matches", num_matches))
+                match_type = request.form.get("match_type", match_type)
+                session.update({
+                    "courts": courts,
+                    "num_matches": num_matches,
+                    "match_type": match_type
+                })
+
+                file = request.files["csv_file"]
+                if file and file.filename.endswith(".csv"):
+                    stream = TextIOWrapper(file.stream)
+                    reader = csv.DictReader(stream)
+                    for row in reader:
+                        name = row.get("name", "").strip()
+                        try:
+                            grade = int(row.get("grade", "").strip())
+                        except (ValueError, AttributeError):
+                            continue
+                        if name and grade in [1, 2, 3, 4]:
+                            players.append({"name": name, "grade": grade})
+                    session["players"] = players
+            except Exception as e:
+                session["error"] = f"Failed to read CSV: {str(e)}"
+
+        elif "reset" in request.form:
+            players = []
+            matchups = []
+            session.clear()
+
         else:
             session_name = request.form.get("session_name", "")
-            courts = int(request.form.get("courts", 1))
-            num_matches = int(request.form.get("num_matches", 1))
-            match_type = request.form.get("match_type", "singles")
+            session["session_name"] = session_name
+
+            try:
+                courts = int(request.form.get("courts", session.get("courts", 1)))
+                num_matches = int(request.form.get("num_matches", session.get("num_matches", 1)))
+            except ValueError:
+                courts = session.get("courts", 1)
+                num_matches = session.get("num_matches", 1)
+
+            match_type = request.form.get("match_type", session.get("match_type", "singles"))
 
             session.update({
                 "courts": courts,
                 "num_matches": num_matches,
-                "match_type": match_type,
-                "session_name": session_name
+                "match_type": match_type
             })
 
             if "add_player" in request.form:
@@ -158,45 +206,23 @@ def index():
                 except (TypeError, ValueError):
                     grade = None
 
-                if not name or grade not in [1, 2, 3]:
-                    session["error"] = "Please enter a valid name and select a grade between 1 and 3."
+                if not name or grade not in [1, 2, 3, 4]:
+                    session["error"] = "Please enter a valid name and select a grade between 1 (strongest) and 4 (weakest)."
                 else:
                     players.append({"name": name, "grade": grade})
                     session["players"] = players
-                    session.pop("error", None)  # Clear error
+                    session.pop("error", None)
 
-            elif "organize_matches" in request.form:
-                matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
-                    players, courts, match_type, num_matches
+            if "organize_matches" in request.form:
+                played_matches = {p['name']: set() for p in players}
+                previous_partners = {p['name']: set() for p in players}
+
+            if "organize_matches" in request.form or "reshuffle" in request.form:
+                matchups, player_match_counts, opponent_averages, opponent_diff, played_matches, previous_partners = organize_matches(
+                    players, courts, match_type, num_matches, played_matches, previous_partners
                 )
-
-            elif "save_session" in request.form and session_name:
-                file_path = os.path.join(SESSIONS_DIR, f"{session_name}.json")
-                with open(file_path, "w") as f:
-                    json.dump({
-                        "players": players,
-                        "courts": courts,
-                        "num_matches": num_matches,
-                        "match_type": match_type,
-                        "session_name": session_name
-                    }, f)
-
-            elif "load_session" in request.form and session_name:
-                file_path = os.path.join(SESSIONS_DIR, f"{session_name}.json")
-                if os.path.exists(file_path):
-                    with open(file_path, "r") as f:
-                        saved = json.load(f)
-                        players = saved.get("players", [])
-                        courts = saved.get("courts", 1)
-                        num_matches = saved.get("num_matches", 1)
-                        match_type = saved.get("match_type", "singles")
-                        session_name = saved.get("session_name", "")
-                        session.update(saved)
-
-            elif "reset" in request.form:
-                players = []
-                matchups = []
-                session.clear()
+                session["played_matches"] = {k: list(v) for k, v in played_matches.items()}
+                session["previous_partners"] = {k: list(v) for k, v in previous_partners.items()}
 
     return render_template(
         "index.html",
@@ -211,7 +237,6 @@ def index():
         opponent_diff=opponent_diff,
         error=session.pop("error", None)
     )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
