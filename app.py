@@ -2,23 +2,19 @@ from flask import Flask, render_template, request, session
 import json
 import os
 import csv
-from io import TextIOWrapper
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
 SESSIONS_DIR = "sessions"
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
-def organize_matches(players, courts, match_type, num_matches, played_matches=None, previous_partners=None):
+def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
     match_counts = {p['name']: 0 for p in players}
+    played_matches = {p['name']: set() for p in players}
     opponent_grades = {p['name']: [] for p in players}
     seen_doubles_matchups = set()
-
-    if played_matches is None:
-        played_matches = {p['name']: set() for p in players}
-    if previous_partners is None:
-        previous_partners = {p['name']: set() for p in players}
+    previous_partners = {p['name']: set() for p in players}
 
     def grade_distance(g1, g2):
         return abs(g1 - g2)
@@ -126,7 +122,8 @@ def organize_matches(players, courts, match_type, num_matches, played_matches=No
         for name in opponent_averages
     }
 
-    return matchups, match_counts, opponent_averages, opponent_diff, played_matches, previous_partners
+    return matchups, match_counts, opponent_averages, opponent_diff
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -135,34 +132,40 @@ def index():
     num_matches = session.get("num_matches", 1)
     match_type = session.get("match_type", "singles")
     session_name = session.get("session_name", "")
-    played_matches = {k: set(v) for k, v in session.get("played_matches", {}).items()}
-    previous_partners = {k: set(v) for k, v in session.get("previous_partners", {}).items()}
     matchups = []
     player_match_counts = {}
     opponent_averages = {}
     opponent_diff = {}
 
     if request.method == "POST":
+        session_name = request.form.get("session_name", "")
+        session["session_name"] = session_name
+
+        try:
+            courts = int(request.form.get("courts", session.get("courts", 1)))
+            num_matches = int(request.form.get("num_matches", session.get("num_matches", 1)))
+        except ValueError:
+            courts = session.get("courts", 1)
+            num_matches = session.get("num_matches", 1)
+
+        match_type = request.form.get("match_type", session.get("match_type", "singles"))
+
+        session.update({
+            "courts": courts,
+            "num_matches": num_matches,
+            "match_type": match_type
+        })
+
         if "remove_player" in request.form:
             name_to_remove = request.form.get("remove_player")
             players = [p for p in players if p["name"] != name_to_remove]
             session["players"] = players
 
         elif "upload_csv" in request.form and "csv_file" in request.files:
-            try:
-                courts = int(request.form.get("courts", courts))
-                num_matches = int(request.form.get("num_matches", num_matches))
-                match_type = request.form.get("match_type", match_type)
-                session.update({
-                    "courts": courts,
-                    "num_matches": num_matches,
-                    "match_type": match_type
-                })
-
-                file = request.files["csv_file"]
-                if file and file.filename.endswith(".csv"):
-                    stream = TextIOWrapper(file.stream)
-                    reader = csv.DictReader(stream)
+            file = request.files["csv_file"]
+            if file and file.filename.endswith(".csv"):
+                try:
+                    reader = csv.DictReader(file.read().decode("utf-8").splitlines())
                     for row in reader:
                         name = row.get("name", "").strip()
                         try:
@@ -172,57 +175,32 @@ def index():
                         if name and grade in [1, 2, 3, 4]:
                             players.append({"name": name, "grade": grade})
                     session["players"] = players
-            except Exception as e:
-                session["error"] = f"Failed to read CSV: {str(e)}"
+                except Exception as e:
+                    session["error"] = f"Failed to read CSV: {str(e)}"
 
         elif "reset" in request.form:
             players = []
             matchups = []
             session.clear()
 
-        else:
-            session_name = request.form.get("session_name", "")
-            session["session_name"] = session_name
-
+        elif "add_player" in request.form:
+            name = request.form.get("name", "").strip()
             try:
-                courts = int(request.form.get("courts", session.get("courts", 1)))
-                num_matches = int(request.form.get("num_matches", session.get("num_matches", 1)))
-            except ValueError:
-                courts = session.get("courts", 1)
-                num_matches = session.get("num_matches", 1)
+                grade = int(request.form.get("grade"))
+            except (TypeError, ValueError):
+                grade = None
 
-            match_type = request.form.get("match_type", session.get("match_type", "singles"))
+            if not name or grade not in [1, 2, 3, 4]:
+                session["error"] = "Please enter a valid name and select a grade between 1 (strongest) and 4 (weakest)."
+            else:
+                players.append({"name": name, "grade": grade})
+                session["players"] = players
+                session.pop("error", None)
 
-            session.update({
-                "courts": courts,
-                "num_matches": num_matches,
-                "match_type": match_type
-            })
-
-            if "add_player" in request.form:
-                name = request.form.get("name", "").strip()
-                try:
-                    grade = int(request.form.get("grade"))
-                except (TypeError, ValueError):
-                    grade = None
-
-                if not name or grade not in [1, 2, 3, 4]:
-                    session["error"] = "Please enter a valid name and select a grade between 1 (strongest) and 4 (weakest)."
-                else:
-                    players.append({"name": name, "grade": grade})
-                    session["players"] = players
-                    session.pop("error", None)
-
-            if "organize_matches" in request.form:
-                played_matches = {p['name']: set() for p in players}
-                previous_partners = {p['name']: set() for p in players}
-
-            if "organize_matches" in request.form or "reshuffle" in request.form:
-                matchups, player_match_counts, opponent_averages, opponent_diff, played_matches, previous_partners = organize_matches(
-                    players, courts, match_type, num_matches, played_matches, previous_partners
-                )
-                session["played_matches"] = {k: list(v) for k, v in played_matches.items()}
-                session["previous_partners"] = {k: list(v) for k, v in previous_partners.items()}
+        if "organize_matches" in request.form or "reshuffle" in request.form:
+            matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
+                players, courts, match_type, num_matches
+            )
 
     return render_template(
         "index.html",
