@@ -132,7 +132,7 @@
 </head>
 
 <body>
-  <h2>🎾 Wardle Organizer</h2>
+  <h2>🎾 SW Organizer</h2>
 
   <form method="POST" enctype="multipart/form-data">
     <div class="section">
@@ -235,6 +235,60 @@
       <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
     </div>
   </div>
+  <div class="section">
+    <h3>🎾 Practice Drill Generator</h3>
+    <form id="drillForm" method="POST">
+      <label>Number of Players:</label><br>
+      <input type="number" name="drill_players" value="8" min="2" required><br>
+  
+      <label>Format:</label><br>
+      <select name="drill_format">
+        <option value="singles">Singles</option>
+        <option value="doubles" selected>Doubles</option>
+      </select><br>
+  
+      <label>Focus Area:</label><br>
+      <input type="text" name="focus_area" placeholder="e.g. net play" required><br>
+  
+      <label>Total Time (minutes):</label><br>
+      <input type="number" name="drill_time" value="30" min="5" required><br>
+  
+      <label>Password:</label><br>
+      <input type="password" name="drill_password" placeholder="Enter password" required><br><br>
+  
+      <button type="submit" class="btn">⚙️ Generate Drills</button>
+    </form>
+  
+    <div id="drillResults" style="white-space: pre-wrap; display: none; padding: 1em; background-color: #388e3c; color: white; border-radius: 8px; margin-top: 1em; border: 1px solid white;"></div>
+  </div>
+  
+  <script>
+  document.getElementById("drillForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+  
+      const resultsBox = document.getElementById("drillResults");
+      resultsBox.style.display = "block";
+      resultsBox.textContent = "⏳ Generating drills... Please wait.";
+  
+      fetch("/generate_drills", {
+          method: "POST",
+          body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+          if (data.success) {
+              resultsBox.textContent = data.drills;
+          } else {
+              resultsBox.textContent = data.error;
+          }
+      })
+      .catch(error => {
+          resultsBox.textContent = "⚠️ Network error: " + error;
+      });
+  });
+  </script>
 
   <footer>
     <p>Cooked up by Jamie</p>

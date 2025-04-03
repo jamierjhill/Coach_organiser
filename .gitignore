@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Environment files
+.env
+*.env
+
+# Flask session data / secrets
+instance/
+*.sqlite3
+*.db
+
+# macOS / Linux / Windows junk files
+.DS_Store
+Thumbs.db
+
+# Python virtual environment folders
+venv/
+env/
+ENV/
+.venv/
+
+# Logs
+*.log
+
+# Cache and temporary files
+*.tmp
+*.swp
+*.bak
+.cache/
+.nosync/
+
+# VS Code settings (optional, if using VSCode)
+.vscode/
+
+# Compiled JS / frontend build folders (optional, if added)
+node_modules/
+dist/
+build/

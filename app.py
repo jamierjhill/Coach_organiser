@@ -1,13 +1,21 @@
-from flask import Flask, render_template, request, session
-import json
+from dotenv import load_dotenv
+load_dotenv()
+
+from flask import Flask, render_template, request, session, jsonify
 import os
 import csv
+from openai import OpenAI
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = os.getenv("FLASK_SECRET_KEY")  # ✅ this is the one you want
+
 SESSIONS_DIR = "sessions"
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ----------------------------- Match Organizer Function ----------------------------- #
 def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
     match_counts = {p['name']: 0 for p in players}
@@ -124,7 +132,7 @@ def organize_matches(players, courts, match_type, num_matches):
 
     return matchups, match_counts, opponent_averages, opponent_diff
 
-
+# ----------------------------- Main Page ----------------------------- #
 @app.route("/", methods=["GET", "POST"])
 def index():
     players = session.get("players", [])
@@ -216,5 +224,69 @@ def index():
         error=session.pop("error", None)
     )
 
+# ----------------------------- Practice Drill Generator ----------------------------- #
+@app.route("/generate_drills", methods=["POST"])
+def generate_drills():
+    from datetime import datetime, timedelta
+
+    try:
+        # ✅ Password protection
+        password = request.form.get("drill_password", "")
+        correct_password = os.getenv("DRILL_PASSWORD", "letmein")
+        if password != correct_password:
+            return jsonify({"success": False, "error": "🔒 Access denied. Incorrect password."})
+
+        # ✅ Rate limiting (5 per hour per session)
+        now = datetime.now()
+        if "drill_calls" not in session:
+            session["drill_calls"] = []
+
+        session["drill_calls"] = [
+            t for t in session["drill_calls"]
+            if datetime.fromisoformat(t) > now - timedelta(hours=1)
+        ]
+
+        if len(session["drill_calls"]) >= 5:
+            return jsonify({"success": False, "error": "⏱️ You've hit the limit (5 drills/hour). Please wait before trying again."})
+
+        session["drill_calls"].append(now.isoformat())
+        session.modified = True
+
+        # ✅ Extract drill form inputs
+        num_players = request.form.get("drill_players", "8")
+        format_type = request.form.get("drill_format", "doubles")
+        focus_area = request.form.get("focus_area", "net play")
+        time = request.form.get("drill_time", "30")
+
+        # ✅ Prompt for OpenAI
+        prompt = f"""
+        You are a professional tennis coach. Create a warm-up and practice drill plan for a session with these settings:
+        - Number of Players: {num_players}
+        - Format: {format_type}
+        - Focus Area: {focus_area}
+        - Total Time: {time} minutes
+
+        Suggest 2–3 creative, court-efficient, engaging drills. Include names, durations, setup, instructions, and purpose.
+        """
+
+        # ✅ Call OpenAI (GPT-3.5)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a tennis coaching assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
+
+        drills_text = response.choices[0].message.content
+        return jsonify({"success": True, "drills": drills_text})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+
+
+# ----------------------------- Run App ----------------------------- #
 if __name__ == "__main__":
     app.run(debug=True)
