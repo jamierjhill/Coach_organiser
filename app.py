@@ -224,11 +224,15 @@ def index():
         error=session.pop("error", None)
     )
 
+# ----------------------------- Link to guide ----------------------------- #
+@app.route("/guide")
+def guide():
+    return render_template("coach_guide.html")
+
+
 # ----------------------------- Practice Drill Generator ----------------------------- #
 @app.route("/generate_drills", methods=["POST"])
 def generate_drills():
-    from datetime import datetime, timedelta
-
     try:
         # ✅ Password protection
         password = request.form.get("drill_password", "")
@@ -241,6 +245,7 @@ def generate_drills():
         if "drill_calls" not in session:
             session["drill_calls"] = []
 
+        # Clean old calls
         session["drill_calls"] = [
             t for t in session["drill_calls"]
             if datetime.fromisoformat(t) > now - timedelta(hours=1)
@@ -252,13 +257,13 @@ def generate_drills():
         session["drill_calls"].append(now.isoformat())
         session.modified = True
 
-        # ✅ Extract drill form inputs
+        # Extract form inputs
         num_players = request.form.get("drill_players", "8")
         format_type = request.form.get("drill_format", "doubles")
         focus_area = request.form.get("focus_area", "net play")
         time = request.form.get("drill_time", "30")
 
-        # ✅ Prompt for OpenAI
+        # Create prompt
         prompt = f"""
         You are a professional tennis coach. Create a warm-up and practice drill plan for a session with these settings:
         - Number of Players: {num_players}
@@ -269,7 +274,7 @@ def generate_drills():
         Suggest 2–3 creative, court-efficient, engaging drills. Include names, durations, setup, instructions, and purpose.
         """
 
-        # ✅ Call OpenAI (GPT-3.5)
+        # Call OpenAI
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -279,11 +284,20 @@ def generate_drills():
             temperature=0.7
         )
 
-        drills_text = response.choices[0].message.content
+        drills_text = response.choices[0].message.content or ""
+        if len(drills_text) > 2000:
+            drills_text = drills_text[:2000] + "\n\n...(truncated)"
+
+        # ✅ Return response early — no writes after this
         return jsonify({"success": True, "drills": drills_text})
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+        # Log error to file (avoiding stdout)
+        import logging, traceback
+        logging.basicConfig(filename='/tmp/app.log', level=logging.ERROR)
+        logging.error("Drill generation error: %s", traceback.format_exc())
+        return jsonify({"success": False, "error": "⚠️ Something went wrong while generating drills."})
+
 
 
 

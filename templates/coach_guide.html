@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach's Guide - Tennis Session Organizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #e6f2ff;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    h1, h2, h3 {
+      color: #0066cc;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+    }
+    ul {
+      padding-left: 1.2em;
+    }
+    .tip {
+      background-color: #e8f8f5;
+      border-left: 4px solid #1abc9c;
+      padding: 0.5em 1em;
+      margin-top: 1em;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0066cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .back-btn:hover {
+      background-color: #004d99;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back-btn" href="/">⬅ Back to App</a>
+
+    <h1>🎾 How to Use the Tennis Session Organizer App</h1>
+    <p><strong>For Coaches:</strong> Quickly organize fair and balanced tennis sessions with this step-by-step guide.</p>
+
+    <h2>✅ Overview</h2>
+    <p>This app helps you organize singles or doubles matches based on player grades, track participation, and even import player lists via CSV.</p>
+
+    <h2>🗺️ Step-by-Step Guide</h2>
+
+    <h3>1. Access the App</h3>
+    <p>Open the app in your browser or on your iPad.</p>
+
+    <h3>2. Set Up the Session</h3>
+    <ul>
+      <li><strong>Number of Courts</strong>: Set how many courts are available.</li>
+      <li><strong>Number of Rounds</strong>: Set how many rounds of matches you'd like each player to play.</li>
+      <li><strong>Match Format</strong>: Choose <em>Singles</em> or <em>Doubles</em>.</li>
+    </ul>
+
+    <h3>3. Add Players</h3>
+    <p>Enter each player’s <strong>Name</strong> and <strong>Grade</strong> (1 to 4, 1 being strongest), then click <em>“Add Player.”</em></p>
+
+    <h3>4. Upload a CSV (Optional)</h3> 
+    <p>Click <em>“Upload CSV”</em> to load players from a spreadsheet with <code>Name</code> and <code>Grade</code> columns.</p>
+
+    <h3>5. Organize Matches</h3>
+    <p>Click <em>“Organize Matches”</em> to automatically generate fair matchups based on grade, court count and rounds selected.</p>
+    <p>Match format example:</p>
+    <code>Jamie (g1) vs. Jake (g3) - Court 3</code>
+    <p>For doubles, players will be paired based on their grades to ensure balanced teams. The g (grade) will be an average of the 2 players </p>
+    <p>Example:</p>
+    <code>Jamie & Jake (avg g1.5) vs. Sam & Alex (avg g2) - Court 1</code>
+    <h3>6. Review Player Stats</h3>
+    <p>At the bottom, check stats for each player:</p>
+    <ul>
+      <li>Matches Played</li>
+      <li>More Stats coming soon</li>
+    </ul>
+
+    <h3>7. Reshuffle if Needed</h3>
+    <p>Click <em>“Reshuffle”</em> to generate new matchups with the same players and settings.</p>
+
+    <h3>8. Save/Load Sessions [coming soon] </h3>
+    <ul>
+      <li>Use the session name box to <strong>Save</strong> the current setup.</li>
+      <li><strong>Load</strong> previous sessions as needed.</li>
+    </ul>
+
+    <h3>9. Reset All</h3>
+    <p>Click <em>“Reset All”</em> to clear players and matchups while keeping your settings intact.</p>
+
+    <h3>10. AI Practice Drill Generator (password protected for now)</h3>
+    <p>Use AI to come up with drill ideas, input a focus area and how long you have and let the magic happen.</p>
+
+    <div class="tip">
+      <strong>💡 Tips:</strong>
+      <ul>
+        <li>Use an iPad in landscape or the web for best results.</li>
+        <li>You can drag and drop matches to different courts.</li>
+        <li>There is a handy timer at the bottom to help you time each round/session.</li>
+      </ul>
+    </div>
+
+
+  </div>
+</body>
+</html>
