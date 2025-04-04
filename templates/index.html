@@ -150,19 +150,22 @@
       </select>
     </div>
 
-    <div class="section">
-      <h3>2. Add or Upload Players 👤</h3>
-      <label>Player Name:</label>
-      <input type="text" name="name">
-      <label>Grade:</label>
-      <input type="number" name="grade" min="1" max="4">
-      <span class="grade-note">(1 = strongest, 4 = weakest)</span><br>
-      <button type="submit" name="add_player" class="btn">➕ Add Player</button>
-      <hr style="margin: 20px auto; width: 60%; border: 1px dashed #ccc;">
-      <h4>📤 Upload from CSV</h4>
-      <input type="file" name="csv_file" accept=".csv">
-      <button type="submit" name="upload_csv" class="btn">📎 Upload CSV</button>
-      <p><small>CSV format: <code>name,grade</code></small></p>
+        <div class="section">
+          <h3>2. Add or Upload Players 👤</h3>
+          <label>Player Name:</label>
+          <input type="text" name="name">
+          <label>Grade:</label>
+          <input type="number" name="grade" min="1" max="4">
+          <span class="grade-note">(1 = strongest, 4 = weakest)</span><br>
+          <button type="submit" name="add_player" class="btn">➕ Add Player</button>
+          <hr style="margin: 20px auto; width: 60%; border: 1px dashed #ccc;">
+          <h4>📤 Upload from CSV (Coach Only)</h4>
+          <label>Password:</label>
+          <input type="password" name="csv_password" placeholder="Enter password"><br>
+          <input type="file" name="csv_file" accept=".csv"><br>
+          <button type="submit" name="upload_csv" class="btn">📎 Upload CSV</button>
+          <p><small>CSV format: <code>headers must be: name,grade</code></small></p>
+      
 
       {% if error %}
         <p style="color: yellow; font-weight: bold;">⚠️ {{ error }}</p>

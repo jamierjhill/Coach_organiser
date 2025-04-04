@@ -1,3 +1,4 @@
-add ai coach
-add pdf walk through for coaches
-add in app guide via side panel
+add ai coach - done
+add pdf walk through for coaches - done
+add in app guide via side panel - done
+drag and drop

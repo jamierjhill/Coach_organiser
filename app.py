@@ -6,6 +6,10 @@ import os
 import csv
 from openai import OpenAI
 from datetime import datetime, timedelta
+import io
+
+
+CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")  # ✅ this is the one you want
@@ -144,6 +148,7 @@ def index():
     player_match_counts = {}
     opponent_averages = {}
     opponent_diff = {}
+    error = None
 
     if request.method == "POST":
         session_name = request.form.get("session_name", "")
@@ -169,22 +174,51 @@ def index():
             players = [p for p in players if p["name"] != name_to_remove]
             session["players"] = players
 
-        elif "upload_csv" in request.form and "csv_file" in request.files:
-            file = request.files["csv_file"]
-            if file and file.filename.endswith(".csv"):
-                try:
-                    reader = csv.DictReader(file.read().decode("utf-8").splitlines())
-                    for row in reader:
-                        name = row.get("name", "").strip()
+        if "upload_csv" in request.form:
+            csv_password = request.form.get("csv_password", "")
+            print(f"Submitted password: {csv_password}")
+            print(f"Expected password: {CSV_UPLOAD_PASSWORD}")
+
+            if csv_password != CSV_UPLOAD_PASSWORD:
+                error = "❌ Incorrect password for CSV upload."
+            else:
+                if "csv_file" in request.files:
+                    file = request.files["csv_file"]
+                    print("CSV file uploaded:", file.filename)
+                    if file and file.filename.endswith(".csv"):
                         try:
-                            grade = int(row.get("grade", "").strip())
-                        except (ValueError, AttributeError):
-                            continue
-                        if name and grade in [1, 2, 3, 4]:
-                            players.append({"name": name, "grade": grade})
-                    session["players"] = players
-                except Exception as e:
-                    session["error"] = f"Failed to read CSV: {str(e)}"
+                            content = file.read().decode("utf-8")
+                            reader = csv.DictReader(io.StringIO(content))
+                            for row in reader:
+                                print("Parsed row:", row)
+                                name = row.get("name", "").strip()
+                                try:
+                                    grade = int(row.get("grade", "").strip())
+                                except (ValueError, AttributeError):
+                                    print("Invalid grade for row:", row)
+                                    continue
+                                if name and grade in [1, 2, 3, 4]:
+                                    players.append({"name": name, "grade": grade})
+                            session["players"] = players
+                        except Exception as e:
+                            error = f"❌ Failed to read CSV: {str(e)}"
+                    else:
+                        error = "⚠️ Please upload a valid .csv file."
+                else:
+                    error = "⚠️ No CSV file found in upload."
+
+            if error:
+                return render_template(
+                    "index.html",
+                    error=error,
+                    players=players,
+                    courts=courts,
+                    num_matches=num_matches,
+                    match_type=match_type,
+                    matchups=matchups,
+                    player_match_counts=player_match_counts,
+                    session_name=session_name
+                )
 
         elif "reset" in request.form:
             players = []
@@ -223,6 +257,7 @@ def index():
         opponent_diff=opponent_diff,
         error=session.pop("error", None)
     )
+
 
 # ----------------------------- Link to guide ----------------------------- #
 @app.route("/guide")
