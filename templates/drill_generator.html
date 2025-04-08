@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎾 AI Drill Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1b5e20;
+    }
+
+    textarea, input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background: #1b5e20;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .output {
+      margin-top: 25px;
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 8px;
+      color: #1b5e20;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: 15px;
+      font-family: 'Acumin', monospace;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      overflow-x: auto;
+    }
+
+    .output h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2e7d32;
+    }
+
+    .copy-btn {
+      margin-top: 15px;
+      padding: 8px 12px;
+      background-color: #388e3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .copy-btn:hover {
+      background-color: #2e7d32;
+    }
+
+    .copy-message {
+      margin-top: 10px;
+      color: #2e7d32;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #1b5e20;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎾 AI Drill Generator</h1>
+
+    {% if session.get('drill_access_granted') != True %}
+      <form method="POST">
+        <label for="password">Enter password to access:</label>
+        <input type="password" name="password" id="password" placeholder="Coach password">
+        <button type="submit">Unlock</button>
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+      </form>
+    {% else %}
+      <form method="POST">
+        <textarea name="prompt" placeholder="Describe the kind of drill you want...">Generate a beginner-friendly warm-up drill</textarea>
+        <button type="submit">Generate Drill</button>
+      </form>
+
+      {% if drill %}
+        <div class="output">
+          <h3>✅ Generated Drill</h3>
+          <div id="drillText">{{ drill }}</div>
+          <button type="button" class="copy-btn" onclick="copyDrill()">📋 Copy Drill</button>
+          <div id="copyMessage" class="copy-message" style="display: none;">✅ Copied!</div>
+        </div>
+      {% endif %}
+
+      <a href="/logout-drill-generator" style="color: #a00;">🔒 Log out</a>
+    {% endif %}
+
+    <a href="/">← Back to Main Page</a>
+  </div>
+
+  <script>
+    function copyDrill() {
+      const drillText = document.getElementById("drillText").innerText;
+      navigator.clipboard.writeText(drillText).then(() => {
+        const message = document.getElementById("copyMessage");
+        message.style.display = "block";
+        setTimeout(() => {
+          message.style.display = "none";
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

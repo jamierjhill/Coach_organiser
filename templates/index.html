@@ -83,6 +83,7 @@
       break-inside: avoid;
       margin-bottom: 8px;
     }
+    
   </style>
 </head>
 <script>
@@ -258,37 +259,19 @@
   </div>
 </div>
 
-
-
-<!-- 🎾 AI Practice Drill Generator -->
-<div class="section">
-  <h3>🎾 AI Practice Drill Generator 🔒</h3>
-  <form id="drillForm" method="POST">
-    <label>Number of Players:</label><br>
-    <input type="number" name="drill_players" value="8" min="2" required><br>
-
-    <label>Format:</label><br>
-    <select name="drill_format">
-      <option value="singles">Singles</option>
-      <option value="doubles" selected>Doubles</option>
-    </select><br>
-
-    <label>Focus Area:</label><br>
-    <input type="text" name="focus_area" placeholder="e.g. net play" required><br>
-
-    <label>Total Time (minutes):</label><br>
-    <input type="number" name="drill_time" value="30" min="5" required><br>
-
-    <label>Password:</label><br>
-    <input type="password" name="drill_password" placeholder="Enter password" required><br><br>
-
-    <button type="submit" class="btn">⚙️ Generate Drills</button>
-  </form>
-
-  <div id="drillResults" style="white-space: pre-wrap; display: none; padding: 1em; background-color: #388e3c; color: white; border-radius: 8px; margin-top: 1em; border: 1px solid white;"></div>
+<div class="ai-tools-container">
+  <!-- 🧮 Drill Generator -->
+  <div class="section">
+    <h3>🤖 AI Toolbox</h3>
+    <a href="/drill-generator" class="btn" style="display: inline-block; margin-top: 10px;">🎾 Try the AI Drill Generator</a>
+    <p style="margin-top: 10px;">Generate custom drills for your players using AI. Just describe the drill you want!</p>
+    <a href="/session-generator" class="btn" style="display: inline-block; margin-top: 10px;">📋 Create a Session Plan</a>
+    <p style="margin-top: 10px;">Generate a full session based on your number of players, your focus, and the desired duration.</p>
+  </div>
 </div>
 
-  <script>
+
+ <script>
   document.getElementById("drillForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const form = e.target;
@@ -327,22 +310,109 @@
   <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
 </div>
 
-<!-- 🧠 AI Chatbot Coach -->
-<div id="chatbot-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: #1b5e20; color: white; border: 2px solid #fff; border-radius: 10px; padding: 10px; z-index: 9999;">
-  <h4>🧠 CoachBot</h4>
-  <div id="chatbox" style="height: 150px; overflow-y: auto; background: #388e3c; padding: 5px; border-radius: 5px; margin-bottom: 10px;"></div>
-  <input type="text" id="chatInput" placeholder="Ask a tennis question..." style="width: 90%; padding: 5px; border-radius: 5px;">
-  <button onclick="sendChat()" class="btn" style="margin-top: 5px;">Send</button>
+<!-- 🧠 CoachBot Password Gate (collapsible) -->
+<div id="chatbot-password-toggle-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 320px;">
+  <div id="chatbot-password-header" onclick="togglePasswordGate()" style="cursor: pointer; background: #1b5e20; color: white; padding: 10px 15px; border-radius: 10px 10px 0 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between;">
+    🔒 CoachBot Access
+    <span id="password-toggle-icon">☝️</span>
+  </div>
+
+  <div id="chatbot-password-container" style="background: #040303; border: 2px solid #1b5e20; border-top: none; border-radius: 0 0 10px 10px; padding: 15px; display: block;">
+    <label for="chatbot-password" style="color: white;"><strong>Enter password to access CoachBot:</strong></label>
+    <input type="password" id="chatbot-password" style="width: 90%; margin-top: 8px; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc;">
+    <button onclick="unlockChatbot()" style="margin-top: 10px; width: 100%; padding: 8px; background: #1b5e20; color: white; border: none; border-radius: 5px;">Unlock</button>
+    <div id="chatbot-password-error" style="color: red; margin-top: 8px; display: none;">Incorrect password. Try again.</div>
+  </div>
 </div>
 
+<!-- 🧠 AI Chatbot Coach UI -->
+<div id="chatbot-widget-container" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+  <div id="chatbot-header" onclick="toggleChatbot()" style="cursor: pointer; background: #1b5e20; color: white; padding: 10px 15px; border-radius: 10px 10px 0 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between;">
+    🧠 CoachBot
+    <span id="chatbot-toggle-icon">☝️</span>
+  </div>
+
+  <div id="chatbot-widget" style="width: 320px; background: #ffffff; color: #000; border: 2px solid #1b5e20; border-radius: 0 0 10px 10px; padding: 10px; display: block; transition: all 0.3s ease;">
+    <div id="chatbox" style="height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 14px; display: flex; flex-direction: column;"></div>
+    <input type="text" id="chatInput" placeholder="Ask a tennis question..." style="width: 90%; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 5px;">
+    <button onclick="sendChat()" class="btn" style="width: 100%; padding: 8px; background: #1b5e20; color: white; border: none; border-radius: 5px;">Send</button>
+  </div>
+</div>
+
+<style>
+  .chat-msg {
+    max-width: 90%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+
+  .chat-user {
+    align-self: flex-end;
+    background: #c8e6c9;
+    color: #000;
+  }
+
+  .chat-bot {
+    align-self: flex-start;
+    background: #e8f5e9;
+    color: #1b5e20;
+  }
+</style>
+
 <script>
+let chatbotVisible = true;
+let passwordGateVisible = true;
+
+function toggleChatbot() {
+  chatbotVisible = !chatbotVisible;
+  const widget = document.getElementById("chatbot-widget");
+  const icon = document.getElementById("chatbot-toggle-icon");
+  widget.style.display = chatbotVisible ? "block" : "none";
+  icon.innerText = chatbotVisible ? "☝️" : "👇";
+}
+
+function togglePasswordGate() {
+  passwordGateVisible = !passwordGateVisible;
+  const body = document.getElementById("chatbot-password-container");
+  const icon = document.getElementById("password-toggle-icon");
+  body.style.display = passwordGateVisible ? "block" : "none";
+  icon.innerText = passwordGateVisible ? "☝️" : "👇";
+}
+
+function unlockChatbot() {
+  const password = document.getElementById("chatbot-password").value;
+  const errorBox = document.getElementById("chatbot-password-error");
+
+  fetch("/validate-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById("chatbot-password-toggle-container").style.display = "none";
+      document.getElementById("chatbot-widget-container").style.display = "block";
+    } else {
+      errorBox.style.display = "block";
+    }
+  })
+  .catch(() => {
+    errorBox.style.display = "block";
+    errorBox.textContent = "Server error. Try again.";
+  });
+}
+
 function sendChat() {
   const input = document.getElementById("chatInput");
   const chatbox = document.getElementById("chatbox");
   const userMsg = input.value.trim();
   if (!userMsg) return;
 
-  chatbox.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
+  chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
   input.value = "";
 
   fetch("/chatbot", {
@@ -352,19 +422,18 @@ function sendChat() {
   })
   .then(res => res.json())
   .then(data => {
-    if (data.success) {
-      chatbox.innerHTML += `<div><strong>CoachBot:</strong> ${data.reply}</div>`;
-    } else {
-      chatbox.innerHTML += `<div><strong>Error:</strong> ${data.error}</div>`;
-    }
+    const botResponse = data.success
+      ? `<strong>CoachBot:</strong> ${data.reply}`
+      : `<strong>Error:</strong> ${data.error}`;
+
+    chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
     chatbox.scrollTop = chatbox.scrollHeight;
   })
   .catch(err => {
-    chatbox.innerHTML += `<div><strong>Error:</strong> ${err}</div>`;
+    chatbox.innerHTML += `<div class="chat-msg chat-bot"><strong>Error:</strong> ${err}</div>`;
   });
 }
 </script>
-
 
   <footer>
     <p>Cooked up by Jamie</p>

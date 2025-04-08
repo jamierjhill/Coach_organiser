@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, session, jsonify
+from flask import Flask, render_template, request, session, jsonify, redirect
 import os
 import csv
 from openai import OpenAI
@@ -11,6 +11,8 @@ from collections import defaultdict
 import random
 
 CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
+COACHBOT_PASSWORD = os.getenv("COACHBOT_PASSWORD")
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -19,6 +21,17 @@ SESSIONS_DIR = "sessions"
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ----------------------------- Password Validation ----------------------------- #
+@app.route("/validate-password", methods=["POST"])
+def validate_password():
+    data = request.get_json()
+    if not data or "password" not in data:
+        return jsonify(success=False, error="No password received.")
+
+    if data["password"] == COACHBOT_PASSWORD:
+        return jsonify(success=True)
+    return jsonify(success=False, error="Incorrect password.")
 
 
 # ----------------------------- Match Organizer Function ----------------------------- #
@@ -324,66 +337,94 @@ def index():
 def guide():
     return render_template("coach_guide.html")
 
+# ----------------------------- Session Generator ----------------------------- #
+@app.route("/session-generator", methods=["GET", "POST"])
+def session_generator():
+    session_plan = None
 
-# ----------------------------- Practice Drill Generator ----------------------------- #
-@app.route("/generate_drills", methods=["POST"])
-def generate_drills():
-    try:
-        password = request.form.get("drill_password", "")
-        correct_password = os.getenv("DRILL_PASSWORD", "letmein")
-        if password != correct_password:
-            return jsonify({"success": False, "error": "🔒 Access denied. Incorrect password."})
+    # Password check
+    if not session.get("session_access_granted"):
+        if request.method == "POST" and "password" in request.form:
+            if request.form["password"] == os.getenv("SESSION_PASSWORD"):
+                session["session_access_granted"] = True
+                return redirect("/session-generator")
+            else:
+                return render_template("session_generator.html", error="Incorrect password")
+        return render_template("session_generator.html")  # Show password form only
 
-        now = datetime.now()
-        if "drill_calls" not in session:
-            session["drill_calls"] = []
+    # Session generation
+    if request.method == "POST" and "players" in request.form:
+        players = request.form.get("players")
+        focus = request.form.get("focus")
+        duration = request.form.get("duration")
 
-        session["drill_calls"] = [
-            t for t in session["drill_calls"]
-            if datetime.fromisoformat(t) > now - timedelta(hours=1)
-        ]
-
-        if len(session["drill_calls"]) >= 5:
-            return jsonify({"success": False, "error": "⏱️ You've hit the limit (5 drills/hour). Please wait before trying again."})
-
-        session["drill_calls"].append(now.isoformat())
-        session.modified = True
-
-        num_players = request.form.get("drill_players", "8")
-        format_type = request.form.get("drill_format", "doubles")
-        focus_area = request.form.get("focus_area", "net play")
-        time = request.form.get("drill_time", "30")
-
-        prompt = f"""
-        You are a professional tennis coach. Create a warm-up and practice drill plan for a session with these settings:
-        - Number of Players: {num_players}
-        - Format: {format_type}
-        - Focus Area: {focus_area}
-        - Total Time: {time} minutes
-
-        Suggest 2–3 creative, court-efficient, engaging drills. Include names, durations, setup, instructions, and purpose.
-        """
-
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a tennis coaching assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7
+        prompt = (
+            f"Create a tennis coaching session plan for {players} players. "
+            f"The focus should be on {focus}, and the session should last {duration} minutes. "
+            f"Include a warm-up, main drills, and a cool-down."
         )
 
-        drills_text = response.choices[0].message.content or ""
-        if len(drills_text) > 2000:
-            drills_text = drills_text[:2000] + "\n\n...(truncated)"
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient training sessions."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7
+            )
+            session_plan = response.choices[0].message.content.strip()
+        except Exception as e:
+            session_plan = f"⚠️ Error generating session: {str(e)}"
 
-        return jsonify({"success": True, "drills": drills_text})
+    return render_template("session_generator.html", session_plan=session_plan)
 
-    except Exception as e:
-        import logging, traceback
-        logging.basicConfig(filename='/tmp/app.log', level=logging.ERROR)
-        logging.error("Drill generation error: %s", traceback.format_exc())
-        return jsonify({"success": False, "error": "⚠️ Something went wrong while generating drills."})
+# ----------------------------- Log out session gen ----------------------------- #
+@app.route("/logout-session-generator")
+def logout_session_generator():
+    session.pop("session_access_granted", None)
+    return redirect("/session-generator")
+
+
+# ----------------------------- Drill Generator ----------------------------- #
+@app.route("/drill-generator", methods=["GET", "POST"])
+def drill_generator():
+    drill = None
+
+    # Check password session
+    if session.get("drill_access_granted") != True:
+        if request.method == "POST":
+            password = request.form.get("password", "")
+            if password == os.getenv("DRILL_PASSWORD"):
+                session["drill_access_granted"] = True
+                return redirect("/drill-generator")
+            else:
+                return render_template("drill_generator.html", error="Incorrect password.")
+        return render_template("drill_generator.html")  # show password form
+
+    # If password accepted and prompt submitted
+    if request.method == "POST" and "prompt" in request.form:
+        prompt = request.form["prompt"]
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7
+            )
+            drill = response.choices[0].message.content.strip()
+        except Exception as e:
+            drill = f"⚠️ Error generating drill: {str(e)}"
+
+    return render_template("drill_generator.html", drill=drill)
+
+# ----------------------------- logout drill gen ----------------------------- #
+@app.route("/logout-drill-generator")
+def logout_drill_generator():
+    session.pop("drill_access_granted", None)
+    return redirect("/drill-generator")
 
 
 # ----------------------------- ChatBot ----------------------------- #
@@ -418,7 +459,14 @@ def chatbot():
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful tennis coaching assistant."},
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful tennis coaching assistant. "
+                        "Keep answers concise, focused, and under 3 sentences. "
+                        "Avoid unnecessary detail unless specifically asked."
+                    )
+                },
                 {"role": "user", "content": user_input}
             ],
             temperature=0.6
@@ -428,7 +476,8 @@ def chatbot():
         return jsonify({"success": True, "reply": reply})
 
     except Exception as e:
-        return jsonify({"success": False, "error": "⚠️ Something went wrong with the AI coach."})
+        return jsonify({"success": False, "error": "⚠️ The AI coach encountered an error."})
+
 
 
 

@@ -2,3 +2,6 @@ add ai coach - done
 add pdf walk through for coaches - done
 add in app guide via side panel - done
 drag and drop
+Add chat bot - done
+Refine chat bot 
+Move drill generator to new tab
