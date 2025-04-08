@@ -21,6 +21,9 @@
       border-radius: 5px;
       border: 1px solid #fff;
     }
+    input[type="number"] {
+      width: 60px;
+    }
     .section {
       margin: 30px auto;
       padding: 20px;
@@ -28,20 +31,6 @@
       border: 2px solid #fff;
       border-radius: 10px;
       max-width: 800px;
-    }
-    .court-schedule-container {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .court-schedule {
-      border: 2px solid #ffffff;
-      background-color: #1b5e20;
-      padding: 10px;
-      border-radius: 8px;
-      width: 250px;
-      min-height: 100px;
     }
     .match {
       padding: 5px;
@@ -83,93 +72,119 @@
       border-radius: 8px;
       width: 300px;
     }
+    .summary-columns ul,
+    .player-columns ul {
+      column-count: 2;
+      column-gap: 20px;
+      padding: 0;
+    }
+    .summary-columns li,
+    .player-columns li {
+      break-inside: avoid;
+      margin-bottom: 8px;
+    }
   </style>
+</head>
+<script>
+  let timerInterval;
+  let remainingTime = 1200; // default: 20 mins
 
-  <script>
-    let timerInterval;
-    let remainingTime = 1200;
+  function updateClockDisplay(display) {
+    const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
+    const seconds = String(remainingTime % 60).padStart(2, '0');
+    display.textContent = `${minutes}:${seconds}`;
+  }
 
-    function updateClockDisplay(display) {
-      const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-      const seconds = String(remainingTime % 60).padStart(2, '0');
-      display.textContent = `${minutes}:${seconds}`;
-    }
-
-    function startClock(display) {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (remainingTime > 0) {
-          remainingTime--;
-          updateClockDisplay(display);
-        } else {
-          clearInterval(timerInterval);
-          display.textContent = "Time's up!";
-        }
-      }, 1000);
-    }
-
-    function pauseClock() {
-      clearInterval(timerInterval);
-    }
-
-    function setClockInput(display) {
-      const minutes = parseInt(document.getElementById('custom-minutes').value);
-      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
-        remainingTime = minutes * 60;
+  function startClock(display) {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (remainingTime > 0) {
+        remainingTime--;
         updateClockDisplay(display);
       } else {
-        alert("Please enter a number between 1 and 200.");
+        clearInterval(timerInterval);
+        display.textContent = "Time's up!";
       }
-    }
+    }, 1000);
+  }
 
-    window.onload = function () {
-      const display = document.getElementById('main-timer-display');
-      if (display) {
-        updateClockDisplay(display);
-      }
-    };
-  </script>
-</head>
+  function pauseClock() {
+    clearInterval(timerInterval);
+  }
+
+  function setClockInput(display) {
+    const minutes = parseInt(document.getElementById('custom-minutes').value);
+    if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
+      remainingTime = minutes * 60;
+      updateClockDisplay(display);
+    } else {
+      alert("Please enter a number between 1 and 200.");
+    }
+  }
+
+  window.onload = function () {
+    const display = document.getElementById('main-timer-display');
+    if (display) {
+      updateClockDisplay(display);
+    }
+  };
+</script>
 
 <body>
   <h2>🎾 SW Organizer</h2>
   <a href="/guide" class="btn">📘 Coach's Guide</a>
 
-
   <form method="POST" enctype="multipart/form-data">
     <div class="section">
       <h3>1. Session Setup 🎯</h3>
       <label>Number of courts:</label>
-      <input type="number" name="courts" min="1" value="{{ courts }}">
+      <input type="number" name="courts" min="1" value="{{ courts }}" />
       <label>Matches per player:</label>
-      <input type="number" name="num_matches" min="1" value="{{ num_matches }}">
+      <input type="number" name="num_matches" min="1" value="{{ num_matches }}" />
       <label>Format:</label>
       <select name="match_type">
         <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
         <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
       </select>
+      <label>View Schedule By:</label>
+      <select name="view_mode">
+        <option value="court" {% if view_mode == "court" %}selected{% endif %}>Court</option>
+        <option value="round" {% if view_mode == "round" %}selected{% endif %}>Round</option>
+      </select>
     </div>
 
-        <div class="section">
-          <h3>2. Add or Upload Players 👤</h3>
-          <label>Player Name:</label>
-          <input type="text" name="name">
-          <label>Grade:</label>
-          <input type="number" name="grade" min="1" max="4">
-          <span class="grade-note">(1 = strongest, 4 = weakest)</span><br>
-          <button type="submit" name="add_player" class="btn">➕ Add Player</button>
-          <hr style="margin: 20px auto; width: 60%; border: 1px dashed #ccc;">
-          <h4>📤 Upload from CSV (Coach Only) 🔒</h4>
-          <label>Password:</label>
-          <input type="password" name="csv_password" placeholder="Enter password"><br>
-          <input type="file" name="csv_file" accept=".csv"><br>
-          <button type="submit" name="upload_csv" class="btn">📎 Upload CSV</button>
-          <p><small>CSV format: <code>headers must be: name,grade</code></small></p>
-      
-
+    <div class="section">
+      <h3>2. Add or Upload Players 👤</h3>
+      <label>Player Name:</label>
+      <input type="text" name="name">
+      <label>Grade:</label>
+      <input type="number" name="grade" min="1" max="4">
+      <span class="grade-note">(1 = strongest, 4 = weakest)</span><br>
+      <button type="submit" name="add_player" class="btn">➕ Add Player</button>
+      <hr style="margin: 20px auto; width: 60%; border: 1px dashed #ccc;">
+      <h4>📤 Upload from CSV (Coach Only) 🔒</h4>
+      <label>Password:</label>
+      <input type="password" name="csv_password" placeholder="Enter password"><br>
+      <input type="file" name="csv_file" accept=".csv"><br>
+      <button type="submit" name="upload_csv" class="btn">📎 Upload CSV</button>
+      <p><small>CSV format: <code>headers must be: name,grade</code></small></p>
       {% if error %}
         <p style="color: yellow; font-weight: bold;">⚠️ {{ error }}</p>
       {% endif %}
+    </div>
+
+    <div class="section">
+      <h3>👟 Current Players ({{ players|length }})</h3>
+      <div class="player-columns">
+        <ul>
+          {% for player in players %}
+            <li>
+              🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
+              <button type="submit" name="remove_player" value="{{ player.name }}" class="btn">🗑️ Remove</button>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
     <div class="section">
@@ -180,39 +195,46 @@
     </div>
   </form>
 
-  <div class="section">
-    <h3>👟 Current Players ({{ players|length }})</h3>
-    <ul>
-      {% for player in players %}
-        <li>
-          🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
-          <form method="POST" style="display:inline;">
-            <input type="hidden" name="remove_player" value="{{ player.name }}">
-            <button type="submit" class="btn">🗑️ Remove</button>
-          </form>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
 
+  
+
+  {% if view_mode == "round" %}
   <div class="section">
-    <h3>📋 Match Schedules</h3>
+    <h3>📋 Match Schedule by Round</h3>
+    {% for round_num, matches in rounds.items() %}
+      <h4>Round {{ round_num }}</h4>
+      <ul>
+        {% for court_num, match in matches %}
+          <li><strong>Court {{ court_num }}:</strong>
+            {% if match|length == 2 %}
+              {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
+            {% else %}
+              {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+              vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})          
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="section">
+    <h3>📋 Match Schedule by Court</h3>
     <div class="court-schedule-container">
       {% for court_number in range(1, courts + 1) %}
         <div class="court-schedule">
           <h3>Court {{ court_number }}</h3>
           {% if matchups[court_number - 1] %}
             {% for match, round_num in matchups[court_number - 1] %}
-              {% if match|length == 2 %}
-                <p class="match">{{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})<br>
-                <small>Round {{ round_num }}</small></p>
-              {% elif match|length == 4 %}
-                {% set team1_avg = ((match[0].grade + match[1].grade) / 2) | round(1) %}
-                {% set team2_avg = ((match[2].grade + match[3].grade) / 2) | round(1) %}
-                <p class="match">{{ match[0].name }} & {{ match[1].name }} (Avg g{{ team1_avg }}) vs.
-                {{ match[2].name }} & {{ match[3].name }} (Avg g{{ team2_avg }})<br>
-                <small>Round {{ round_num }}</small></p>
-              {% endif %}
+              <p class="match">
+                {% if match|length == 2 %}
+                  {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
+                {% else %}
+                  {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+                  vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})                
+                {% endif %}
+                <br><small>Round {{ round_num }}</small>
+              </p>
             {% endfor %}
           {% else %}
             <p>No matches scheduled yet.</p>
@@ -221,79 +243,89 @@
       {% endfor %}
     </div>
   </div>
+{% endif %}
 
-  <div class="section">
-    <h3>🧮 Player Summary</h3>
+  
+<!-- 🧮 Player Summary -->
+<div class="section">
+  <h3>🧮 Player Summary</h3>
+  <div class="summary-columns">
     <ul>
       {% for player, match_count in player_match_counts.items() %}
         <li><strong>{{ player }}</strong>: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
       {% endfor %}
     </ul>
+  </div>
+</div>
 
-    <div class="timer-controls">
-      <h4>⏱️ Match Timer</h4>
-      <div id="main-timer-display">20:00</div>
-      <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
-      <button class="btn" onclick="pauseClock()">⏸️ Pause</button>
-      <br>
-      <input type="number" id="custom-minutes" min="1" max="200" value="20">
-      <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
-    </div>
-  </div>
-  <div class="section">
-    <h3>🎾 AI Practice Drill Generator 🔒</h3>
-    <form id="drillForm" method="POST">
-      <label>Number of Players:</label><br>
-      <input type="number" name="drill_players" value="8" min="2" required><br>
-  
-      <label>Format:</label><br>
-      <select name="drill_format">
-        <option value="singles">Singles</option>
-        <option value="doubles" selected>Doubles</option>
-      </select><br>
-  
-      <label>Focus Area:</label><br>
-      <input type="text" name="focus_area" placeholder="e.g. net play" required><br>
-  
-      <label>Total Time (minutes):</label><br>
-      <input type="number" name="drill_time" value="30" min="5" required><br>
-  
-      <label>Password:</label><br>
-      <input type="password" name="drill_password" placeholder="Enter password" required><br><br>
-  
-      <button type="submit" class="btn">⚙️ Generate Drills</button>
-    </form>
-  
-    <div id="drillResults" style="white-space: pre-wrap; display: none; padding: 1em; background-color: #388e3c; color: white; border-radius: 8px; margin-top: 1em; border: 1px solid white;"></div>
-  </div>
-  
+
+
+<!-- 🎾 AI Practice Drill Generator -->
+<div class="section">
+  <h3>🎾 AI Practice Drill Generator 🔒</h3>
+  <form id="drillForm" method="POST">
+    <label>Number of Players:</label><br>
+    <input type="number" name="drill_players" value="8" min="2" required><br>
+
+    <label>Format:</label><br>
+    <select name="drill_format">
+      <option value="singles">Singles</option>
+      <option value="doubles" selected>Doubles</option>
+    </select><br>
+
+    <label>Focus Area:</label><br>
+    <input type="text" name="focus_area" placeholder="e.g. net play" required><br>
+
+    <label>Total Time (minutes):</label><br>
+    <input type="number" name="drill_time" value="30" min="5" required><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="drill_password" placeholder="Enter password" required><br><br>
+
+    <button type="submit" class="btn">⚙️ Generate Drills</button>
+  </form>
+
+  <div id="drillResults" style="white-space: pre-wrap; display: none; padding: 1em; background-color: #388e3c; color: white; border-radius: 8px; margin-top: 1em; border: 1px solid white;"></div>
+</div>
+
   <script>
   document.getElementById("drillForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-  
-      const resultsBox = document.getElementById("drillResults");
-      resultsBox.style.display = "block";
-      resultsBox.textContent = "⏳ Generating drills... Please wait.";
-  
-      fetch("/generate_drills", {
-          method: "POST",
-          body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-          if (data.success) {
-              resultsBox.textContent = data.drills;
-          } else {
-              resultsBox.textContent = data.error;
-          }
-      })
-      .catch(error => {
-          resultsBox.textContent = "⚠️ Network error: " + error;
-      });
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const resultsBox = document.getElementById("drillResults");
+    resultsBox.style.display = "block";
+    resultsBox.textContent = "⏳ Generating drills... Please wait.";
+
+    fetch("/generate_drills", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            resultsBox.textContent = data.drills;
+        } else {
+            resultsBox.textContent = data.error;
+        }
+    })
+    .catch(error => {
+        resultsBox.textContent = "⚠️ Network error: " + error;
+    });
   });
   </script>
+
+  <!-- ⏱️ Match Timer -->
+<div class="timer-controls">
+  <h4>⏱️ Match Timer</h4>
+  <div id="main-timer-display">20:00</div>
+  <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
+  <button class="btn" onclick="pauseClock()">⏸️ Pause</button>
+  <br>
+  <input type="number" id="custom-minutes" min="1" max="200" value="20">
+  <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+</div>
 
   <footer>
     <p>Cooked up by Jamie</p>
