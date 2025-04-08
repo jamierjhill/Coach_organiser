@@ -29,15 +29,13 @@ def organize_matches(players, courts, match_type, num_matches):
     opponent_grades = {p['name']: [] for p in players}
     seen_doubles_matchups = set()
     previous_partners = {p['name']: set() for p in players}
-    last_round_groups = {p['name']: set() for p in players}  # NEW: Track last round teammates/opponents
+    last_round_groups = {p['name']: set() for p in players}
 
     def grade_distance(g1, g2):
         return abs(g1 - g2)
 
     def find_best_partner(player, candidates, round_num):
-        grade_targets = [player['grade']] if round_num == 0 else opponent_grades[player['name']]
-        if not grade_targets:
-            grade_targets = [player['grade']]
+        grade_targets = opponent_grades[player['name']] or [player['grade']]
         sorted_candidates = sorted(
             candidates,
             key=lambda p: min(grade_distance(p['grade'], gt) for gt in grade_targets)
@@ -51,7 +49,7 @@ def organize_matches(players, courts, match_type, num_matches):
                 return candidate
         return None
 
-    def find_best_doubles_group(available, seen_matchups):
+    def find_best_doubles_group(available, seen_matchups, avoid_group=None):
         best_group = None
         best_diff = float('inf')
         best_match_key = None
@@ -65,13 +63,6 @@ def organize_matches(players, courts, match_type, num_matches):
                         if len(set(names)) < 4:
                             continue
 
-                        # Avoid if any players played together last round
-                        if any(
-                            other['name'] in last_round_groups[p['name']]
-                            for p in group for other in group if p['name'] != other['name']
-                        ):
-                            continue
-
                         team1 = [group[0], group[1]]
                         team2 = [group[2], group[3]]
                         team1_names = frozenset(p['name'] for p in team1)
@@ -81,7 +72,7 @@ def organize_matches(players, courts, match_type, num_matches):
                         if match_key in seen_matchups:
                             continue
 
-                        if any(p2['name'] in previous_partners[p1['name']] for p1, p2 in [(team1[0], team1[1]), (team2[0], team2[1])]):
+                        if avoid_group and frozenset(names) == avoid_group:
                             continue
 
                         team1_avg = sum(p['grade'] for p in team1) / 2
@@ -93,50 +84,76 @@ def organize_matches(players, courts, match_type, num_matches):
                             best_group = team1 + team2
                             best_match_key = match_key
 
-        return best_group, best_match_key if best_group else (None, None)
+        # Fallback: Allow repeats if needed
+        if not best_group:
+            for i in range(len(available)):
+                for j in range(i+1, len(available)):
+                    for k in range(len(available)):
+                        for l in range(k+1, len(available)):
+                            group = [available[i], available[j], available[k], available[l]]
+                            names = [p['name'] for p in group]
+                            if len(set(names)) < 4:
+                                continue
+
+                            team1 = [group[0], group[1]]
+                            team2 = [group[2], group[3]]
+                            team1_names = frozenset(p['name'] for p in team1)
+                            team2_names = frozenset(p['name'] for p in team2)
+                            match_key = frozenset([team1_names, team2_names])
+
+                            if avoid_group and frozenset(names) == avoid_group:
+                                continue
+
+                            team1_avg = sum(p['grade'] for p in team1) / 2
+                            team2_avg = sum(p['grade'] for p in team2) / 2
+                            diff = abs(team1_avg - team2_avg)
+
+                            if diff < best_diff:
+                                best_diff = diff
+                                best_group = team1 + team2
+                                best_match_key = match_key
+
+        return (best_group, best_match_key) if best_group else (None, None)
 
     for round_num in range(num_matches):
         available_players = sorted(players, key=lambda p: match_counts[p['name']])
         used_names = set()
-        new_round_groups = {p['name']: set() for p in players}  # Will become last_round_groups next round
+        new_round_groups = {p['name']: set() for p in players}
 
         for court_index in range(courts):
-            if len(available_players) - len(used_names) < (4 if match_type == "doubles" else 2):
-                break
+            needed_players = 4 if match_type == "doubles" else 2
+            if len(available_players) - len(used_names) < needed_players:
+                continue
 
             candidates = [p for p in available_players if p['name'] not in used_names]
 
             if match_type == "doubles":
-                group, match_key = find_best_doubles_group(candidates, seen_doubles_matchups)
+                group, match_key = find_best_doubles_group(
+                    candidates,
+                    seen_doubles_matchups
+                )
+
                 if not group:
                     continue
 
                 seen_doubles_matchups.add(match_key)
-
                 for p in group:
                     used_names.add(p['name'])
+                    new_round_groups[p['name']].update({mate['name'] for mate in group if mate['name'] != p['name']})
 
                 previous_partners[group[0]['name']].add(group[1]['name'])
                 previous_partners[group[1]['name']].add(group[0]['name'])
                 previous_partners[group[2]['name']].add(group[3]['name'])
                 previous_partners[group[3]['name']].add(group[2]['name'])
 
-                for p in group:
-                    for other in group:
-                        if p['name'] != other['name']:
-                            new_round_groups[p['name']].add(other['name'])
-
                 pair = group
 
-            else:  # singles
-                p1 = next((p for p in candidates), None)
-                if not p1:
-                    break
-                candidates.remove(p1)
+            else:
+                p1 = candidates.pop(0)
                 p2 = find_best_partner(p1, candidates, round_num)
                 if not p2:
                     continue
-                used_names.update([p1['name'], p2['name']])
+                used_names.update({p1['name'], p2['name']})
                 pair = [p1, p2]
                 new_round_groups[p1['name']].add(p2['name'])
                 new_round_groups[p2['name']].add(p1['name'])
@@ -150,7 +167,7 @@ def organize_matches(players, courts, match_type, num_matches):
 
             matchups[court_index].append((pair, round_num + 1))
 
-        last_round_groups = new_round_groups  # Update for next round
+        last_round_groups = new_round_groups
 
     opponent_averages = {
         name: round(sum(grades) / len(grades), 2) if grades else 0
@@ -163,7 +180,6 @@ def organize_matches(players, courts, match_type, num_matches):
     }
 
     return matchups, match_counts, opponent_averages, opponent_diff
-
 
 
 # ----------------------------- Main Page ----------------------------- #
