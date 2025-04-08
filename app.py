@@ -386,5 +386,51 @@ def generate_drills():
         return jsonify({"success": False, "error": "⚠️ Something went wrong while generating drills."})
 
 
+# ----------------------------- ChatBot ----------------------------- #
+@app.route("/chatbot", methods=["POST"])
+def chatbot():
+    try:
+        user_input = request.json.get("message", "")
+        if not user_input:
+            return jsonify({"success": False, "error": "❌ No message received."})
+
+        now = datetime.now()
+        if "chatbot_calls" not in session:
+            session["chatbot_calls"] = []
+
+        # Clean up old timestamps
+        session["chatbot_calls"] = [
+            t for t in session["chatbot_calls"]
+            if datetime.fromisoformat(t) > now - timedelta(hours=1)
+        ]
+
+        if len(session["chatbot_calls"]) >= 10:
+            return jsonify({
+                "success": False,
+                "error": "⏳ Limit reached: You’ve sent 10 messages this hour. Please wait before sending more."
+            })
+
+        # Record this call
+        session["chatbot_calls"].append(now.isoformat())
+        session.modified = True
+
+        # Call OpenAI
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful tennis coaching assistant."},
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.6
+        )
+
+        reply = response.choices[0].message.content.strip()
+        return jsonify({"success": True, "reply": reply})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": "⚠️ Something went wrong with the AI coach."})
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)

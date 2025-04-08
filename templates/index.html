@@ -327,6 +327,45 @@
   <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
 </div>
 
+<!-- 🧠 AI Chatbot Coach -->
+<div id="chatbot-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: #1b5e20; color: white; border: 2px solid #fff; border-radius: 10px; padding: 10px; z-index: 9999;">
+  <h4>🧠 CoachBot</h4>
+  <div id="chatbox" style="height: 150px; overflow-y: auto; background: #388e3c; padding: 5px; border-radius: 5px; margin-bottom: 10px;"></div>
+  <input type="text" id="chatInput" placeholder="Ask a tennis question..." style="width: 90%; padding: 5px; border-radius: 5px;">
+  <button onclick="sendChat()" class="btn" style="margin-top: 5px;">Send</button>
+</div>
+
+<script>
+function sendChat() {
+  const input = document.getElementById("chatInput");
+  const chatbox = document.getElementById("chatbox");
+  const userMsg = input.value.trim();
+  if (!userMsg) return;
+
+  chatbox.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
+  input.value = "";
+
+  fetch("/chatbot", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userMsg })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      chatbox.innerHTML += `<div><strong>CoachBot:</strong> ${data.reply}</div>`;
+    } else {
+      chatbox.innerHTML += `<div><strong>Error:</strong> ${data.error}</div>`;
+    }
+    chatbox.scrollTop = chatbox.scrollHeight;
+  })
+  .catch(err => {
+    chatbox.innerHTML += `<div><strong>Error:</strong> ${err}</div>`;
+  });
+}
+</script>
+
+
   <footer>
     <p>Cooked up by Jamie</p>
   </footer>
