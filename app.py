@@ -451,32 +451,42 @@ def chatbot():
                 "error": "⏳ Limit reached: You’ve sent 10 messages this hour. Please wait before sending more."
             })
 
-        # Record this call
+        # Track call
         session["chatbot_calls"].append(now.isoformat())
         session.modified = True
 
-        # Call OpenAI
+        # Start or retrieve conversation history
+        if "chatbot_history" not in session:
+            session["chatbot_history"] = [{
+                "role": "system",
+                "content": (
+                    "You are a helpful tennis coaching assistant. "
+                    "Keep answers concise, focused, and under 3 sentences. "
+                    "Prompt the user to ask follow-ups (drills, advice, video)."
+                )
+            }]
+
+        # Add user message
+        session["chatbot_history"].append({"role": "user", "content": user_input})
+
+        # Call OpenAI with full chat history
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a helpful tennis coaching assistant. "
-                        "Keep answers concise, focused, and under 3 sentences. "
-                        "Avoid unnecessary detail unless specifically asked."
-                    )
-                },
-                {"role": "user", "content": user_input}
-            ],
+            messages=session["chatbot_history"],
             temperature=0.6
         )
 
         reply = response.choices[0].message.content.strip()
+
+        # Save bot's reply
+        session["chatbot_history"].append({"role": "assistant", "content": reply})
+        session.modified = True
+
         return jsonify({"success": True, "reply": reply})
 
     except Exception as e:
         return jsonify({"success": False, "error": "⚠️ The AI coach encountered an error."})
+
 
 
 
