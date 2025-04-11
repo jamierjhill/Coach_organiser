@@ -3,440 +3,298 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tennis Match Organizer</title>
+  <title>🎾 Tennis Match Organizer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #2e7d32;
-      color: #fff;
-      margin: 20px;
-      text-align: center;
+      background-color: #e8f5e9;
+      font-family: 'Segoe UI', sans-serif;
     }
-    h2, h3, label {
-      color: #fff;
-    }
-    input, select, button {
-      margin: 5px;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #fff;
-    }
-    input[type="number"] {
-      width: 60px;
-    }
-    .section {
-      margin: 30px auto;
+
+    .card-section {
+      background-color: #ffffff;
+      border-left: 6px solid #1b5e20;
+      border-radius: 12px;
       padding: 20px;
-      background-color: #1b5e20;
-      border: 2px solid #fff;
-      border-radius: 10px;
-      max-width: 800px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     }
-    .match {
-      padding: 5px;
-      margin: 3px 0;
-      background-color: #388e3c;
-      border-radius: 5px;
-    }
-    .btn {
-      background-color: #ffeb3b;
-      color: #1b5e20;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 5px;
+
+    .tennis-btn {
+      background-color: #43a047;
+      color: white;
       font-weight: bold;
     }
-    .btn:hover {
-      background-color: #fdd835;
+
+    .tennis-btn:hover {
+      background-color: #2e7d32;
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    li {
-      background-color: #388e3c;
-      padding: 5px;
-      margin: 5px 0;
-      border-radius: 5px;
-    }
-    .grade-note {
-      font-size: small;
-      color: yellow;
-    }
-    .timer-controls {
-      margin: 20px auto;
+
+    .match {
+      background-color: #c8e6c9;
       padding: 10px;
-      background-color: #1b5e20;
-      border: 2px solid #fff;
       border-radius: 8px;
-      width: 300px;
-    }
-    .summary-columns ul,
-    .player-columns ul {
-      column-count: 2;
-      column-gap: 20px;
-      padding: 0;
-    }
-    .summary-columns li,
-    .player-columns li {
-      break-inside: avoid;
       margin-bottom: 8px;
     }
-    
+
+    .player-box {
+      background-color: #e0f2f1;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .timer-controls {
+      background: #ffffff;
+      border-left: 6px solid #1b5e20;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      font-size: 14px;
+      color: #555;
+    }
   </style>
 </head>
-<script>
-  let timerInterval;
-  let remainingTime = 1200; // default: 20 mins
+<body>
+  <div class="container py-4">
+    <h2 class="text-success text-center mb-4">🎾 Match Organizer</h2>
+    <div class="text-center mb-3">
+      <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+      <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+    </div>
 
-  function updateClockDisplay(display) {
-    const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-    const seconds = String(remainingTime % 60).padStart(2, '0');
-    display.textContent = `${minutes}:${seconds}`;
-  }
+    <form method="POST" enctype="multipart/form-data">
+      <!-- Session Setup -->
+      <div class="card-section">
+        <h4>🎯 Session Setup</h4>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Courts</label>
+            <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Matches per player</label>
+            <input type="number" class="form-control" name="num_matches" min="1" value="{{ num_matches }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Format</label>
+            <select class="form-select" name="match_type">
+              <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
+              <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
+            </select>
+          </div>
 
-  function startClock(display) {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      if (remainingTime > 0) {
-        remainingTime--;
+        </div>
+      </div>
+
+      <!-- Add / Upload Players -->
+      <div class="card-section">
+        <h4>👤 Add or Upload Players</h4>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input type="text" name="name" class="form-control" placeholder="Player name">
+          </div>
+          <div class="col-md-4">
+            <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" name="add_player" class="btn tennis-btn w-100">➕ Add</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <hr>
+          <h6>📤 Upload from CSV (Coach Only) 🔒</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <input type="password" name="csv_password" class="form-control" placeholder="Password">
+            </div>
+            <div class="col-md-4">
+              <input type="file" name="csv_file" accept=".csv" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <button type="submit" name="upload_csv" class="btn tennis-btn w-100">📎 Upload CSV</button>
+            </div>
+          </div>
+          <small class="text-muted d-block mt-2">CSV format: <code>name,grade</code></small>
+          {% if error %}
+            <div class="text-danger fw-bold mt-2">⚠️ {{ error }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Player List -->
+      <div class="card-section">
+        <h4>👟 Current Players ({{ players|length }})</h4>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          {% for player in players %}
+            <div class="col">
+              <div class="player-box d-flex justify-content-between align-items-center">
+                <span>🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})</span>
+                <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="text-center my-4">
+        <button type="submit" name="organize_matches" class="btn tennis-btn me-2">🎯 Organize Matches</button>
+        <button type="submit" name="reshuffle" class="btn tennis-btn me-2">🔀 Reshuffle</button>
+        <button type="submit" name="reset" class="btn btn-outline-danger">🔁 Reset All</button>
+      </div>
+    </form>
+
+
+<!-- Match Schedule Container with Toggle -->
+<div class="card-section">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">📋 Match Schedule</h4>
+    <div>
+      <label for="scheduleToggle" class="form-label me-2">🔀 View By</label>
+      <select class="form-select d-inline w-auto" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
+        <option value="court">Court</option>
+        <option value="round">Round</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Match Schedule by Round -->
+  <div id="schedule-round" style="display: none;">
+    {% for round_num, matches in rounds.items() %}
+      <h5 class="text-success">Round {{ round_num }}</h5>
+      {% for court_num, match in matches %}
+        <div class="match">
+          <strong>Court {{ court_num }}:</strong>
+          {% if match|length == 2 %}
+            {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
+          {% else %}
+            {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+            vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <!-- Match Schedule by Court -->
+  <div id="schedule-court" style="display: none;">
+    {% for court_number in range(1, courts + 1) %}
+      <h5 class="text-success">Court {{ court_number }}</h5>
+      {% if matchups[court_number - 1] %}
+        {% for match, round_num in matchups[court_number - 1] %}
+          <div class="match">
+            {% if match|length == 2 %}
+              {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
+            {% else %}
+              {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+              vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
+            {% endif %}
+            <br><small>Round {{ round_num }}</small>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No matches scheduled.</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+
+    <!-- Summary -->
+    <div class="card-section">
+      <h4>🧮 Player Summary</h4>
+      <ul class="list-group list-group-flush">
+        {% for player, match_count in player_match_counts.items() %}
+          <li class="list-group-item">{{ player }}: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-controls">
+      <h5>⏱️ Match Timer</h5>
+      <div id="main-timer-display" class="fs-4 mb-3">20:00</div>
+      <div class="d-flex gap-2 justify-content-center mb-2">
+        <button class="btn tennis-btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
+        <button class="btn btn-secondary" onclick="pauseClock()">⏸️ Pause</button>
+      </div>
+      <div class="input-group w-50 mx-auto">
+        <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
+        <button class="btn btn-outline-success" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+      </div>
+    </div>
+
+    <footer class="mt-5">
+      <p>Cooked up by Jamie</p>
+    </footer>
+  </div>
+
+  <script>
+    let timerInterval;
+    let remainingTime = 1200;
+
+    function updateClockDisplay(display) {
+      const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
+      const seconds = String(remainingTime % 60).padStart(2, '0');
+      display.textContent = `${minutes}:${seconds}`;
+    }
+
+    function startClock(display) {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (remainingTime > 0) {
+          remainingTime--;
+          updateClockDisplay(display);
+        } else {
+          clearInterval(timerInterval);
+          display.textContent = "Time's up!";
+        }
+      }, 1000);
+    }
+
+    function pauseClock() {
+      clearInterval(timerInterval);
+    }
+
+    function setClockInput(display) {
+      const minutes = parseInt(document.getElementById('custom-minutes').value);
+      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
+        remainingTime = minutes * 60;
         updateClockDisplay(display);
       } else {
-        clearInterval(timerInterval);
-        display.textContent = "Time's up!";
+        alert("Please enter a number between 1 and 200.");
       }
-    }, 1000);
-  }
-
-  function pauseClock() {
-    clearInterval(timerInterval);
-  }
-
-  function setClockInput(display) {
-    const minutes = parseInt(document.getElementById('custom-minutes').value);
-    if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
-      remainingTime = minutes * 60;
-      updateClockDisplay(display);
-    } else {
-      alert("Please enter a number between 1 and 200.");
     }
+
+    window.onload = function () {
+      const display = document.getElementById('main-timer-display');
+      if (display) updateClockDisplay(display);
+    };
+  </script>
+<script>
+  function toggleScheduleView(view) {
+    const roundDiv = document.getElementById("schedule-round");
+    const courtDiv = document.getElementById("schedule-court");
+    roundDiv.style.display = view === "round" ? "block" : "none";
+    courtDiv.style.display = view === "court" ? "block" : "none";
   }
 
   window.onload = function () {
-    const display = document.getElementById('main-timer-display');
-    if (display) {
-      updateClockDisplay(display);
+    const defaultView = "{{ view_mode }}";
+    const selector = document.getElementById("scheduleToggle");
+    if (selector) {
+      selector.value = defaultView;
+      toggleScheduleView(defaultView);
     }
   };
 </script>
 
-<body>
-  <h2>🎾 SW Organizer</h2>
-  <a href="/guide" class="btn">📘 Coach's Guide</a>
-
-  <form method="POST" enctype="multipart/form-data">
-    <div class="section">
-      <h3>1. Session Setup 🎯</h3>
-      <label>Number of courts:</label>
-      <input type="number" name="courts" min="1" value="{{ courts }}" />
-      <label>Matches per player:</label>
-      <input type="number" name="num_matches" min="1" value="{{ num_matches }}" />
-      <label>Format:</label>
-      <select name="match_type">
-        <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
-        <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
-      </select>
-      <label>View Schedule By:</label>
-      <select name="view_mode">
-        <option value="court" {% if view_mode == "court" %}selected{% endif %}>Court</option>
-        <option value="round" {% if view_mode == "round" %}selected{% endif %}>Round</option>
-      </select>
-    </div>
-
-    <div class="section">
-      <h3>2. Add or Upload Players 👤</h3>
-      <label>Player Name:</label>
-      <input type="text" name="name">
-      <label>Grade:</label>
-      <input type="number" name="grade" min="1" max="4">
-      <span class="grade-note">(1 = strongest, 4 = weakest)</span><br>
-      <button type="submit" name="add_player" class="btn">➕ Add Player</button>
-      <hr style="margin: 20px auto; width: 60%; border: 1px dashed #ccc;">
-      <h4>📤 Upload from CSV (Coach Only) 🔒</h4>
-      <label>Password:</label>
-      <input type="password" name="csv_password" placeholder="Enter password"><br>
-      <input type="file" name="csv_file" accept=".csv"><br>
-      <button type="submit" name="upload_csv" class="btn">📎 Upload CSV</button>
-      <p><small>CSV format: <code>headers must be: name,grade</code></small></p>
-      {% if error %}
-        <p style="color: yellow; font-weight: bold;">⚠️ {{ error }}</p>
-      {% endif %}
-    </div>
-
-    <div class="section">
-      <h3>👟 Current Players ({{ players|length }})</h3>
-      <div class="player-columns">
-        <ul>
-          {% for player in players %}
-            <li>
-              🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
-              <button type="submit" name="remove_player" value="{{ player.name }}" class="btn">🗑️ Remove</button>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>3. Actions 🛠️</h3>
-      <button type="submit" name="organize_matches" class="btn">🎯 Organize Matches</button>
-      <button type="submit" name="reshuffle" class="btn">🔀 Reshuffle Matches</button>
-      <button type="submit" name="reset" class="btn">🔁 Reset All</button>
-    </div>
-  </form>
-
-
   
-
-  {% if view_mode == "round" %}
-  <div class="section">
-    <h3>📋 Match Schedule by Round</h3>
-    {% for round_num, matches in rounds.items() %}
-      <h4>Round {{ round_num }}</h4>
-      <ul>
-        {% for court_num, match in matches %}
-          <li><strong>Court {{ court_num }}:</strong>
-            {% if match|length == 2 %}
-              {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
-            {% else %}
-              {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-              vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})          
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="section">
-    <h3>📋 Match Schedule by Court</h3>
-    <div class="court-schedule-container">
-      {% for court_number in range(1, courts + 1) %}
-        <div class="court-schedule">
-          <h3>Court {{ court_number }}</h3>
-          {% if matchups[court_number - 1] %}
-            {% for match, round_num in matchups[court_number - 1] %}
-              <p class="match">
-                {% if match|length == 2 %}
-                  {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
-                {% else %}
-                  {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-                  vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})                
-                {% endif %}
-                <br><small>Round {{ round_num }}</small>
-              </p>
-            {% endfor %}
-          {% else %}
-            <p>No matches scheduled yet.</p>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-  
-<!-- 🧮 Player Summary -->
-<div class="section">
-  <h3>🧮 Player Summary</h3>
-  <div class="summary-columns">
-    <ul>
-      {% for player, match_count in player_match_counts.items() %}
-        <li><strong>{{ player }}</strong>: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-
-<div class="ai-tools-container">
-  <!-- 🧮 Drill Generator -->
-  <div class="section">
-    <h3>🤖 AI Toolbox</h3>
-    <a href="/drill-generator" class="btn" style="display: inline-block; margin-top: 10px;">🎾 Try the AI Drill Generator</a>
-    <p style="margin-top: 10px;">Generate custom drills for your players using AI. Just describe the drill you want!</p>
-    <a href="/session-generator" class="btn" style="display: inline-block; margin-top: 10px;">📋 Create a Session Plan</a>
-    <p style="margin-top: 10px;">Generate a full session based on your number of players, your focus, and the desired duration.</p>
-  </div>
-</div>
-
-
- <script>
-  document.getElementById("drillForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-
-    const resultsBox = document.getElementById("drillResults");
-    resultsBox.style.display = "block";
-    resultsBox.textContent = "⏳ Generating drills... Please wait.";
-
-    fetch("/generate_drills", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            resultsBox.textContent = data.drills;
-        } else {
-            resultsBox.textContent = data.error;
-        }
-    })
-    .catch(error => {
-        resultsBox.textContent = "⚠️ Network error: " + error;
-    });
-  });
-  </script>
-
-  <!-- ⏱️ Match Timer -->
-<div class="timer-controls">
-  <h4>⏱️ Match Timer</h4>
-  <div id="main-timer-display">20:00</div>
-  <button class="btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
-  <button class="btn" onclick="pauseClock()">⏸️ Pause</button>
-  <br>
-  <input type="number" id="custom-minutes" min="1" max="200" value="20">
-  <button class="btn" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
-</div>
-
-<!-- 🧠 CoachBot Password Gate (collapsible) -->
-<div id="chatbot-password-toggle-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 320px;">
-  <div id="chatbot-password-header" onclick="togglePasswordGate()" style="cursor: pointer; background: #1b5e20; color: white; padding: 10px 15px; border-radius: 10px 10px 0 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between;">
-    🔒 CoachBot Access
-    <span id="password-toggle-icon">☝️</span>
-  </div>
-
-  <div id="chatbot-password-container" style="background: #040303; border: 2px solid #1b5e20; border-top: none; border-radius: 0 0 10px 10px; padding: 15px; display: block;">
-    <label for="chatbot-password" style="color: white;"><strong>Enter password to access CoachBot:</strong></label>
-    <input type="password" id="chatbot-password" style="width: 90%; margin-top: 8px; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc;">
-    <button onclick="unlockChatbot()" style="margin-top: 10px; width: 100%; padding: 8px; background: #1b5e20; color: white; border: none; border-radius: 5px;">Unlock</button>
-    <div id="chatbot-password-error" style="color: red; margin-top: 8px; display: none;">Incorrect password. Try again.</div>
-  </div>
-</div>
-
-<!-- 🧠 AI Chatbot Coach UI -->
-<div id="chatbot-widget-container" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
-  <div id="chatbot-header" onclick="toggleChatbot()" style="cursor: pointer; background: #1b5e20; color: white; padding: 10px 15px; border-radius: 10px 10px 0 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between;">
-    🧠 CoachBot
-    <span id="chatbot-toggle-icon">☝️</span>
-  </div>
-
-  <div id="chatbot-widget" style="width: 320px; background: #ffffff; color: #000; border: 2px solid #1b5e20; border-radius: 0 0 10px 10px; padding: 10px; display: block; transition: all 0.3s ease;">
-    <div id="chatbox" style="height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 14px; display: flex; flex-direction: column;"></div>
-    <input type="text" id="chatInput" placeholder="Ask a tennis question..." style="width: 90%; padding: 6px 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 5px;">
-    <button onclick="sendChat()" class="btn" style="width: 100%; padding: 8px; background: #1b5e20; color: white; border: none; border-radius: 5px;">Send</button>
-  </div>
-</div>
-
-<style>
-  .chat-msg {
-    max-width: 90%;
-    padding: 8px 12px;
-    border-radius: 15px;
-    margin-bottom: 12px;
-    line-height: 1.4;
-    white-space: pre-wrap;
-  }
-
-  .chat-user {
-    align-self: flex-end;
-    background: #c8e6c9;
-    color: #000;
-  }
-
-  .chat-bot {
-    align-self: flex-start;
-    background: #e8f5e9;
-    color: #1b5e20;
-  }
-</style>
-
-<script>
-let chatbotVisible = true;
-let passwordGateVisible = true;
-
-function toggleChatbot() {
-  chatbotVisible = !chatbotVisible;
-  const widget = document.getElementById("chatbot-widget");
-  const icon = document.getElementById("chatbot-toggle-icon");
-  widget.style.display = chatbotVisible ? "block" : "none";
-  icon.innerText = chatbotVisible ? "☝️" : "👇";
-}
-
-function togglePasswordGate() {
-  passwordGateVisible = !passwordGateVisible;
-  const body = document.getElementById("chatbot-password-container");
-  const icon = document.getElementById("password-toggle-icon");
-  body.style.display = passwordGateVisible ? "block" : "none";
-  icon.innerText = passwordGateVisible ? "☝️" : "👇";
-}
-
-function unlockChatbot() {
-  const password = document.getElementById("chatbot-password").value;
-  const errorBox = document.getElementById("chatbot-password-error");
-
-  fetch("/validate-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById("chatbot-password-toggle-container").style.display = "none";
-      document.getElementById("chatbot-widget-container").style.display = "block";
-    } else {
-      errorBox.style.display = "block";
-    }
-  })
-  .catch(() => {
-    errorBox.style.display = "block";
-    errorBox.textContent = "Server error. Try again.";
-  });
-}
-
-function sendChat() {
-  const input = document.getElementById("chatInput");
-  const chatbox = document.getElementById("chatbox");
-  const userMsg = input.value.trim();
-  if (!userMsg) return;
-
-  chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
-  input.value = "";
-
-  fetch("/chatbot", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMsg })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const botResponse = data.success
-      ? `<strong>CoachBot:</strong> ${data.reply}`
-      : `<strong>Error:</strong> ${data.error}`;
-
-    chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
-    chatbox.scrollTop = chatbox.scrollHeight;
-  })
-  .catch(err => {
-    chatbox.innerHTML += `<div class="chat-msg chat-bot"><strong>Error:</strong> ${err}</div>`;
-  });
-}
-</script>
-
-  <footer>
-    <p>Cooked up by Jamie</p>
-  </footer>
 </body>
 </html>

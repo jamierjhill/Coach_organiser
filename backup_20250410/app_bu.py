@@ -12,8 +12,6 @@ import random
 
 CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
 COACHBOT_PASSWORD = os.getenv("COACHBOT_PASSWORD")
-AI_TOOLBOX_PASSWORD = os.getenv("AI_TOOLBOX_PASSWORD")
-
 
 
 app = Flask(__name__)
@@ -34,33 +32,6 @@ def validate_password():
     if data["password"] == COACHBOT_PASSWORD:
         return jsonify(success=True)
     return jsonify(success=False, error="Incorrect password.")
-
-
-# ----------------------------- Home ----------------------------- #
-@app.route("/home")
-def home():
-    return render_template("home.html")
-
-
-# ----------------------------- CoachBot ----------------------------- #
-@app.route("/coachbot", methods=["GET", "POST"])
-def coachbot_page():
-    if not session.get("coachbot_access_granted"):
-        if request.method == "POST" and "password" in request.form:
-            if request.form["password"] == os.getenv("COACHBOT_PASSWORD"):
-                session["coachbot_access_granted"] = True
-                return redirect("/coachbot")
-            else:
-                return render_template("coachbot.html", error="Incorrect password")
-        return render_template("coachbot.html")  # Show password form only
-
-    return render_template("coachbot.html")  # Show chatbot UI if already unlocked
-
-
-
-
-
-
 
 
 # ----------------------------- Match Organizer Function ----------------------------- #
@@ -225,7 +196,7 @@ def organize_matches(players, courts, match_type, num_matches):
 
 
 # ----------------------------- Main Page ----------------------------- #
-@app.route("/index", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def index():
     # Load session state
     players = session.get("players", [])
@@ -234,8 +205,6 @@ def index():
     match_type = session.get("match_type", "singles")
     session_name = session.get("session_name", "")
     view_mode = session.get("view_mode", "court")  # Default view
-
-    # Defaults (may be overwritten)
     matchups = []
     player_match_counts = {}
     opponent_averages = {}
@@ -243,20 +212,21 @@ def index():
     rounds = {}
     error = None
 
+    # Handle form submission
     if request.method == "POST":
         # Save session name
         session_name = request.form.get("session_name", "")
         session["session_name"] = session_name
 
-        # Get updated settings
+        # Get settings, fall back to previous values if invalid
         try:
             courts = int(request.form.get("courts", courts))
             num_matches = int(request.form.get("num_matches", num_matches))
         except ValueError:
-            pass
+            pass  # Leave courts/num_matches as is
 
         match_type = request.form.get("match_type", match_type)
-        view_mode = request.form.get("view_mode", view_mode)
+        view_mode = request.form.get("view_mode", view_mode)  # Get toggle state
         session.update({
             "courts": courts,
             "num_matches": num_matches,
@@ -264,13 +234,13 @@ def index():
             "view_mode": view_mode
         })
 
-        # Remove a player
+        # Remove player
         if "remove_player" in request.form:
             name_to_remove = request.form.get("remove_player")
             players = [p for p in players if p["name"] != name_to_remove]
             session["players"] = players
 
-        # Upload CSV
+        # CSV Upload
         if "upload_csv" in request.form:
             csv_password = request.form.get("csv_password", "")
             if csv_password != CSV_UPLOAD_PASSWORD:
@@ -303,13 +273,11 @@ def index():
                     courts=courts,
                     num_matches=num_matches,
                     match_type=match_type,
-                    matchups=[],
-                    player_match_counts={},
+                    matchups=matchups,
+                    player_match_counts=player_match_counts,
                     session_name=session_name,
-                    rounds={},
-                    view_mode=view_mode,
-                    opponent_averages={},
-                    opponent_diff={}
+                    rounds=rounds,
+                    view_mode=view_mode
                 )
 
         # Reset all
@@ -318,7 +286,7 @@ def index():
             matchups = []
             session.clear()
 
-        # Add a single player
+        # Add single player
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()
             try:
@@ -333,36 +301,21 @@ def index():
                 session["players"] = players
                 session.pop("error", None)
 
-        # Organize or reshuffle matches
+        # Generate or reshuffle matches
         if "organize_matches" in request.form or "reshuffle" in request.form:
             if "reshuffle" in request.form:
-                random.shuffle(players)
+                random.shuffle(players)  # Shuffle to introduce variety
 
             matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
                 players, courts, match_type, num_matches
             )
 
-            # Build rounds
+            # Create a dict grouping matches by round
             round_structure = defaultdict(list)
             for court_index, court_matches in enumerate(matchups):
                 for match, round_num in court_matches:
-                    round_structure[round_num].append((court_index + 1, match))
-            rounds = dict(sorted(round_structure.items()))
-
-            # Save to session
-            session["matchups"] = matchups
-            session["player_match_counts"] = player_match_counts
-            session["opponent_averages"] = opponent_averages
-            session["opponent_diff"] = opponent_diff
-            session["rounds"] = rounds
-
-    else:
-        # GET request: restore previous schedule
-        matchups = session.get("matchups", [])
-        player_match_counts = session.get("player_match_counts", {})
-        opponent_averages = session.get("opponent_averages", {})
-        opponent_diff = session.get("opponent_diff", {})
-        rounds = session.get("rounds", {})
+                    round_structure[round_num].append((court_index + 1, match))  # 1-based court index
+            rounds = dict(sorted(round_structure.items()))  # Sort by round number
 
     return render_template(
         "index.html",
@@ -379,103 +332,10 @@ def index():
         rounds=rounds,
         view_mode=view_mode
     )
-
 # ----------------------------- Link to guide ----------------------------- #
 @app.route("/guide")
 def guide():
     return render_template("coach_guide.html")
-
-
-# ----------------------------- ai toolbox ----------------------------- #
-@app.route("/ai-toolbox", methods=["GET", "POST"])
-def ai_toolbox():
-    drill = None
-    session_plan = None
-    chat_response = None
-    error = None
-
-    # 🔒 Password gate
-    if not session.get("ai_toolbox_access_granted"):
-        if request.method == "POST" and "password" in request.form:
-            if request.form["password"] == os.getenv("AI_TOOLBOX_PASSWORD"):
-                session["ai_toolbox_access_granted"] = True
-                return redirect("/ai-toolbox")
-            else:
-                error = "Incorrect password"
-        return render_template("ai_toolbox.html", error=error)
-
-    # ✅ If already unlocked, handle tool form logic
-    if request.method == "POST" and "tool" in request.form:
-        tool = request.form.get("tool")
-
-        # DRILL TOOL
-        if tool == "drill":
-            drill_prompt = request.form.get("drill_prompt", "").strip()
-            if drill_prompt:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
-                            {"role": "user", "content": drill_prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    drill = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"Drill error: {e}"
-
-        # SESSION TOOL
-        elif tool == "session":
-            players = request.form.get("players", "").strip()
-            focus = request.form.get("focus", "").strip()
-            duration = request.form.get("duration", "").strip()
-
-            if players and focus and duration:
-                try:
-                    prompt = (
-                        f"Create a tennis coaching session for {players} players. "
-                        f"The focus is on {focus}. Duration: {duration} minutes. "
-                        f"Include warm-up, main drills, and cool-down."
-                    )
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient session plans."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    session_plan = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"Session plan error: {e}"
-
-        # CHAT TOOL
-        elif tool == "chat":
-            chat_prompt = request.form.get("chat_prompt", "").strip()
-            if chat_prompt:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a helpful tennis coaching assistant."},
-                            {"role": "user", "content": chat_prompt}
-                        ],
-                        temperature=0.6
-                    )
-                    chat_response = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"CoachBot error: {e}"
-
-    return render_template(
-        "ai_toolbox.html",
-        drill=drill,
-        session_plan=session_plan,
-        chat_response=chat_response,
-        error=error
-    )
-
-
 
 # ----------------------------- Session Generator ----------------------------- #
 @app.route("/session-generator", methods=["GET", "POST"])
@@ -630,15 +490,6 @@ def chatbot():
 
 
 
-# ----------------------------- Contact Page ----------------------------- #
-@app.route("/contact")
-def contact():
-    return render_template("contact.html")
-
-# ----------------------------- Route to Home ----------------------------- #
-@app.route("/")
-def root():
-    return redirect("/home")
 
 if __name__ == "__main__":
     app.run(debug=True)
