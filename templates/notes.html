@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FL37QBZMLC');
+</script>
+  <meta charset="UTF-8">
+  <title>📝 My Notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e8f5e9;
+      font-family: 'Segoe UI', sans-serif;
+      padding-top: 60px;
+    }
+    .notes-container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    .notes-btn {
+      background-color: #43a047;
+      color: white;
+      font-weight: bold;
+    }
+    .notes-btn:hover {
+      background-color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+
+  <div class="notes-container mt-5">
+    <h2 class="text-success mb-4">📝 Notes</h2>
+    <form method="POST">
+      <div class="mb-3">
+        <textarea name="note" class="form-control" placeholder="Write a new note..." required></textarea>
+      </div>
+      <button type="submit" class="btn notes-btn">Add Note</button>
+    </form>
+
+    <hr class="my-4">
+    <h4>🗂 Your Saved Notes</h4>
+    <ul class="list-group">
+      {% for line in notes %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ line }}
+        <form method="POST" style="margin: 0;">
+          <input type="hidden" name="delete_note" value="{{ line }}">
+          <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <a href="/home" class="btn btn-outline-secondary mt-4">← Back to Home</a>
+  </div>
+</body>
+</html>

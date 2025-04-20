@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FL37QBZMLC');
+</script>
+    <meta charset="UTF-8">
+    <title>📅 Coaching Calendar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <style>
+    body {
+      background-color: #e8f5e9;
+      font-family: 'Segoe UI', sans-serif;
+      padding-top: 60px;
+    }
+    .calendar-container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    .notes-btn {
+      background-color: #43a047;
+      color: white;
+      font-weight: bold;
+    }
+    .notes-btn:hover {
+      background-color: #2e7d32;
+    }
+    .fc-event {
+      background-color: #43a047 !important;
+      color: white !important;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.9rem;
+    }
+    .modal-header {
+      background-color: #e8f5e9;
+    }
+  </style>
+</head>
+<body>
+
+
+<div class="container">
+    <div class="card shadow-lg p-4 rounded-4 border-0">
+        <h1 class="text-center text-success mb-4" style="font-weight: bold; font-size: 2rem;">
+            📅 Your Coaching Calendar
+        </h1>
+        <a href="/home" class="btn btn-outline-success ms-auto">🏠 Back to App</a>
+        <div id="calendar" style="padding: 10px;"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="eventForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="eventDate">
+          <input type="hidden" id="eventId">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" id="eventTitle" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Start Time</label>
+            <input type="time" class="form-control" id="eventTime">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duration (minutes)</label>
+            <input type="number" class="form-control" id="eventDuration" placeholder="60">
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="eventRepeat">
+                <label class="form-check-label" for="eventRepeat">Repeat Weekly</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <input type="number" class="form-control" id="repeatCount" placeholder="Number of weeks" value="1" min="1">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="deleteEvent" class="btn btn-danger me-auto" style="display: none;">Delete</button>
+          <button type="submit" class="btn btn-success">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const calendarEl = document.getElementById('calendar');
+  let selectedDate = null;
+  let editingEvent = null;
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    selectable: true,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+    dateClick: function (info) {
+      resetForm();
+      selectedDate = info.dateStr;
+      document.getElementById('eventDate').value = selectedDate;
+      new bootstrap.Modal(document.getElementById('eventModal')).show();
+    },
+    eventClick: function (info) {
+      const event = info.event;
+      editingEvent = event;
+      document.getElementById('eventId').value = event.id;
+      document.getElementById('eventTitle').value = event.title;
+      document.getElementById('eventDate').value = event.startStr.split("T")[0];
+      document.getElementById('eventTime').value = event.startStr.split("T")[1]?.slice(0,5) || "";
+      document.getElementById('eventDuration').value = event.end
+        ? Math.floor((new Date(event.end) - new Date(event.start)) / 60000)
+        : 60;
+      document.getElementById('eventRepeat').checked = false;
+      document.getElementById('repeatCount').value = 1;
+      document.getElementById('deleteEvent').style.display = "inline-block";
+      new bootstrap.Modal(document.getElementById('eventModal')).show();
+    }
+  });
+
+  fetch("/api/events")
+    .then(res => res.json())
+    .then(events => {
+      events.forEach(e => {
+        calendar.addEvent(e);
+      });
+    });
+
+  calendar.on("eventChange", saveEvents);
+  calendar.on("eventRemove", saveEvents);
+
+  function resetForm() {
+    editingEvent = null;
+    document.getElementById('eventForm').reset();
+    document.getElementById('eventId').value = "";
+    document.getElementById('repeatCount').value = 1;
+    document.getElementById('deleteEvent').style.display = "none";
+  }
+
+  function saveEvents() {
+    const events = calendar.getEvents().map(event => ({
+      id: event.id,
+      title: event.title,
+      start: event.start.toISOString(),
+      end: event.end ? event.end.toISOString() : null,
+      allDay: event.allDay
+    }));
+
+    fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events })
+    });
+  }
+
+  document.getElementById('eventForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const title = document.getElementById('eventTitle').value.trim();
+    const date = document.getElementById('eventDate').value;
+    const time = document.getElementById('eventTime').value;
+    const duration = parseInt(document.getElementById('eventDuration').value.trim()) || 60;
+    const repeat = document.getElementById('eventRepeat').checked;
+    const repeatCount = parseInt(document.getElementById('repeatCount').value.trim()) || 1;
+
+    let start = new Date(`${date}${time ? 'T' + time : ''}`);
+    let end = time ? new Date(start.getTime() + duration * 60000) : null;
+    const allDay = !time;
+
+    let baseEvent;
+    if (editingEvent) {
+      editingEvent.setProp("title", title);
+      editingEvent.setStart(start);
+      editingEvent.setEnd(end);
+      editingEvent.setAllDay(allDay);
+      baseEvent = editingEvent;
+    } else {
+      baseEvent = calendar.addEvent({ title, start, end, allDay });
+    }
+
+    if (repeat && repeatCount > 1) {
+      for (let i = 1; i < repeatCount; i++) {
+        const offset = i * 7 * 24 * 60 * 60 * 1000; // 1 week
+        const repeatStart = new Date(start.getTime() + offset);
+        const repeatEnd = end ? new Date(end.getTime() + offset) : null;
+
+        calendar.addEvent({
+          title,
+          start: repeatStart,
+          end: repeatEnd,
+          allDay
+        });
+      }
+    }
+
+    saveEvents();
+    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+  });
+
+  document.getElementById("deleteEvent").addEventListener("click", function () {
+    if (editingEvent) {
+      editingEvent.remove();
+      saveEvents();
+      bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+    }
+  });
+
+  calendar.render();
+});
+</script>
+
+
+</body>
+</html>

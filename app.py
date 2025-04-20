@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 import io
 from collections import defaultdict
 import random
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+
 
 CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
 COACHBOT_PASSWORD = os.getenv("COACHBOT_PASSWORD")
@@ -24,6 +26,76 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# ----------------------------- Login System ----------------------------- #
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+
+
+class User(UserMixin):
+    def __init__(self, id, username):
+        self.id = id
+        self.username = username
+
+    def get_id(self):
+        return str(self.id)
+
+
+# Login manager setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"  # Redirect here if not logged in
+
+@login_manager.user_loader
+def load_user(user_id):
+    users = load_users()  # ✅ Load users inside this function
+    for username in users:
+        if str(username) == str(user_id):
+            return User(id=username, username=username)
+    return None
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        users = load_users()
+        print("DEBUG: Attempt login", username, password)
+
+        if username in users and users[username] == password:
+            session["coach"] = username
+
+            # ✅ Flask-Login logic: create and log in user
+            user = User(id=username, username=username)
+            login_user(user)
+
+            print("DEBUG: Login success, redirecting to /home")
+            return redirect("/home")
+
+        print("DEBUG: Login failed")
+        return render_template("login.html", error="Invalid credentials.")
+    
+    return render_template("login.html")
+
+
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    session.clear()
+    return redirect("/login?message=You’ve been logged out successfully.")
+
+
+# ----------------------------- initial load ----------------------------- #
+@app.route("/")
+def root():
+    return redirect("/login")
+
+
+
+
 # ----------------------------- Password Validation ----------------------------- #
 @app.route("/validate-password", methods=["POST"])
 def validate_password():
@@ -36,10 +108,115 @@ def validate_password():
     return jsonify(success=False, error="Incorrect password.")
 
 
-# ----------------------------- Home ----------------------------- #
+
+# ----------------------------- Home Route ----------------------------- #
+
 @app.route("/home")
+@login_required
 def home():
     return render_template("home.html")
+
+# ----------------------------- Notes Route----------------------------- #
+@app.route("/notes", methods=["GET", "POST"])
+@login_required
+def notes():
+    notes_file = f"notes/{current_user.username}.txt"
+    os.makedirs("notes", exist_ok=True)
+
+    if request.method == "POST":
+        if "note" in request.form:
+            note = request.form["note"].strip()
+            if note:
+                with open(notes_file, "a") as f:
+                    f.write(note + "\n")
+        elif "delete_note" in request.form:
+            to_delete = request.form["delete_note"].strip()
+            if os.path.exists(notes_file):
+                with open(notes_file, "r") as f:
+                    notes = f.readlines()
+                notes = [n for n in notes if n.strip() != to_delete]
+                with open(notes_file, "w") as f:
+                    f.writelines(notes)
+        return redirect("/notes")
+
+    notes_list = []
+    if os.path.exists(notes_file):
+        with open(notes_file, "r") as f:
+            notes_list = [line.strip() for line in f.readlines()]
+
+    return render_template("notes.html", notes=notes_list)
+
+
+# ----------------------------- Calednar ----------------------------- #
+@app.route("/calendar")
+def calendar():
+    if "coach" not in session:
+        return redirect("/login")
+    return render_template("calendar.html")
+
+
+# ----------------------------- Users ----------------------------- #
+import json
+
+
+USERS_FILE = "data/users.json"
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f)
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        users = load_users()
+        if username in users:
+            return render_template("register.html", error="Username already exists.")
+
+        users[username] = password  # Plain text for now
+        save_users(users)
+
+        session["coach"] = username
+
+        # ✅ Mark coach as logged in for Flask-Login
+        user = User(id=username, username=username)
+        login_user(user)
+
+        return redirect("/home")
+
+    return render_template("register.html")
+
+
+
+# ----------------------------- Events ----------------------------- #
+from flask_login import login_required, current_user
+
+@app.route("/api/events", methods=["GET", "POST"])
+@login_required
+def events():
+    coach = current_user.username
+    filepath = f"data/events/events_{coach}.json"
+
+    if request.method == "GET":
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
+                return jsonify(json.load(f))
+        return jsonify([])
+
+    elif request.method == "POST":
+        events = request.json.get("events", [])
+        os.makedirs("data/events", exist_ok=True)
+        with open(filepath, "w") as f:
+            json.dump(events, f)
+        return jsonify({"success": True})
 
 
 # ----------------------------- CoachBot ----------------------------- #
@@ -56,12 +233,10 @@ def coachbot_page():
 
     return render_template("coachbot.html")  # Show chatbot UI if already unlocked
 
-
-
-
-
-
-
+# ----------------------------- Link to guide ----------------------------- #
+@app.route("/guide")
+def guide():
+    return render_template("coach_guide.html")
 
 # ----------------------------- Match Organizer Function ----------------------------- #
 def organize_matches(players, courts, match_type, num_matches):
@@ -197,7 +372,7 @@ def organize_matches(players, courts, match_type, num_matches):
     return matchups, match_counts, opponent_averages, opponent_diff
 
 
-# ----------------------------- Main Page ----------------------------- #
+# ----------------------------- Match Organiser Page Route ----------------------------- #
 @app.route("/index", methods=["GET", "POST"])
 def index():
     # Load session state
@@ -353,10 +528,6 @@ def index():
         view_mode=view_mode
     )
 
-# ----------------------------- Link to guide ----------------------------- #
-@app.route("/guide")
-def guide():
-    return render_template("coach_guide.html")
 
 
 # ----------------------------- ai toolbox ----------------------------- #
@@ -573,7 +744,7 @@ def chatbot():
             session["chatbot_history"] = [{
                 "role": "system",
                 "content": (
-                    "You are a helpful tennis coaching assistant. "
+                    "You are a level 4 LTA tennis coaching assistant. "
                     "Keep answers concise, focused, and under 3 sentences. "
                     "Prompt the user to ask follow-ups (drills, advice, video)."
                 )
@@ -608,10 +779,7 @@ def chatbot():
 def contact():
     return render_template("contact.html")
 
-# ----------------------------- Route to Home ----------------------------- #
-@app.route("/")
-def root():
-    return redirect("/home")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
