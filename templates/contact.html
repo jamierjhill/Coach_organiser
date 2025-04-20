@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
 
-  gtag('config', 'G-FL37QBZMLC');
-</script>
   <meta charset="UTF-8">
   <title>📩 Contact Us - Tennis Toolbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -65,23 +65,37 @@
 </head>
 <body>
   <div class="contact-container">
-    <h1>📩 Contact Us (under construction)</h1>
-    <form>
+    <h1>📩 Contact Us</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
       <div class="mb-3">
         <label for="name" class="form-label">Your Name:</label>
-        <input type="text" class="form-control" id="name" required>
+        <input type="text" class="form-control" id="name" name="name" required>
       </div>
+
       <div class="mb-3">
         <label for="email" class="form-label">Your Email:</label>
-        <input type="email" class="form-control" id="email" required>
+        <input type="email" class="form-control" id="email" name="email" required>
       </div>
+
       <div class="mb-3">
         <label for="message" class="form-label">Message:</label>
-        <textarea class="form-control" id="message" rows="5" required></textarea>
+        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
       </div>
+
       <button type="submit" class="btn btn-success w-100">Send Message</button>
     </form>
-    <a href="/" class="back-link">← Back to Home</a>
+
+    <a href="/home" class="back-link">← Back to Home</a>
   </div>
 </body>
 </html>
