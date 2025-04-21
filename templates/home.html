@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FL37QBZMLC');
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
   <meta charset="UTF-8">
   <title>🎾 Welcome to Coach Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,34 +52,6 @@
       transform: scale(1.08);
     }
 
-    .navbar-nav .nav-link:hover {
-      color: #1b5e20;
-      font-weight: bold;
-    }
-
-    #navToggleBtn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 1050;
-      background-color: #1b5e20;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 15px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    #navToggleBtn:hover {
-      background-color: #2e7d32;
-    }
-
-    .navbar-hidden {
-      display: none !important;
-    }
-
     footer {
       text-align: center;
       margin-top: 60px;
@@ -98,17 +69,38 @@
     footer a:hover {
       color: #43a047;
     }
+
+    #navToggleBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1050;
+      background-color: #1b5e20;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #navToggleBtn:hover {
+      background-color: #2e7d32;
+    }
   </style>
 </head>
 <body>
+
 <!-- Toggle Button -->
-<button class="btn btn-success position-fixed top-0 start-0 m-3 z-3" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
+<button id="navToggleBtn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
   ☰ Menu
 </button>
+
 <!-- Side Navigation (Offcanvas) -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel" style="background-color: #c8e6c9;">
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title text-success fw-bold" id="sideNavLabel">🎾 Coach Hub</h5>
+    <h5 class="offcanvas-title text-success fw-bold" id="sideNavLabel">🎾 Coaches Hub</h5>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
@@ -117,116 +109,178 @@
         👋 Logged in as <strong>{{ current_user.username }}</strong>
       {% endif %}
     </div>
-    
     <ul class="nav flex-column">
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/home">🏠 Home</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/index">🏟️ Match Organizer</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/calendar">📅 Calendar</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/notes">📝 Notes</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/ai-toolbox">🤖 AI Toolbox</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/coachbot">🧠 CoachBot</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/guide" target="_blank">📘 Coach’s Guide</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-success fw-bold" href="/contact">📩 Contact</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-danger fw-bold" href="/logout">🚪 Logout</a>
-      </li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/home">🏠 Home</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/index">📋 Match Organizer</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/calendar">📅 Calendar</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/notes">📝 Notes</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/ai-toolbox">🤖 AI Toolbox</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/coachbot">🧠 CoachBot</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/weather">🌤️ Weather</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/settings">⚙️ Settings</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/access-codes">🎟️ Access Codes</a></li>
+      <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/logout">🚪 Logout</a></li>
     </ul>
+    
   </div>
 </div>
 
-  <div class="container py-5">
-    <h1 class="text-success text-center mb-5" data-aos="fade-down">🎾 Coach Hub</h1>
+<!-- Main Container -->
+<div class="container py-5" style="padding-top: 100px;">
+  <h1 class="text-success text-center mb-5" data-aos="fade-down">🎾 Coaches Hub</h1>
+  <div class="row g-4">
 
-    <div class="row g-4">
-        <div class="col-md-4 d-flex" data-aos="fade-up">
-          <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
-            <div>
-              <h3>🤖 AI Coaching Toolbox</h3>
-              <p>Generate smart drills and full session plans with just a few prompts. Your AI assistant coach is ready.</p>
-            </div>
-            <a href="/ai-toolbox" class="tennis-btn">🔒 Launch AI Toolbox</a>
-          </div>
+    <!-- Toolbox -->
+    <div class="col-md-4 d-flex" data-aos="fade-up">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>🤖 AI Coaching Toolbox</h3>
+          <p>Generate smart drills and full session plans with just a few prompts.</p>
         </div>
-        <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
-          <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
-            <div>
-              <h3>🏟️ Match Organizer</h3>
-              <p>Create fair and balanced singles or doubles matchups in seconds. Just enter players and let it do the rest.</p>
-            </div>
-            <a href="/index" class="tennis-btn">Open Match Organizer</a>
-          </div>
-        </div>
-        <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-          <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
-            <div>
-              <h3>📘 App Guide</h3>
-              <p>A simple step-by-step PDF walkthrough to help coaches use the app effectively with their players.</p>
-            </div>
-            <a href="/guide" class="tennis-btn" target="_blank">Open App Guide</a>
-          </div>
-        </div>
+        <a href="/ai-toolbox" class="tennis-btn">🔒 Launch AI Toolbox</a>
+      </div>
+    </div>
 
-<!-- CoachBot -->
-<div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="300">
+    <!-- Match Organizer -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>🏟️ Match Organizer</h3>
+          <p>Create fair and balanced singles or doubles matchups in seconds.</p>
+        </div>
+        <a href="/index" class="tennis-btn">Open Match Organizer</a>
+      </div>
+    </div>
+
+<!-- Weather -->
+<div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
   <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
     <div>
-      <h3>🧠 CoachBot</h3>
-      <p>Your AI coaching assistant – ask for advice on drills, formats, or session tweaks.</p>
-    </div>
-    <a href="/coachbot" class="tennis-btn">🔒 Launch CoachBot</a>
+      <h3>🌤️ Today’s Weather</h3>
+      <p id="todayWeather">
+        <img id="weatherIcon" src="" alt="weather icon" style="width: 40px; vertical-align: middle; display: none;">
+        <span id="weatherText">Loading weather...</span>
+      </p>
+          </div>
+    <a href="/weather" class="tennis-btn mt-3">📅 5-Day Forecast</a>
   </div>
 </div>
 
-
+<!-- Coach Bulletin -->
 <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="400">
   <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
     <div>
-      <h3>📝 Notes</h3>
-      <p>Add notes from sessions!</p>
+      <h3 class="mb-3">📌 Coach Bulletin</h3>
+      {% if bulletin_messages %}
+        {% set latest = bulletin_messages[-1] %}
+        <p class="mb-1">🗨️ {{ latest.text }}</p>
+        <p class="text-muted small">🕒 {{ latest.timestamp }}</p>
+      {% else %}
+        <p>No messages yet.</p>
+      {% endif %}
     </div>
-    <a href="/notes" class="tennis-btn disabled">Launch Notes</a>
-  </div>
-</div>
-<!-- Calendar Panel -->
-<div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="600">
-  <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
-    <div>
-      <h3>📅 Calendar View</h3>
-      <p>See your upcoming sessions, matches, or to-dos in a visual calendar. Great for planning your week!</p>
-    </div>
-    <a href="/calendar" class="tennis-btn">📆 Open Calendar</a>
+    <a href="/bulletin" class="tennis-btn mt-3">📋 View All Bulletins</a>
   </div>
 </div>
 
 
-        <!-- Placeholder Panel 3 -->
+
+
+    <!-- Notes -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="400">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>📝 Notes</h3>
+          <p>Keep notes from your coaching sessions.</p>
+        </div>
+        <a href="/notes" class="tennis-btn">Launch Notes</a>
       </div>
     </div>
-    
-    <footer>
-      Built by Jamie • v1.0 • <a href="/contact">Contact Us</a>
-    </footer>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-    <script>
-      AOS.init({ duration: 800, once: true });
-    </script>
-    </body>
-    </html>
+
+    <!-- Calendar -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="600">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>📅 Calendar</h3>
+          <p>Plan and view your weekly tennis events.</p>
+        </div>
+        <a href="/calendar" class="tennis-btn">📆 Open Calendar</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Built by Jamie • v1.0 • <a href="/contact">Contact Us</a>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 800, once: true });
+</script>
+
+<!-- Inject postcode from Flask -->
+<script>
+  const userPostcode = "{{ default_postcode }}";
+</script>
+
+<script>
+  async function fetchTodayWeather(postcode) {
+    const apiKey = "fd94c86864c1809c326f7f0b6add6acc";
+    const fallback = "Fulham";
+    const forecastEl = document.getElementById("weatherText");
+    const iconImg = document.getElementById("weatherIcon");
+
+    async function tryGeocode(query) {
+      const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)},GB&limit=1&appid=${apiKey}`);
+      return await geoRes.json();
+    }
+
+    try {
+      let geoData = await tryGeocode(postcode);
+
+      if (!geoData.length) {
+        const outwardCode = postcode.split(" ")[0];
+        console.warn(`Full postcode failed. Trying outward code: ${outwardCode}`);
+        geoData = await tryGeocode(outwardCode);
+      }
+
+      if (!geoData.length) {
+        console.warn(`Outward code failed. Falling back to: ${fallback}`);
+        geoData = await tryGeocode(fallback);
+      }
+
+      if (!geoData.length) throw new Error("Could not resolve any location");
+
+      const { lat, lon } = geoData[0];
+      const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
+      const data = await weatherRes.json();
+
+      const desc = data.weather[0].description;
+      const temp = data.main.temp;
+      const icon = data.weather[0].icon;
+      const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+
+      forecastEl.textContent = `${desc}, ${temp.toFixed(1)}°C`;
+      iconImg.src = iconUrl;
+      iconImg.alt = desc;
+      iconImg.style.display = "inline-block";
+
+    } catch (err) {
+      forecastEl.textContent = "⚠️ Could not load weather.";
+      iconImg.style.display = "none";
+      console.error("Weather error:", err);
+    }
+  }
+
+  window.onload = () => fetchTodayWeather(userPostcode || "SW6");
+</script>
+
+
+</body>
+</html>

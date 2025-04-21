@@ -153,17 +153,23 @@
             <button type="submit" name="tool" value="session" class="btn tennis-btn mt-2 w-100">⚡ Generate Session</button>
           </div>
         </div>
-
-<!-- CoachBot Link Only -->
+<!-- CoachBot -->
 <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-  <div class="tennis-card w-100 text-center">
+  <div class="tennis-card w-100 d-flex flex-column justify-content-between">
     <div>
-      <h4>🧠 CoachBot</h4>
-      <p>Ask tennis questions and get instant AI advice on drills, formats, or strategy.</p>
+      <h4 class="text-success">🧠 CoachBot</h4>
+      <div id="chatbox" style="height: 300px; overflow-y: auto; background: #f1f8e9; border-radius: 10px; padding: 10px; margin-bottom: 10px;"></div>
+      <div class="input-group">
+        <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
+        <button class="btn btn-success" onclick="sendChat()">Send</button>
+      </div>
     </div>
-    <a href="/coachbot" class="tennis-btn mt-3">Launch CoachBot</a>
+    <button class="btn btn-sm btn-outline-danger mt-3" onclick="clearChat()">🧹 Clear Chat</button>
   </div>
 </div>
+
+
+
 
 
       </div>
@@ -244,6 +250,52 @@
       if (el) el.remove();
     }
   </script>
+  <script>
+    document.getElementById("chatInput")?.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  
+    function sendChat() {
+      const input = document.getElementById("chatInput");
+      const chatbox = document.getElementById("chatbox");
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+  
+      chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
+      input.value = "";
+  
+      chatbox.innerHTML += `<div class="chat-msg chat-bot" id="typingMsg">CoachBot is thinking...</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+  
+      fetch("/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("typingMsg")?.remove();
+        const botResponse = data.success
+          ? `<strong>CoachBot:</strong> ${data.reply}`
+          : `<strong>Error:</strong> ${data.error}`;
+        chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
+        chatbox.scrollTop = chatbox.scrollHeight;
+      })
+      .catch(err => {
+        document.getElementById("typingMsg")?.remove();
+        chatbox.innerHTML += `<div class="chat-msg chat-bot"><strong>Error:</strong> ${err}</div>`;
+        chatbox.scrollTop = chatbox.scrollHeight;
+      });
+    }
+  
+    function clearChat() {
+      document.getElementById("chatbox").innerHTML = "";
+    }
+  </script>
+  
 
 {% endif %}
 

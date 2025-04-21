@@ -1,6 +1,7 @@
 # utils.py
-import random
+import requests, os, random
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
@@ -132,3 +133,95 @@ def organize_matches(players, courts, match_type, num_matches):
     }
 
     return matchups, match_counts, opponent_averages, opponent_diff
+
+
+
+import os
+import requests
+from collections import defaultdict
+from datetime import datetime
+
+def get_weather(postcode):
+    API_KEY = os.getenv("OPENWEATHER_API_KEY")
+    if not API_KEY:
+        return {"error": "Missing API key"}
+
+    # 1. Geocode postcode → lat/lon
+    geo = requests.get("http://api.openweathermap.org/geo/1.0/direct", params={
+        "q": postcode,
+        "limit": 1,
+        "appid": API_KEY
+    }).json()
+
+    if not geo:
+        return {"error": "Postcode not found"}
+
+    lat, lon = geo[0]["lat"], geo[0]["lon"]
+    location = f"{geo[0]['name']}, {geo[0]['country']}"
+
+    # 2. Get 5-day forecast
+    res = requests.get("https://api.openweathermap.org/data/2.5/forecast", params={
+        "lat": lat,
+        "lon": lon,
+        "units": "metric",
+        "appid": API_KEY
+    })
+    data = res.json()
+
+    if "list" not in data:
+        return {"error": "No forecast data"}
+
+    day_blocks = defaultdict(lambda: {
+        "Morning": [],
+        "Lunch": [],
+        "Afternoon": [],
+        "Evening": [],
+        "day_summary": {}
+    })
+
+    # 3. Group into periods
+    for entry in data["list"]:
+        dt = datetime.fromtimestamp(entry["dt"])
+        day = dt.strftime("%A")
+        hour = dt.hour
+        period = None
+        if 5 <= hour <= 9:
+            period = "Morning"
+        elif 10 <= hour <= 13:
+            period = "Lunch"
+        elif 14 <= hour <= 17:
+            period = "Afternoon"
+        elif 18 <= hour <= 21:
+            period = "Evening"
+
+        if period:
+            block = {
+                "time": dt.strftime("%H:%M"),
+                "temp": entry["main"]["temp"],
+                "desc": entry["weather"][0]["description"].title(),
+                "icon": entry["weather"][0]["icon"],
+                "wind": entry["wind"]["speed"],
+                "clouds": entry["clouds"]["all"],
+                "rain": entry.get("rain", {}).get("3h", 0)
+            }
+            day_blocks[day][period].append(block)
+
+    # 4. Summarize each day
+    forecast = []
+    for day, periods in day_blocks.items():
+        all_conditions = sum([p["clouds"] + p["rain"]*20 + p["wind"]*2 for time in periods.values() for p in time], 0)
+        total_entries = sum(len(time) for time in periods.values())
+        avg_score = all_conditions / max(total_entries, 1)
+
+        good_for_tennis = avg_score < 100  # arbitrary rule: low cloud/rain/wind = good
+
+        forecast.append({
+            "day": day,
+            "periods": periods,
+            "good_for_tennis": good_for_tennis
+        })
+
+    return {
+        "location": location,
+        "forecast": forecast[:5]  # return next 5 days
+    }

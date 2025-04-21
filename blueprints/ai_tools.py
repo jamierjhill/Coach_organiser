@@ -247,3 +247,18 @@ def validate_password():
     if data["password"] == COACHBOT_PASSWORD:
         return jsonify(success=True)
     return jsonify(success=False, error="Incorrect password.")
+
+@ai_tools_bp.route("/coachbot", methods=["GET", "POST"])
+def coachbot():
+    error = None
+    if not session.get("coachbot_access_granted"):
+        if request.method == "POST":
+            password = request.form.get("password")
+            if password == COACHBOT_PASSWORD:
+                session["coachbot_access_granted"] = True
+                return redirect("/coachbot")
+            else:
+                error = "Incorrect password"
+        return render_template("coachbot.html", error=error)
+
+    return render_template("coachbot.html")
