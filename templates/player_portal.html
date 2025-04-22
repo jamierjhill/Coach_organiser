@@ -135,20 +135,41 @@
     .chat-bot {
       align-self: flex-start;
       background: #fffde7;
-      border: 1px solid #cddc39;
+      border:
+       1px solid #cddc39;
     }
+    .forecast-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+}
+
+.period-block {
+  min-width: 100px;
+  flex: 0 0 auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #e0f2f1;
+}
+
   </style>
 </head>
 <body>
 
-  <!-- 🔓 Top Navigation -->
-  <div class="top-bar">
-    <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
-  </div>
+  <div class="container py-5">
+    <div class="container pb-3 mb-3">
+        <h1 class="text-center text-success mb-3">🎾 {{ title }}</h1>
+        <!-- 🔓 Top Navigation -->
+        <div class="top-bar">
+          <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
 
-  <div class="container pb-5">
-    <h1 class="text-center text-success mb-5">🎾 {{ title }}</h1>
-
+        </div>
+      </div>
+        
     <!-- 📢 Bulletin Section -->
     <div class="section-card">
       <h3 class="section-title">📢 Bulletin Board</h3>
@@ -167,42 +188,84 @@
       <div id="calendar"></div>
     </div>
 
-    <!-- ☀️ Forecast Section -->
-    <div class="forecast-container section-card">
-      <h3 class="section-title">☀️ 5-Day Forecast — <span class="text-muted">{{ weather.location }}</span></h3>
-      {% if weather.error %}
-        <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
-      {% else %}
-        {% for day in forecast %}
+<!-- ☀️ Forecast Section -->
+<div class="forecast-container section-card">
+    <h3 class="section-title">☀️ Forecast — <span class="text-muted">{{ weather.location }}</span></h3>
+  
+    {% if weather.error %}
+      <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
+    {% elif weather.forecast and weather.forecast|length > 0 %}
+      {% set today = weather.forecast[0] %}
+      <div class="forecast-day">
+        <div class="forecast-header">
+          <span>{{ today.day }} (Today)</span>
+        </div>
+        <div class="forecast-scroll-row">
+          {% for e in today.hourly %}
+            {% set wind_mph = (e.wind * 2.237) | round(0) %}
+            {% set wind_ms = e.wind | round(1) %}
+            {% set rain_chance = (e.rain * 10) | round(0) %}
+            <div class="period-block">
+              <div class="period-label">{{ e.time }}</div>
+              <div style="background-color: #fff; padding: 6px; border-radius: 10px; display: inline-block; margin-bottom: 6px;">
+                <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" class="weather-icon-tiny" alt="icon">
+              </div>
+              <div class="weather-metric">🌡️ {{ e.temp }}°C</div>
+              <div class="weather-desc">{{ e.desc }}</div>
+              <div class="weather-metric mt-1">
+                ☁️ {{ e.clouds }}%<br>
+                💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
+                🌧️ Chance of rain: {{ rain_chance }}%
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  
+      <!-- Expand Button -->
+      <div class="text-center mt-3">
+        <button class="btn btn-outline-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#forecastFuture">
+          Show Full 5-Day Forecast
+        </button>
+      </div>
+  
+      <!-- Remaining Days (Collapsed by default) -->
+      <div class="collapse mt-4" id="forecastFuture">
+        {% for day in weather.forecast[1:] %}
           <div class="forecast-day">
             <div class="forecast-header">
               <span>{{ day.day }}</span>
-              {% if day.good_for_tennis %}
-                <span class="tennis-badge good">✅ Good for Tennis</span>
-              {% else %}
-                <span class="tennis-badge bad">❌ Not Ideal</span>
-              {% endif %}
             </div>
-            <div class="period-row">
-              {% for slot in ["Morning", "Lunch", "Afternoon", "Evening"] %}
+            <div class="forecast-scroll-row">
+              {% for e in day.hourly %}
+                {% set wind_mph = (e.wind * 2.237) | round(0) %}
+                {% set wind_ms = e.wind | round(1) %}
+                {% set rain_chance = (e.rain * 10) | round(0) %}
                 <div class="period-block">
-                  <div class="period-label">{{ slot }}</div>
-                  {% if day.periods[slot] %}
-                    {% set e = day.periods[slot][0] %}
+                  <div class="period-label">{{ e.time }}</div>
+                  <div style="background-color: #fff; padding: 6px; border-radius: 10px; display: inline-block; margin-bottom: 6px;">
                     <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" class="weather-icon-tiny" alt="icon">
-                    <div class="weather-metric">{{ e.temp }}°C</div>
-                    <div class="weather-desc">{{ e.desc }}</div>
-                    <div class="weather-metric mt-1">☁️ {{ e.clouds }}%<br>💨 {{ e.wind }} m/s<br>🌧️ {{ e.rain }} mm</div>
-                  {% else %}
-                    <div class="text-muted small">No data</div>
-                  {% endif %}
+                  </div>
+                  <div class="weather-metric">🌡️ {{ e.temp }}°C</div>
+                  <div class="weather-desc">{{ e.desc }}</div>
+                  <div class="weather-metric mt-1">
+                    ☁️ {{ e.clouds }}%<br>
+                    💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
+                    🌧️ Chance of rain: {{ rain_chance }}%
+                  </div>
                 </div>
               {% endfor %}
             </div>
           </div>
         {% endfor %}
-      {% endif %}
-    </div>
+      </div>
+    {% else %}
+      <div class="text-muted">No forecast data available.</div>
+    {% endif %}
+  </div>
+  
+  
+  
 
     <!-- 🧠 CoachBot Section -->
     <div class="section-card">
@@ -228,6 +291,9 @@
       calendar.render();
     });
   </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 
   <!-- CoachBot Script -->
   <script>

@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FL37QBZMLC');
-</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
   <meta charset="UTF-8">
   <title>📝 My Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,51 +19,84 @@
       font-family: 'Segoe UI', sans-serif;
       padding-top: 60px;
     }
+
     .notes-container {
-      max-width: 700px;
+      max-width: 750px;
       margin: auto;
-      background: white;
+      background-color: white;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     }
+
     .notes-btn {
       background-color: #43a047;
       color: white;
       font-weight: bold;
     }
+
     .notes-btn:hover {
       background-color: #2e7d32;
+    }
+
+    .note-item {
+      background-color: #f1f8e9;
+      border-left: 6px solid #81c784;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .note-item form {
+      margin: 0;
+    }
+
+    .note-text {
+      flex-grow: 1;
+      margin-right: 10px;
+    }
+
+    .section-title {
+      color: #2e7d32;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
 
-
-  <div class="notes-container mt-5">
-    <h2 class="text-success mb-4">📝 Notes</h2>
-    <form method="POST">
-      <div class="mb-3">
-        <textarea name="note" class="form-control" placeholder="Write a new note..." required></textarea>
+  <div class="container py-5">
+    <div class="notes-container">
+      <h2 class="text-success text-center mb-4">📝 My Coaching Notes</h2>
+      <div class="text-center mt-4">
+        <a href="/home" class="btn btn-outline-success mb-3">🏠 Home</a>
       </div>
-      <button type="submit" class="btn notes-btn">Add Note</button>
-    </form>
+      <form method="POST">
+        <div class="mb-3">
+          <textarea name="note" class="form-control" rows="3" placeholder="Write a new note..." required></textarea>
+        </div>
+        <button type="submit" class="btn notes-btn w-100 mb-3">➕ Add Note</button>
+      </form>
 
-    <hr class="my-4">
-    <h4>🗂 Your Saved Notes</h4>
-    <ul class="list-group">
+      <hr class="my-4">
+      <h4 class="section-title mb-3">🗂 Your Saved Notes</h4>
+
       {% for line in notes %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ line }}
-        <form method="POST" style="margin: 0;">
-          <input type="hidden" name="delete_note" value="{{ line }}">
-          <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </form>
-      </li>
+        <div class="note-item">
+          <div class="note-text">{{ line }}</div>
+          <form method="POST">
+            <input type="hidden" name="delete_note" value="{{ line }}">
+            <button class="btn btn-sm btn-outline-danger">🗑️</button>
+          </form>
+        </div>
       {% endfor %}
-    </ul>
 
-    <a href="/home" class="btn btn-outline-secondary mt-4">← Back to Home</a>
+
+    </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

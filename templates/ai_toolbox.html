@@ -90,16 +90,16 @@
 }
 
 
+
   </style>
 </head>
 <body>
 
     {% if not session.get('ai_toolbox_access_granted') %}
-  <div class="container py-5">
-    <h2 class="text-success text-center">🔒 Enter Password to Access AI Toolbox</h2>
-    <div class="text-center mb-3">
-      <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
-      <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+  <div class="container py-5 mb-3">
+    <h2 class="text-success text-center mb-3">🔒 Enter Password to Access AI Toolbox</h2>
+    <div class="text-center">
+      <a href="/home" class="btn btn-outline-success">🏠 Home</a>
     </div>
     <form method="POST" class="mt-4" style="max-width: 400px; margin: auto;">
       <div class="mb-3">

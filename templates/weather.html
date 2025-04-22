@@ -1,79 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>☀️ Weather Forecast</title>
-  <meta charset="UTF-8">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .section-card {
-      background: white;
+    body {
+      background-color: #e8f5e9;
+      font-family: 'Segoe UI', sans-serif;
+      padding-top: 60px;
+    }
+
+    .forecast-container {
+      max-width: 900px;
+      margin: auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .day-header {
+      font-size: 1.25rem;
+      color: #2e7d32;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .slider {
+      overflow-x: auto;
+      display: flex;
+      gap: 12px;
+      padding-bottom: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .slider-card {
+      min-width: 150px;
+      background-color: #f1f8e9;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: transform 0.2s;
+    }
+
+    .slider-card:hover {
+      transform: scale(1.05);
+    }
+
+    .weather-icon-bg {
+      background-color: #ffffff;
+      padding: 6px;
       border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: inline-block;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 6px;
+    }
+
+    .weather-metric {
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .forecast-title {
+      color: #1b5e20;
+      font-weight: bold;
+    }
+
+    .btn-outline-success {
+      font-weight: bold;
     }
   </style>
 </head>
-<body class="bg-light">
+<body>
   <div class="container py-5">
-    <h2 class="text-success mb-4">☀️ Weather for {{ default_postcode }}</h2>
-
-    {% if weather.error %}
-      <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
-    {% else %}
-
-      <!-- ✅ Current Conditions -->
-      <div class="section-card mb-4">
-        <div class="d-flex align-items-center gap-3">
-          <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="icon">
-          <div>
-            <h4>{{ weather.location }}</h4>
-            <p>
-              🌡️ {{ weather.temp }}°C (Feels like {{ weather.feels_like }}°C)<br>
-              <em>{{ weather.description }}</em>
-            </p>
-          </div>
-        </div>
+    <div class="forecast-container">
+      <h2 class="text-center text-success mb-4">☀️ Weather Forecast for <strong>{{ default_postcode }}</strong></h2>
+      <div class="text-center mt-4">
+        <a href="/home" class="btn btn-outline-success">🏠 Home</a>
       </div>
+      {% if weather.error %}
+        <div class="alert alert-danger text-center">⚠️ {{ weather.error }}</div>
+      {% else %}
+        <h4 class="forecast-title mb-4">📆 5-Day Forecast</h4>
 
-      <!-- ✅ 5-Day Forecast -->
-      <div class="section-card">
-        <h3 class="section-title">📆 5-Day Forecast</h3>
         {% for day in weather.forecast %}
           <div class="mb-4">
-            <h5>{{ day.day }} –
-              {% if day.good_for_tennis %}
-                <span class="text-success">✅ Good for Tennis</span>
-              {% else %}
-                <span class="text-danger">❌ Not Ideal</span>
-              {% endif %}
-            </h5>
-            <div class="row row-cols-2 row-cols-md-4 g-2">
-              {% for slot in ["Morning", "Lunch", "Afternoon", "Evening"] %}
-                <div class="col">
-                  <div class="card p-2 h-100">
-                    <strong>{{ slot }}</strong>
-                    {% if day.periods[slot] %}
-                      {% set e = day.periods[slot][0] %}
-                      <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" alt="icon">
-                      <small>{{ e.temp }}°C, {{ e.desc }}</small><br>
-                      <small>☁️ {{ e.clouds }}% | 💨 {{ e.wind }} m/s | 🌧️ {{ e.rain }} mm</small>
-                    {% else %}
-                      <small class="text-muted">No data</small>
-                    {% endif %}
+            <div class="day-header">📅 {{ day.day }}</div>
+            <div class="slider">
+              {% for e in day.hourly %}
+                {% set wind_mph = (e.wind * 2.237) | round(0) %}
+                {% set wind_ms = e.wind | round(1) %}
+                {% set rain_chance = (e.rain * 10) | round(0) %}
+                <div class="slider-card">
+                  <strong>{{ e.time }}</strong><br>
+                  <div class="weather-icon-bg mb-2">
+                    <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" alt="icon">
+                  </div>
+                  <div>🌡️ {{ e.temp }}°C</div>
+                  <div class="weather-metric">
+                    ☁️ {{ e.clouds }}%<br>
+                    💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
+                    🌧️ {{ rain_chance }}% rain
                   </div>
                 </div>
               {% endfor %}
             </div>
           </div>
         {% endfor %}
-      </div>
+      {% endif %}
 
-    {% endif %}
 
-    <div class="mt-4">
-      <a href="/home" class="btn btn-outline-secondary">← Back to Home</a>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

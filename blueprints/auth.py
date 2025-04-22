@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, load_users, save_users
+from blueprints.settings import load_settings, save_settings  # Add this import if not present
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -30,11 +31,13 @@ def logout():
     session.clear()
     return redirect("/login?message=You’ve been logged out successfully.")
 
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        default_location = request.form.get("default_location", "Fulham").strip()
 
         users = load_users()
         if username in users:
@@ -43,9 +46,15 @@ def register():
         users[username] = password
         save_users(users)
 
+        # Save default location for weather in user settings
+        settings = load_settings()
+        settings[username] = {"default_postcode": default_location}
+        save_settings(settings)
+
         user = User(id=username, username=username)
         login_user(user)
         return redirect("/home")
 
     return render_template("register.html")
+
 

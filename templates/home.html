@@ -84,6 +84,26 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
+    .sleek-btn {
+  background-color: #43a047;
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  text-decoration: none; /* ⛔ removes underline */
+  display: inline-block; /* ensures proper spacing and box behavior */
+}
+
+.sleek-btn:hover {
+  background-color: #2e7d32;
+  transform: translateY(-2px);
+}
+
+
 
     #navToggleBtn:hover {
       background-color: #2e7d32;
@@ -137,7 +157,7 @@
           <h3>🤖 AI Coaching Toolbox</h3>
           <p>Generate smart drills and full session plans with just a few prompts.</p>
         </div>
-        <a href="/ai-toolbox" class="tennis-btn">🔒 Launch AI Toolbox</a>
+        <a href="/ai-toolbox" class="sleek-btn">🔒 Launch AI Toolbox</a>
       </div>
     </div>
 
@@ -148,7 +168,7 @@
           <h3>🏟️ Match Organizer</h3>
           <p>Create fair and balanced singles or doubles matchups in seconds.</p>
         </div>
-        <a href="/index" class="tennis-btn">Open Match Organizer</a>
+        <a href="/index" class="sleek-btn">Open Match Organizer</a>
       </div>
     </div>
 
@@ -162,7 +182,7 @@
         <span id="weatherText">Loading weather...</span>
       </p>
           </div>
-    <a href="/weather" class="tennis-btn mt-3">📅 5-Day Forecast</a>
+    <a href="/weather" class="sleek-btn mt-3">📅 5-Day Forecast</a>
   </div>
 </div>
 
@@ -179,7 +199,7 @@
         <p>No messages yet.</p>
       {% endif %}
     </div>
-    <a href="/bulletin" class="tennis-btn mt-3">📋 View All Bulletins</a>
+    <a href="/bulletin" class="sleek-btn mt-3">📋 View All Bulletins</a>
   </div>
 </div>
 
@@ -193,7 +213,7 @@
           <h3>📝 Notes</h3>
           <p>Keep notes from your coaching sessions.</p>
         </div>
-        <a href="/notes" class="tennis-btn">Launch Notes</a>
+        <a href="/notes" class="sleek-btn">Launch Notes</a>
       </div>
     </div>
 
@@ -204,7 +224,7 @@
           <h3>📅 Calendar</h3>
           <p>Plan and view your weekly tennis events.</p>
         </div>
-        <a href="/calendar" class="tennis-btn">📆 Open Calendar</a>
+        <a href="/calendar" class="sleek-btn">📆 Open Calendar</a>
       </div>
     </div>
 

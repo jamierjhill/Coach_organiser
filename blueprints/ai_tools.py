@@ -100,6 +100,10 @@ def ai_toolbox():
         error=error
     )
 
+from flask import jsonify, request, session
+from datetime import datetime, timedelta
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @ai_tools_bp.route("/chatbot", methods=["POST"])
 def chatbot():
@@ -109,10 +113,9 @@ def chatbot():
             return jsonify({"success": False, "error": "❌ No message received."})
 
         now = datetime.now()
-        if "chatbot_calls" not in session:
-            session["chatbot_calls"] = []
+        session.setdefault("chatbot_calls", [])
 
-        # Remove old calls (older than 1 hour)
+        # Clean old entries (1 hour limit)
         session["chatbot_calls"] = [
             t for t in session["chatbot_calls"]
             if datetime.fromisoformat(t) > now - timedelta(hours=1)
@@ -127,13 +130,26 @@ def chatbot():
         session["chatbot_calls"].append(now.isoformat())
         session.modified = True
 
+        # Moderation API check (OpenAI built-in moderation tool)
+        moderation_response = client.moderations.create(input=user_input)
+        moderation_result = moderation_response.results[0]
+
+        if moderation_result.flagged:
+            return jsonify({
+                "success": False,
+                "error": "🚫 Your message was inappropriate. Please ask only tennis-related questions."
+            })
+
+        # Restrictive Tennis-specific System Prompt
         if "chatbot_history" not in session:
             session["chatbot_history"] = [{
                 "role": "system",
                 "content": (
                     "You are a level 4 LTA tennis coaching assistant. "
-                    "Keep answers concise, focused, and under 3 sentences. "
-                    "Prompt the user to ask follow-ups (drills, advice, video)."
+                    "Respond only to tennis-related questions. "
+                    "If asked something off-topic, politely decline and suggest asking about tennis."
+                    "Keep answers concise and under 3 sentences."
+                    "Prompt users to ask follow-up tennis questions about drills, advice, or technique."
                 )
             }]
 
@@ -151,9 +167,8 @@ def chatbot():
 
         return jsonify({"success": True, "reply": reply})
 
-    except Exception:
-        return jsonify({"success": False, "error": "⚠️ The AI coach encountered an error."})
-
+    except Exception as e:
+        return jsonify({"success": False, "error": f"⚠️ An error occurred: {str(e)}"})
 
 @ai_tools_bp.route("/drill-generator", methods=["GET", "POST"])
 def drill_generator():
