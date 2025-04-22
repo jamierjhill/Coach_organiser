@@ -43,7 +43,12 @@ def bulletin():
 @main_bp.route("/post-bulletin", methods=["POST"])
 @login_required
 def post_bulletin():
+    from app import mail
+    from flask_mail import Message
+
     message = request.form.get("message", "").strip()
+    send_email = "send_email" in request.form  # ✅ Check checkbox state
+
     if not message:
         return redirect("/bulletin")
 
@@ -51,24 +56,60 @@ def post_bulletin():
     filepath = f"data/bulletins/{coach}.json"
     os.makedirs("data/bulletins", exist_ok=True)
 
-    if not os.path.exists(filepath):
-        messages = []
-    else:
+    if os.path.exists(filepath):
         with open(filepath, "r") as f:
             messages = json.load(f)
+    else:
+        messages = []
 
     new_msg = {
         "id": str(uuid4()),
         "text": message,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
-
     messages.append(new_msg)
 
     with open(filepath, "w") as f:
         json.dump(messages, f, indent=2)
 
+    # ✅ Only send email if box was ticked
+    if send_email:
+        send_bulletin_emails(coach, message)
+
     return redirect("/bulletin")
+
+
+
+def send_bulletin_emails(coach, text):
+    from app import mail
+    from flask_mail import Message
+
+    filepath = f"data/emails/{coach}.json"
+    if not os.path.exists(filepath):
+        return
+
+    with open(filepath) as f:
+        emails = json.load(f)
+
+    subject = f"🎾 New Bulletin from Coach {coach.capitalize()}"
+
+    base_url = os.getenv("APP_BASE_URL", "http://localhost:5000")
+
+    for email in emails:
+        body = (
+            f"Hi there,\n\n"
+            f"Coach {coach.capitalize()} has posted a new bulletin:\n\n"
+            f"{text}\n\n"
+            f"If you no longer want to receive updates, you can unsubscribe here in the player portal"
+            f"— Coaches Hub"
+        )
+
+        try:
+            msg = Message(subject=subject, recipients=[email], body=body)
+            mail.send(msg)
+        except Exception as e:
+            print(f"❌ Failed to send to {email}: {e}")
+
 
 
 @main_bp.route("/delete-bulletin/<msg_id>", methods=["POST"])
@@ -154,7 +195,7 @@ def contact():
     return render_template("contact.html")
 
 
-from utils import get_weather  # or weather_utils if separate
+from utils import get_weather
 
 @main_bp.route("/weather")
 @login_required
@@ -163,8 +204,6 @@ def weather():
     postcode = settings.get(current_user.username, {}).get("default_postcode", "SW6 4UL")
     weather = get_weather(postcode)
     return render_template("weather.html", weather=weather, default_postcode=postcode)
-
-
 
 
 @main_bp.route("/access-codes", methods=["GET", "POST"])
@@ -182,7 +221,6 @@ def access_codes():
     if request.method == "POST":
         title = request.form.get("title", "").strip()
         if title:
-            # Generate unique code
             new_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
             codes[new_code] = {
                 "title": title,
@@ -196,6 +234,7 @@ def access_codes():
     coach_codes = {code: data for code, data in codes.items() if data["created_by"] == coach}
     return render_template("access_codes.html", codes=coach_codes)
 
+
 @main_bp.route("/delete-access-code/<code>", methods=["POST"])
 @login_required
 def delete_access_code(code):
@@ -206,7 +245,6 @@ def delete_access_code(code):
     with open(filepath) as f:
         codes = json.load(f)
 
-    # Only allow the coach who created the code to delete it
     if code in codes and codes[code].get("created_by") == current_user.username:
         del codes[code]
         with open(filepath, "w") as f:

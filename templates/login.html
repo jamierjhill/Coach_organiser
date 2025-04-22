@@ -62,15 +62,9 @@
   </style>
 </head>
 <body>
+
   <div class="login-card">
     <h3 class="text-success text-center mb-4">🎾 Coaches Hub Login</h3>
-
-    {% if error %}
-      <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-    {% if message %}
-      <div class="alert alert-info">{{ message }}</div>
-    {% endif %}
 
     <!-- Coach Login Form -->
     <form method="POST" action="/login">
@@ -100,5 +94,7 @@
       <button type="submit" class="btn btn-outline-success w-100">Enter as Player</button>
     </form>
   </div>
+
 </body>
+
 </html>

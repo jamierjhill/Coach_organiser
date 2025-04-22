@@ -159,10 +159,22 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
   <div class="container py-5">
     <div class="container pb-3 mb-3">
         <h1 class="text-center text-success mb-3">🎾 {{ title }}</h1>
+        <h5 class="text-center text-success mb-3"> player portal</53>
+
         <!-- 🔓 Top Navigation -->
         <div class="top-bar">
           <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
@@ -181,6 +193,29 @@
         {% endfor %}
       </ul>
     </div>
+
+<!-- 📧 Notification Signup -->
+<div class="section-card mt-4">
+  <h3 class="section-title">📧 Get Updates from Your Coach</h3>
+
+  <form method="POST" action="/subscribe-email" class="row g-3">
+    <div class="col-md-8">
+      <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-success w-100">Subscribe</button>
+    </div>
+  </form>
+
+  <form method="POST" action="/unsubscribe-email" class="mt-3">
+    <input type="email" name="email" class="form-control mb-2" placeholder="Enter your email to unsubscribe" required>
+    <button class="btn btn-outline-danger w-100">❌ Unsubscribe</button>
+  </form>
+  
+</div>
+
+
+
 
     <!-- 📅 Calendar Section -->
     <div class="section-card">
@@ -203,7 +238,7 @@
         <div class="forecast-scroll-row">
           {% for e in today.hourly %}
             {% set wind_mph = (e.wind * 2.237) | round(0) %}
-            {% set wind_ms = e.wind | round(1) %}
+            {% set wind_ms = e.wind | round(0) %}
             {% set rain_chance = (e.rain * 10) | round(0) %}
             <div class="period-block">
               <div class="period-label">{{ e.time }}</div>
@@ -213,9 +248,9 @@
               <div class="weather-metric">🌡️ {{ e.temp }}°C</div>
               <div class="weather-desc">{{ e.desc }}</div>
               <div class="weather-metric mt-1">
-                ☁️ {{ e.clouds }}%<br>
-                💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
-                🌧️ Chance of rain: {{ rain_chance }}%
+                ☁️ {{ e.clouds | round(0) }}% cloud cover<br>
+                💨 {{ wind_mph | round(0) }} mph wind<br>
+                🌧️ {{ rain_chance | round(0) }}% chance of rain
               </div>
             </div>
           {% endfor %}
@@ -321,5 +356,8 @@
       });
     }
   </script>
+
 </body>
+
+
 </html>

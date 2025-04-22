@@ -21,10 +21,14 @@ def player_access():
         codes = load_codes()
         if code in codes:
             session["player_code"] = code
+            email = request.args.get("email", "").strip().lower()
+            if email:
+                session["subscriber_email"] = email
             return redirect(url_for("player.player_portal"))
         else:
             flash("❌ Invalid access code. Please try again.", "danger")
     return redirect(url_for("auth.login"))
+
 
 @player_bp.route("/player-portal")
 def player_portal():
@@ -51,6 +55,7 @@ def player_portal():
     weather = get_weather(postcode)
     forecast = weather.get("forecast", [])
 
+
     return render_template(
         "player_portal.html",
         code=code,
@@ -59,3 +64,67 @@ def player_portal():
         weather=weather,
         forecast=forecast
     )
+
+@player_bp.route("/subscribe-email", methods=["POST"])
+def subscribe_email():
+    code = session.get("player_code")
+    email = request.form.get("email", "").strip().lower()
+
+    if not code or not email:
+        flash("❌ Invalid submission.", "danger")
+        return redirect(url_for("player.player_portal"))
+
+    codes = load_codes()
+    coach = codes.get(code, {}).get("created_by")
+    if not coach:
+        flash("⚠️ Unauthorized.", "danger")
+        return redirect(url_for("auth.login"))
+
+    os.makedirs("data/emails", exist_ok=True)
+    filepath = f"data/emails/{coach}.json"
+
+    if os.path.exists(filepath):
+        with open(filepath) as f:
+            emails = set(json.load(f))
+    else:
+        emails = set()
+
+    emails.add(email)
+    session["subscribed"] = True
+    session["subscriber_email"] = email
+
+    with open(filepath, "w") as f:
+        json.dump(list(emails), f, indent=2)
+
+    flash("✅ You've been subscribed to coach updates!", "success")
+    return redirect(url_for("player.player_portal"))
+
+@player_bp.route("/unsubscribe-email", methods=["POST"])
+def unsubscribe_email():
+    code = session.get("player_code")
+    email = request.form.get("email", "").strip().lower()
+
+    if not code or not email:
+        flash("❌ Please enter your email to unsubscribe.", "danger")
+        return redirect(url_for("player.player_portal"))
+
+    codes = load_codes()
+    coach = codes.get(code, {}).get("created_by")
+    if not coach:
+        flash("⚠️ Unauthorized.", "danger")
+        return redirect(url_for("auth.login"))
+
+    filepath = f"data/emails/{coach}.json"
+    if os.path.exists(filepath):
+        with open(filepath) as f:
+            emails = set(json.load(f))
+        emails.discard(email)
+        with open(filepath, "w") as f:
+            json.dump(list(emails), f, indent=2)
+
+    flash("✅ You've been unsubscribed from coach updates.", "info")
+    return redirect(url_for("player.player_portal"))
+
+
+
+

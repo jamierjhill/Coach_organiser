@@ -13,7 +13,7 @@
     }
 
     .forecast-container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: auto;
       background-color: white;
       padding: 30px;
@@ -37,7 +37,7 @@
     }
 
     .slider-card {
-      min-width: 150px;
+      min-width: 200px;
       background-color: #f1f8e9;
       padding: 15px;
       border-radius: 10px;
@@ -76,6 +76,16 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
   <div class="container py-5">
     <div class="forecast-container">
       <h2 class="text-center text-success mb-4">☀️ Weather Forecast for <strong>{{ default_postcode }}</strong></h2>
@@ -93,18 +103,18 @@
             <div class="slider">
               {% for e in day.hourly %}
                 {% set wind_mph = (e.wind * 2.237) | round(0) %}
-                {% set wind_ms = e.wind | round(1) %}
+                {% set wind_ms = e.wind | round(0) %}
                 {% set rain_chance = (e.rain * 10) | round(0) %}
                 <div class="slider-card">
                   <strong>{{ e.time }}</strong><br>
                   <div class="weather-icon-bg mb-2">
                     <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" alt="icon">
                   </div>
-                  <div>🌡️ {{ e.temp }}°C</div>
+                  <div>🌡️ {{ e.temp | round(0) }}°C</div>
                   <div class="weather-metric">
-                    ☁️ {{ e.clouds }}%<br>
-                    💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
-                    🌧️ {{ rain_chance }}% rain
+                    ☁️ {{ e.clouds | round(0) }}% cloud cover<br>
+                    💨 {{ wind_mph | round(0) }} mph wind<br>
+                    🌧️ {{ rain_chance | round(0) }}% chance of rain
                   </div>
                 </div>
               {% endfor %}

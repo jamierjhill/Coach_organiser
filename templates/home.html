@@ -111,6 +111,17 @@
   </style>
 </head>
 <body>
+  
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endwith %}
 
 <!-- Toggle Button -->
 <button id="navToggleBtn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
@@ -137,6 +148,7 @@
       <li class="nav-item"><a class="nav-link text-success fw-bold" href="/ai-toolbox">🤖 AI Toolbox</a></li>
       <li class="nav-item"><a class="nav-link text-success fw-bold" href="/coachbot">🧠 CoachBot</a></li>
       <li class="nav-item"><a class="nav-link text-success fw-bold" href="/weather">🌤️ Weather</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/guide">📖 Coach Guide</a></li>
       <li class="nav-item"><a class="nav-link text-success fw-bold" href="/settings">⚙️ Settings</a></li>
       <li class="nav-item"><a class="nav-link text-success fw-bold" href="/access-codes">🎟️ Access Codes</a></li>
       <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/logout">🚪 Logout</a></li>
@@ -232,7 +244,7 @@
 </div>
 
 <footer>
-  Built by Jamie • v1.0 • <a href="/contact">Contact Us</a>
+  Built by Jamie • v2.0 • <a href="/contact">Contact Us</a>
 </footer>
 
 <!-- Scripts -->
@@ -303,4 +315,5 @@
 
 
 </body>
+
 </html>

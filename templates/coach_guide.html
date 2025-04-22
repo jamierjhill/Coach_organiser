@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FL37QBZMLC');
-</script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📘 Coach's Guide - Tennis Toolbox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
@@ -20,7 +11,6 @@
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
     }
-
     .card-guide {
       border-left: 6px solid #1b5e20;
       border-radius: 15px;
@@ -28,11 +18,9 @@
       padding: 30px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
-
     h1, h2, h4 {
       color: #1b5e20;
     }
-
     .btn-back {
       background-color: #43a047;
       color: white;
@@ -42,12 +30,10 @@
       text-decoration: none;
       margin-right: 10px;
     }
-
     .btn-back:hover {
       background-color: #2e7d32;
       transform: scale(1.05);
     }
-
     .tip {
       background-color: #e8f8f5;
       border-left: 4px solid #1abc9c;
@@ -55,29 +41,34 @@
       border-radius: 8px;
       margin-top: 2em;
     }
-
     code {
       background: #f1f1f1;
       padding: 0.2em 0.4em;
       border-radius: 4px;
       font-family: monospace;
     }
-
     ul {
       padding-left: 1.2em;
     }
   </style>
 </head>
-
-<div class="container py-5">
-  <h1 class="text-center text-success mb-4">🎾 App Guide </h1>
-  <div class="text-center mb-4">
-    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-    <a href="/index" class="btn btn-outline-success">📋 Match Organiser</a>
-
-  </div>
 <body>
-
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+  <div class="container py-5">
+    <h1 class="text-center text-success mb-4">🎾 App Guide</h1>
+    <div class="text-center mb-4">
+      <a href="/home" class="btn btn-outline-success">🏠 Home</a>
+      <a href="/index" class="btn btn-outline-success">📋 Match Organiser</a>
+    </div>
 
     <div class="card-guide" data-aos="fade-up">
       <p><strong>For Coaches:</strong> Quickly organize fair and balanced tennis sessions with this step-by-step guide.</p>
@@ -135,6 +126,18 @@
           <li>Use the match timer to track session rounds.</li>
         </ul>
       </div>
+
+      <h2 class="mt-5">🧠 Full Feature Summary</h2>
+      <ul>
+        <li><strong>CoachBot</strong> – Ask tennis-related questions and get quick coaching advice.</li>
+        <li><strong>AI Toolbox</strong> – Generate session plans and drills tailored to player count, focus, and duration.</li>
+        <li><strong>Notes</strong> – Store and manage personal session notes.</li>
+        <li><strong>Calendar</strong> – Plan, view, and repeat coaching events (players only see their coach’s events).</li>
+        <li><strong>Weather Forecast</strong> – 5-day hourly breakdown with tennis suitability for your default postcode.</li>
+        <li><strong>Bulletin Board</strong> – Share messages and updates with your group (each coach sees only their own).</li>
+        <li><strong>Player Portal</strong> – Give access via codes to view calendar, bulletins, weather, and ask CoachBot.</li>
+        <li><strong>Settings</strong> – Configure your postcode for weather forecasting.</li>
+      </ul>
     </div>
   </div>
 

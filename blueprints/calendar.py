@@ -5,6 +5,7 @@ import os, json
 calendar_bp = Blueprint("calendar", __name__)
 
 @calendar_bp.route("/calendar")
+@login_required
 def calendar():
     return render_template("calendar.html")
 
