@@ -9,7 +9,6 @@
     body {
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
-      padding-top: 60px;
     }
 
     .card-container {
@@ -46,29 +45,30 @@
   </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-  <div class="container py-5">
-    <div class="card-container">
-      <h2 class="text-success text-center mb-4">🎟️ Your Player Access Codes</h2>
-      <div class="text-center">
-        <a href="/home" class="btn btn-outline-success ms-auto">🏠 Home</a>
-      </div>
 
-      <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- Header with green background -->
+  <div class="text-center py-5">
+    <h2 class="text-success mb-3">🎟️ Your Player Access Codes</h2>
+    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
         {% endfor %}
-      {% endwith %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <div class="container pb-5">
+    <div class="card-container mt-3">
 
       <!-- Generate New Access Code -->
       <form method="POST" class="mb-4">

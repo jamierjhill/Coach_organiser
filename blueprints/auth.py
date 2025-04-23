@@ -2,6 +2,9 @@ from flask import Blueprint, render_template, request, redirect, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, load_users, save_users
 from blueprints.settings import load_settings, save_settings  # Add this import if not present
+from flask import current_app
+from flask_mail import Message
+
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -36,8 +39,9 @@ def logout():
 def register():
     if request.method == "POST":
         username = request.form.get("username")
+        email = request.form.get("email")
+        postcode = request.form.get("postcode", "").strip()
         password = request.form.get("password")
-        default_location = request.form.get("default_location", "Fulham").strip()
 
         users = load_users()
         if username in users:
@@ -46,15 +50,40 @@ def register():
         users[username] = password
         save_users(users)
 
-        # Save default location for weather in user settings
+        # Save postcode to settings
+        from blueprints.settings import load_settings, save_settings
         settings = load_settings()
-        settings[username] = {"default_postcode": default_location}
+        settings[username] = {"default_postcode": postcode}
         save_settings(settings)
 
         user = User(id=username, username=username)
         login_user(user)
+
+        # ✉️ Send welcome email
+        try:
+            from flask_mail import Message
+            from flask import current_app
+            mail = current_app.extensions["mail"]
+            msg = Message(
+                subject="🎾 Welcome to Coaches Hub!",
+                recipients=[email],
+                body=(
+                    f"Hi {username},\n\n"
+                    "Welcome to Coaches Hub! 🏆\n"
+                    "You can now organize matches, plan sessions, check forecasts, and more.\n\n"
+                    "Explore your dashboard and start coaching smarter today!\n\n"
+                    "– The Coaches Hub Team"
+                )
+            )
+            mail.send(msg)
+        except Exception as e:
+            print("⚠️ Email sending failed:", e)
+
         return redirect("/home")
 
     return render_template("register.html")
+
+
+
 
 

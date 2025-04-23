@@ -17,7 +17,6 @@
     body {
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
-      padding-top: 60px;
     }
 
     .notes-container {
@@ -66,23 +65,30 @@
   </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
 
-  <div class="container py-5">
-    <div class="notes-container">
-      <h2 class="text-success text-center mb-4">📝 My Coaching Notes</h2>
-      <div class="text-center mt-4">
-        <a href="/home" class="btn btn-outline-success mb-3">🏠 Home</a>
+  <!-- Header with green background -->
+  <div class="text-center py-5">
+    <h2 class="text-success mb-3">📝 My Coaching Notes</h2>
+    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Notes Card -->
+  <div class="container">
+    <div class="notes-container">
       <form method="POST">
         <div class="mb-3">
           <textarea name="note" class="form-control" rows="3" placeholder="Write a new note..." required></textarea>
@@ -102,13 +108,9 @@
           </form>
         </div>
       {% endfor %}
-
-
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
-
 </html>

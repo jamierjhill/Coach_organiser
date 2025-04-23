@@ -50,28 +50,50 @@
     }
   </style>
 </head>
-<body>
+<body style="background-color: #e8f5e9; font-family: 'Segoe UI', sans-serif;">
+
+  <!-- Header with green background and buttons -->
+  <div class="text-center py-5">
+    <h1 class="text-success mb-3 fw-bold">📅 Your Coaching Calendar</h1>
+    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+  </div>
+
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+    {% endif %}
+  {% endwith %}
 
+<!-- Main calendar content container -->
+<div class="container pb-5">
+  <div class="calendar-container">
+    <button type="button" class="btn btn-success mb-3" onclick="openNewEventModal()">
+      ➕ Add Event
+    </button>
+    <!-- Calendar Display -->
+    <div id="calendar" style="padding: 2x;"></div>
 
-<div class="container">
-    <div class="card shadow-lg p-4 rounded-4 border-0">
-      <h1 class="text-center text-success mb-4" style="font-weight: bold; font-size: 2rem;">
-        📅 Your Coaching Calendar
-      </h1>
-      <a href="/home" class="btn btn-outline-success ms-auto">🏠 Home</a>
-        <div id="calendar" style="padding: 10px;"></div>
+    <!-- Upcoming Events Panel -->
+    <div class="mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-success mb-0">📅 Upcoming Events</h5>
+      </div>
+      <ul class="list-group" id="upcomingEventsList">
+        <li class="list-group-item text-muted">Loading...</li>
+      </ul>
+    </div>
   </div>
 </div>
+
+
 
 <!-- Modal -->
 <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
@@ -118,66 +140,165 @@
   </div>
 </div>
 
+
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const calendarEl = document.getElementById('calendar');
-  let selectedDate = null;
-  let editingEvent = null;
+  let calendar;
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    selectable: true,
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-    dateClick: function (info) {
-      resetForm();
-      selectedDate = info.dateStr;
-      document.getElementById('eventDate').value = selectedDate;
-      new bootstrap.Modal(document.getElementById('eventModal')).show();
-    },
-    eventClick: function (info) {
-      const event = info.event;
-      editingEvent = event;
-      document.getElementById('eventId').value = event.id;
-      document.getElementById('eventTitle').value = event.title;
-      document.getElementById('eventDate').value = event.startStr.split("T")[0];
-      document.getElementById('eventTime').value = event.startStr.split("T")[1]?.slice(0,5) || "";
-      document.getElementById('eventDuration').value = event.end
-        ? Math.floor((new Date(event.end) - new Date(event.start)) / 60000)
-        : 60;
-      document.getElementById('eventRepeat').checked = false;
-      document.getElementById('repeatCount').value = 1;
-      document.getElementById('deleteEvent').style.display = "inline-block";
-      new bootstrap.Modal(document.getElementById('eventModal')).show();
-    }
-  });
-
-  fetch("/api/events")
-    .then(res => res.json())
-    .then(events => {
-      events.forEach(e => {
-        calendar.addEvent(e);
-      });
-    });
-
-  calendar.on("eventChange", saveEvents);
-  calendar.on("eventRemove", saveEvents);
-
+  // Make resetForm globally accessible
   function resetForm() {
-    editingEvent = null;
     document.getElementById('eventForm').reset();
     document.getElementById('eventId').value = "";
     document.getElementById('repeatCount').value = 1;
     document.getElementById('deleteEvent').style.display = "none";
   }
+
+  function openNewEventModal() {
+    resetForm();
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById('eventDate').value = today;
+    new bootstrap.Modal(document.getElementById('eventModal')).show();
+  }
+
+  function updateUpcomingEventsList() {
+    const now = new Date();
+    const futureEvents = calendar.getEvents()
+      .filter(e => new Date(e.start) >= now)
+      .sort((a, b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 5);
+
+    const list = document.getElementById("upcomingEventsList");
+    list.innerHTML = "";
+
+    if (futureEvents.length === 0) {
+      list.innerHTML = '<li class="list-group-item text-muted">No upcoming events</li>';
+      return;
+    }
+
+    futureEvents.forEach(event => {
+      const timeStr = event.allDay
+        ? "All Day"
+        : new Date(event.start).toLocaleString("en-GB", {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `<span>${event.title}</span><span class="badge bg-success">${timeStr}</span>`;
+      list.appendChild(li);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    let selectedDate = null;
+    let editingEvent = null;
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      selectable: true,
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+      dateClick: function (info) {
+        resetForm();
+        selectedDate = info.dateStr;
+        document.getElementById('eventDate').value = selectedDate;
+        new bootstrap.Modal(document.getElementById('eventModal')).show();
+      },
+      eventClick: function (info) {
+        const event = info.event;
+        editingEvent = event;
+        document.getElementById('eventId').value = event.id;
+        document.getElementById('eventTitle').value = event.title;
+        document.getElementById('eventDate').value = event.startStr.split("T")[0];
+        document.getElementById('eventTime').value = event.startStr.split("T")[1]?.slice(0,5) || "";
+        document.getElementById('eventDuration').value = event.end
+          ? Math.floor((new Date(event.end) - new Date(event.start)) / 60000)
+          : 60;
+        document.getElementById('eventRepeat').checked = false;
+        document.getElementById('repeatCount').value = 1;
+        document.getElementById('deleteEvent').style.display = "inline-block";
+        new bootstrap.Modal(document.getElementById('eventModal')).show();
+      }
+    });
+
+    fetch("/api/events")
+      .then(res => res.json())
+      .then(events => {
+        events.forEach(e => {
+          calendar.addEvent(e);
+        });
+        updateUpcomingEventsList();
+      });
+
+    calendar.on("eventAdd", updateUpcomingEventsList);
+    calendar.on("eventChange", updateUpcomingEventsList);
+    calendar.on("eventRemove", updateUpcomingEventsList);
+
+    document.getElementById('eventForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const title = document.getElementById('eventTitle').value.trim();
+      const date = document.getElementById('eventDate').value;
+      const time = document.getElementById('eventTime').value;
+      const duration = parseInt(document.getElementById('eventDuration').value.trim()) || 60;
+      const repeat = document.getElementById('eventRepeat').checked;
+      const repeatCount = parseInt(document.getElementById('repeatCount').value.trim()) || 1;
+
+      let start = new Date(`${date}${time ? 'T' + time : ''}`);
+      let end = time ? new Date(start.getTime() + duration * 60000) : null;
+      const allDay = !time;
+
+      let baseEvent;
+      if (editingEvent) {
+        editingEvent.setProp("title", title);
+        editingEvent.setStart(start);
+        editingEvent.setEnd(end);
+        editingEvent.setAllDay(allDay);
+        baseEvent = editingEvent;
+      } else {
+        baseEvent = calendar.addEvent({ title, start, end, allDay });
+      }
+
+      if (repeat && repeatCount > 1) {
+        for (let i = 1; i < repeatCount; i++) {
+          const offset = i * 7 * 24 * 60 * 60 * 1000; // 1 week
+          const repeatStart = new Date(start.getTime() + offset);
+          const repeatEnd = end ? new Date(end.getTime() + offset) : null;
+
+          calendar.addEvent({
+            title,
+            start: repeatStart,
+            end: repeatEnd,
+            allDay
+          });
+        }
+      }
+
+      saveEvents();
+      bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+    });
+
+    document.getElementById("deleteEvent").addEventListener("click", function () {
+      if (editingEvent) {
+        editingEvent.remove();
+        saveEvents();
+        bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+      }
+    });
+
+    calendar.render();
+  });
 
   function saveEvents() {
     const events = calendar.getEvents().map(event => ({
@@ -194,61 +315,6 @@ document.addEventListener('DOMContentLoaded', function () {
       body: JSON.stringify({ events })
     });
   }
-
-  document.getElementById('eventForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const title = document.getElementById('eventTitle').value.trim();
-    const date = document.getElementById('eventDate').value;
-    const time = document.getElementById('eventTime').value;
-    const duration = parseInt(document.getElementById('eventDuration').value.trim()) || 60;
-    const repeat = document.getElementById('eventRepeat').checked;
-    const repeatCount = parseInt(document.getElementById('repeatCount').value.trim()) || 1;
-
-    let start = new Date(`${date}${time ? 'T' + time : ''}`);
-    let end = time ? new Date(start.getTime() + duration * 60000) : null;
-    const allDay = !time;
-
-    let baseEvent;
-    if (editingEvent) {
-      editingEvent.setProp("title", title);
-      editingEvent.setStart(start);
-      editingEvent.setEnd(end);
-      editingEvent.setAllDay(allDay);
-      baseEvent = editingEvent;
-    } else {
-      baseEvent = calendar.addEvent({ title, start, end, allDay });
-    }
-
-    if (repeat && repeatCount > 1) {
-      for (let i = 1; i < repeatCount; i++) {
-        const offset = i * 7 * 24 * 60 * 60 * 1000; // 1 week
-        const repeatStart = new Date(start.getTime() + offset);
-        const repeatEnd = end ? new Date(end.getTime() + offset) : null;
-
-        calendar.addEvent({
-          title,
-          start: repeatStart,
-          end: repeatEnd,
-          allDay
-        });
-      }
-    }
-
-    saveEvents();
-    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-  });
-
-  document.getElementById("deleteEvent").addEventListener("click", function () {
-    if (editingEvent) {
-      editingEvent.remove();
-      saveEvents();
-      bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-    }
-  });
-
-  calendar.render();
-});
 </script>
 
 

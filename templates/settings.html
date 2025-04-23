@@ -8,8 +8,13 @@
   <style>
     body {
       background-color: #e8f5e9;
-      padding-top: 60px;
       font-family: 'Segoe UI', sans-serif;
+    }
+
+    .top-bar {
+      background-color: #e8f5e9;
+      padding: 60px 20px 30px;
+      text-align: center;
     }
 
     .card-container {
@@ -36,29 +41,30 @@
   </style>
 </head>
 <body>
+
+  <!-- Green Background Header -->
+  <div class="top-bar">
+    <h2 class="text-success mb-3">⚙️ Your Settings</h2>
+    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
+  </div>
+
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-  <div class="container py-5">
-    <div class="card-container">
-      <h2 class="text-success mb-4">⚙️ Your Settings</h2>
-      <div class="text-center mt-4">
-        <a href="/home" class="btn btn-outline-success ms-auto">🏠 Home</a>
-      </div>
-
-      {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
         {% endfor %}
-      {% endwith %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
+  <!-- Settings Card -->
+  <div class="container pb-5">
+    <div class="card-container mt-3">
       <form method="POST">
         <div class="mb-3">
           <label class="form-label">Default Location for Weather</label>
@@ -66,7 +72,6 @@
         </div>
         <button type="submit" class="btn btn-success w-100">💾 Save</button>
       </form>
-
     </div>
   </div>
 

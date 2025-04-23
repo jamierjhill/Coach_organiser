@@ -9,7 +9,11 @@
     body {
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
-      padding-top: 60px;
+    }
+
+    .top-bar {
+      padding: 60px 20px 30px;
+      text-align: center;
     }
 
     .bulletin-container {
@@ -59,42 +63,47 @@
   </style>
 </head>
 <body>
+
+  <!-- Top Bar with Green Background -->
+  <div class="top-bar">
+    <h2 class="text-success mb-3">📋 Coach Bulletin Board</h2>
+    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+    <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+  </div>
+
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-  <div class="container">
-    <div class="bulletin-container">
-      <h2 class="text-success text-center mb-4">📋 Coach Bulletin Board</h2>
-
-      <div class="text-center mb-3">
-        <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-      </div>
-
-      <!-- 💬 Post Message Form -->
-      <div class="card p-4 mb-4 border-0 shadow-sm">
-        <form action="/post-bulletin" method="POST">
-          <textarea name="message" class="form-control mb-2" rows="3" placeholder="Write a new bulletin message..." required></textarea>
-
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="send_email" id="send_email">
-            <label class="form-check-label" for="send_email">
-              📧 Also send this bulletin via email
-            </label>
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
-
-          <button type="submit" class="btn tennis-btn w-100">📬 Post Message</button>
-        </form>
+        {% endfor %}
       </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- White Card with Form + Messages -->
+  <div class="container pb-5">
+    <div class="bulletin-container mt-3">
+      <!-- 💬 Post Message Form -->
+      <form action="/post-bulletin" method="POST">
+        <textarea name="message" class="form-control mb-2" rows="3" placeholder="Write a new bulletin message..." required></textarea>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="send_email" id="send_email">
+          <label class="form-check-label" for="send_email">
+            📧 Also send this bulletin via email
+          </label>
+        </div>
+
+        <button type="submit" class="btn tennis-btn w-100">📬 Post Message</button>
+      </form>
 
       <!-- 📌 Bulletin Messages -->
+      <hr class="my-4">
       {% for msg in bulletin_messages|reverse %}
         <div class="note-card">
           <p class="mb-1">🗨️ {{ msg.text }}</p>
@@ -108,7 +117,5 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
-
 </html>
