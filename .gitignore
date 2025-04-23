@@ -41,3 +41,10 @@ ENV/
 node_modules/
 dist/
 build/
+
+# Ignore data files
+data/
+sessions/
+notes/
+*.json
+

@@ -7,7 +7,7 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_mail import Mail
 from blueprints import all_blueprints
-from models import load_users, User
+from models import User, load_user_by_id  # ✅ updated
 
 mail = Mail()
 
@@ -30,6 +30,7 @@ def create_app():
     os.makedirs("sessions", exist_ok=True)
     os.makedirs("notes", exist_ok=True)
     os.makedirs("data/events", exist_ok=True)
+    os.makedirs("data/users", exist_ok=True)  # ✅ ensure user folder exists
     os.makedirs("data", exist_ok=True)
 
     # Flask-Login setup
@@ -37,12 +38,10 @@ def create_app():
     login_manager.login_view = "auth.login"
     login_manager.init_app(app)
 
+    # ✅ Load user from individual user files
     @login_manager.user_loader
-    def load_user_by_id(user_id):
-        users = load_users()
-        if user_id in users:
-            return User(id=user_id, username=user_id)
-        return None
+    def load_user(user_id):
+        return load_user_by_id(user_id)
 
     # Register blueprints
     for bp in all_blueprints:

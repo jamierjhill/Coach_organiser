@@ -1,90 +1,72 @@
+import os, json
 from flask import Blueprint, render_template, request, redirect, flash, session
 from flask_login import login_required, current_user
-import os, json
-from models import load_users, save_users
+from user_utils import (
+    load_user, save_user, rename_user_file,
+    rename_feature_file, user_path
+)
 
 settings_bp = Blueprint("settings", __name__)
-
-SETTINGS_FILE = "data/user_settings.json"
-
-def load_settings():
-    if not os.path.exists(SETTINGS_FILE):
-        return {}
-    with open(SETTINGS_FILE, "r") as f:
-        return json.load(f)
-
-def save_settings(data):
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
 
 @settings_bp.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
-    user = current_user.username
+    old_username = current_user.username
     session["last_form_page"] = "/settings"
-    settings = load_settings()
+
+    user_data = load_user(old_username)
+    if not user_data:
+        flash("⚠️ User not found.", "danger")
+        return redirect("/logout")
 
     if request.method == "POST":
-        # Retrieve postcode early, apply later
         postcode = request.form.get("postcode", "").strip()
-
-        # Handle username change
         new_username = request.form.get("new_username", "").strip()
-        if new_username and new_username != user:
-            users = load_users()
-            if new_username in users:
-                flash("⚠️ Username already taken.", "danger")
+
+        # ✅ Handle username change
+        if new_username and new_username != old_username:
+            new_path = user_path(new_username)
+
+            # Prevent renaming to an already-existing user
+            if os.path.exists(new_path) and new_username != user_data.get("username"):
+                flash("⚠️ That username already exists.", "danger")
                 return redirect("/settings")
-            else:
-                users[new_username] = users.pop(user)
-                save_users(users)
 
-                # Migrate settings and update postcode
-                settings[new_username] = settings.pop(user)
-                settings[new_username]["default_postcode"] = postcode
-                save_settings(settings)
+            # Update and save user file
+            user_data["username"] = new_username
+            user_data["default_postcode"] = postcode
+            rename_user_file(old_username, new_username)
+            save_user(user_data)
 
-                # Migrate notes
-                old_notes = f"notes/{user}.txt"
-                new_notes = f"notes/{new_username}.txt"
-                if os.path.exists(old_notes):
-                    os.rename(old_notes, new_notes)
+            # Rename associated data files
+            rename_feature_file("notes", old_username, new_username)
+            rename_feature_file("data/bulletins", old_username, new_username)
+            rename_feature_file("data/events", old_username, new_username)
+            rename_feature_file("data/emails", old_username, new_username)
 
-                # Migrate bulletins
-                old_bulletin = f"data/bulletins/{user}.json"
-                new_bulletin = f"data/bulletins/{new_username}.json"
-                if os.path.exists(old_bulletin):
-                    os.rename(old_bulletin, new_bulletin)
+            # Update access code ownership
+            codes_path = "data/session_codes.json"
+            if os.path.exists(codes_path):
+                with open(codes_path, "r") as f:
+                    codes = json.load(f)
+                for code, data in codes.items():
+                    if data.get("created_by") == old_username:
+                        data["created_by"] = new_username
+                with open(codes_path, "w") as f:
+                    json.dump(codes, f, indent=2)
 
-                # Migrate events
-                old_events = f"data/events/events_{user}.json"
-                new_events = f"data/events/events_{new_username}.json"
-                if os.path.exists(old_events):
-                    os.rename(old_events, new_events)
+            # ✅ Rename email subscription file if it exists
+            old_email_file = f"data/emails/{old_username}.json"
+            new_email_file = f"data/emails/{new_username}.json"
+            if os.path.exists(old_email_file):
+                os.rename(old_email_file, new_email_file)
 
-                # Migrate emails
-                old_emails = f"data/emails/{user}.json"
-                new_emails = f"data/emails/{new_username}.json"
-                if os.path.exists(old_emails):
-                    os.rename(old_emails, new_emails)
+            flash("✅ Username changed. Please log in again.", "success")
+            return redirect("/logout")
 
-                # Update session codes
-                session_code_file = "data/session_codes.json"
-                if os.path.exists(session_code_file):
-                    with open(session_code_file, "r") as f:
-                        session_codes = json.load(f)
-                    for code, data in session_codes.items():
-                        if data.get("created_by") == user:
-                            data["created_by"] = new_username
-                    with open(session_code_file, "w") as f:
-                        json.dump(session_codes, f, indent=2)
-
-                flash("✅ Username changed. Please log in again.", "success")
-                return redirect("/logout")
-
-        # No username change: update postcode under current user
-        settings[user] = {"default_postcode": postcode}
-        save_settings(settings)
+        # ✅ Just update postcode
+        user_data["default_postcode"] = postcode
+        save_user(user_data)
 
         if "go_home" in request.form:
             flash("✅ Settings saved!", "success")
@@ -93,5 +75,6 @@ def settings():
         flash("✅ Settings saved!", "success")
         return redirect("/settings")
 
-    user_settings = settings.get(user, {})
-    return render_template("settings.html", user_settings=user_settings)
+    return render_template("settings.html", user_settings={
+        "default_postcode": user_data.get("default_postcode", "")
+    })

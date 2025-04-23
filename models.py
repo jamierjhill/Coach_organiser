@@ -1,10 +1,11 @@
 # models.py
-from flask_login import UserMixin
 import os
 import json
+from flask_login import UserMixin
 
-USERS_FILE = "data/users.json"
-class User:
+USERS_DIR = "data/users"
+
+class User(UserMixin):
     def __init__(self, id, username):
         self.id = id
         self.username = username
@@ -12,13 +13,8 @@ class User:
     def get_id(self):
         return self.id
 
-    @property
-    def is_authenticated(self): return True
-    @property
-    def is_active(self): return True
-    @property
-    def is_anonymous(self): return False
-
+# Optional: still needed in settings.py to update login credentials
+USERS_FILE = "data/users.json"
 
 def load_users():
     if os.path.exists(USERS_FILE):
@@ -29,3 +25,12 @@ def load_users():
 def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f)
+
+# Flask-Login loader function (used in app.py)
+def load_user_by_id(user_id):
+    path = os.path.join(USERS_DIR, f"{user_id}.json")
+    if os.path.exists(path):
+        with open(path) as f:
+            data = json.load(f)
+        return User(id=data["username"], username=data["username"])
+    return None

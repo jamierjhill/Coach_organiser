@@ -96,8 +96,16 @@
       
         <button type="submit" class="btn btn-success">💾 Save</button>
       </form>
+      <hr class="my-4">
+      <div class="text-center text-muted mb-2">Danger Zone</div>
+      <form method="POST" action="/delete-account" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
+        <button type="submit" class="btn btn-danger">🗑️ Delete Account</button>
+      </form>
+      
       
     </div>
+
+ 
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

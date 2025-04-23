@@ -1,22 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, session
+import os, json
+from flask import Blueprint, render_template, request, redirect, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from models import User, load_users, save_users
-from blueprints.settings import load_settings, save_settings  # Add this import if not present
-from flask import current_app
 from flask_mail import Message
-
+from models import User
+from user_utils import load_user, save_user, delete_user_file, delete_feature_file
+from user_utils import feature_path
 
 auth_bp = Blueprint("auth", __name__)
 
-
+# === LOGIN ===
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
-        users = load_users()
-        if username in users and users[username] == password:
+        user_data = load_user(username)
+        if user_data and user_data["password"] == password:
             user = User(id=username, username=username)
             login_user(user)
             return redirect("/home")
@@ -24,9 +24,7 @@ def login():
         return render_template("login.html", error="Invalid credentials.")
     return render_template("login.html")
 
-
-
-
+# === LOGOUT ===
 @auth_bp.route("/logout")
 @login_required
 def logout():
@@ -34,10 +32,10 @@ def logout():
     session.clear()
     return redirect("/login?message=You’ve been logged out successfully.")
 
-
+# === REGISTER ===
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    session["last_form_page"] = "/register"  # 🧠 Track last active form page
+    session["last_form_page"] = "/register"
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -45,22 +43,22 @@ def register():
         postcode = request.form.get("postcode", "").strip()
         password = request.form.get("password")
 
-        users = load_users()
-        if username in users:
+        # Prevent duplicate users
+        if load_user(username):
             return render_template("register.html", error="Username already exists.")
 
-        users[username] = password
-        save_users(users)
-
-        # Save postcode to settings
-        settings = load_settings()
-        settings[username] = {"default_postcode": postcode}
-        save_settings(settings)
+        # Create user file
+        user_data = {
+            "username": username,
+            "password": password,
+            "default_postcode": postcode
+        }
+        save_user(user_data)
 
         user = User(id=username, username=username)
         login_user(user)
 
-        # ✉️ Send welcome email
+        # Send welcome email
         try:
             mail = current_app.extensions["mail"]
             msg = Message(
@@ -78,14 +76,39 @@ def register():
         except Exception as e:
             print("⚠️ Email sending failed:", e)
 
-        # Handle Save + Home logic
-        if "go_home" in request.form:
-            return redirect("/home")
-
-        return redirect("/home")
+        return redirect("/home" if "go_home" in request.form else "/home")
 
     return render_template("register.html")
 
+# === DELETE ACCOUNT ===
+@auth_bp.route("/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    username = current_user.username
 
+    # Remove user file
+    delete_user_file(username)
 
+    # Remove associated files
+    feature_files = [
+        ("notes", username, ""),               # notes/username.json
+        ("data/bulletins", username, ""),      # bulletins/username.json
+        ("data/events", username, ""),         # events/username.json
+        ("data/emails", username, "")          # emails/username.json
+    ]
 
+    for folder, user, prefix in feature_files:
+        delete_feature_file(folder, user, prefix)
+
+    # Remove access codes created by this user
+    codes_path = "data/session_codes.json"
+    if os.path.exists(codes_path):
+        with open(codes_path) as f:
+            codes = json.load(f)
+        codes = {k: v for k, v in codes.items() if v.get("created_by") != username}
+        with open(codes_path, "w") as f:
+            json.dump(codes, f, indent=2)
+
+    logout_user()
+    session.clear()
+    return redirect("/login?message=Your account has been permanently deleted.")

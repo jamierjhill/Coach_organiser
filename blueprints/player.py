@@ -1,15 +1,17 @@
+import os, json
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
-from blueprints.settings import load_settings
 from utils import get_weather
-import json
-import os
+from user_utils import load_user  # replaces load_settings
+from pathlib import Path
 
 player_bp = Blueprint("player", __name__)
 
 SESSION_CODE_FILE = "data/session_codes.json"
+EMAILS_DIR = "data/emails"
+BULLETINS_DIR = "data/bulletins"
 
 def load_codes():
-    if os.path.exists(SESSION_CODE_FILE):
+    if Path(SESSION_CODE_FILE).exists():
         with open(SESSION_CODE_FILE) as f:
             return json.load(f)
     return {}
@@ -25,10 +27,8 @@ def player_access():
             if email:
                 session["subscriber_email"] = email
             return redirect(url_for("player.player_portal"))
-        else:
-            flash("❌ Invalid access code. Please try again.", "danger")
+        flash("❌ Invalid access code. Please try again.", "danger")
     return redirect(url_for("auth.login"))
-
 
 @player_bp.route("/player-portal")
 def player_portal():
@@ -42,19 +42,18 @@ def player_portal():
     portal_data = codes[code]
     coach = portal_data["created_by"]
 
-    # Load bulletin
-    bulletin_path = f"data/bulletins/{coach}.json"
+    # Load coach's bulletin
+    bulletin_path = os.path.join(BULLETINS_DIR, f"{coach}.json")
     bulletin_messages = []
     if os.path.exists(bulletin_path):
         with open(bulletin_path) as f:
             bulletin_messages = json.load(f)
 
     # Load coach's postcode and weather
-    settings = load_settings()
-    postcode = settings.get(coach, {}).get("default_postcode", "SW6 4UL")
+    coach_data = load_user(coach)
+    postcode = coach_data.get("default_postcode", "SW6 4UL") if coach_data else "SW6 4UL"
     weather = get_weather(postcode)
     forecast = weather.get("forecast", [])
-
 
     return render_template(
         "player_portal.html",
@@ -80,14 +79,13 @@ def subscribe_email():
         flash("⚠️ Unauthorized.", "danger")
         return redirect(url_for("auth.login"))
 
-    os.makedirs("data/emails", exist_ok=True)
-    filepath = f"data/emails/{coach}.json"
+    os.makedirs(EMAILS_DIR, exist_ok=True)
+    filepath = os.path.join(EMAILS_DIR, f"{coach}.json")
 
+    emails = set()
     if os.path.exists(filepath):
         with open(filepath) as f:
             emails = set(json.load(f))
-    else:
-        emails = set()
 
     emails.add(email)
     session["subscribed"] = True
@@ -114,7 +112,8 @@ def unsubscribe_email():
         flash("⚠️ Unauthorized.", "danger")
         return redirect(url_for("auth.login"))
 
-    filepath = f"data/emails/{coach}.json"
+    filepath = os.path.join(EMAILS_DIR, f"{coach}.json")
+
     if os.path.exists(filepath):
         with open(filepath) as f:
             emails = set(json.load(f))
@@ -124,7 +123,3 @@ def unsubscribe_email():
 
     flash("✅ You've been unsubscribed from coach updates.", "info")
     return redirect(url_for("player.player_portal"))
-
-
-
-
