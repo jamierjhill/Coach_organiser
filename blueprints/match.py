@@ -11,6 +11,8 @@ CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
 
 @match_bp.route("/index", methods=["GET", "POST"])
 def index():
+    session["last_form_page"] = "/index"  # 🧠 Smart Save & Home tracking
+
     players = session.get("players", [])
     courts = session.get("courts", 1)
     num_matches = session.get("num_matches", 1)
@@ -130,6 +132,9 @@ def index():
             session["opponent_diff"] = opponent_diff
             session["rounds"] = rounds
 
+        if "go_home" in request.form:
+            return redirect("/home")
+
     else:
         matchups = session.get("matchups", [])
         player_match_counts = session.get("player_match_counts", {})
@@ -152,3 +157,4 @@ def index():
         rounds=rounds,
         view_mode=view_mode
     )
+

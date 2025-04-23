@@ -37,6 +37,8 @@ def logout():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    session["last_form_page"] = "/register"  # 🧠 Track last active form page
+
     if request.method == "POST":
         username = request.form.get("username")
         email = request.form.get("email")
@@ -51,7 +53,6 @@ def register():
         save_users(users)
 
         # Save postcode to settings
-        from blueprints.settings import load_settings, save_settings
         settings = load_settings()
         settings[username] = {"default_postcode": postcode}
         save_settings(settings)
@@ -61,8 +62,6 @@ def register():
 
         # ✉️ Send welcome email
         try:
-            from flask_mail import Message
-            from flask import current_app
             mail = current_app.extensions["mail"]
             msg = Message(
                 subject="🎾 Welcome to Coaches Hub!",
@@ -79,10 +78,13 @@ def register():
         except Exception as e:
             print("⚠️ Email sending failed:", e)
 
+        # Handle Save + Home logic
+        if "go_home" in request.form:
+            return redirect("/home")
+
         return redirect("/home")
 
     return render_template("register.html")
-
 
 
 

@@ -241,9 +241,19 @@
         updateUpcomingEventsList();
       });
 
-    calendar.on("eventAdd", updateUpcomingEventsList);
-    calendar.on("eventChange", updateUpcomingEventsList);
-    calendar.on("eventRemove", updateUpcomingEventsList);
+      calendar.on("eventAdd", function() {
+  updateUpcomingEventsList();
+  saveEvents(); // ✅ auto-save to backend
+});
+calendar.on("eventChange", function() {
+  updateUpcomingEventsList();
+  saveEvents();
+});
+calendar.on("eventRemove", function() {
+  updateUpcomingEventsList();
+  saveEvents();
+});
+
 
     document.getElementById('eventForm').addEventListener('submit', function (e) {
       e.preventDefault();

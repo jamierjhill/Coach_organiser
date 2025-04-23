@@ -42,6 +42,20 @@
 </head>
 <body>
 
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <!-- Green Background Header -->
   <div class="top-bar">
     <h2 class="text-success mb-3">⚙️ Your Settings</h2>
@@ -66,15 +80,50 @@
   <div class="container pb-5">
     <div class="card-container mt-3">
       <form method="POST">
-        <div class="mb-3">
-          <label class="form-label">Default Location for Weather</label>
-          <input type="text" class="form-control" name="postcode" value="{{ user_settings.default_postcode or '' }}" placeholder="e.g. Parsons Green">
-        </div>
-        <button type="submit" class="btn btn-success w-100">💾 Save</button>
+<!-- Weather Settings -->
+<div class="mb-3">
+  <label class="form-label">Default Location for Weather</label>
+  <input type="text" class="form-control" id="postcodeInput" name="postcode" value="{{ user_settings.default_postcode or '' }}" placeholder="e.g. SW6 4UL">
+</div>
+
+<!-- Username Change -->
+<hr>
+<div class="mb-3">
+  <label class="form-label">Change Username</label>
+  <input type="text" class="form-control" id="usernameInput" name="new_username" placeholder="Enter new username">
+</div>
+
+      
+        <button type="submit" class="btn btn-success">💾 Save</button>
       </form>
+      
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function autoSaveSettings() {
+      const postcode = document.getElementById("postcodeInput").value.trim();
+      const new_username = document.getElementById("usernameInput").value.trim();
+  
+      const data = new URLSearchParams();
+      data.append("postcode", postcode);
+      if (new_username) data.append("new_username", new_username);
+  
+      fetch("/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: data
+      }).then(res => {
+        if (res.redirected) {
+          window.location.href = res.url; // Handles logout if username changes
+        }
+      });
+    }
+  
+    document.getElementById("postcodeInput").addEventListener("blur", autoSaveSettings);
+    document.getElementById("usernameInput").addEventListener("blur", autoSaveSettings);
+  </script>
+  
 </body>
 </html>

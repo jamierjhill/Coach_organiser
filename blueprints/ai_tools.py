@@ -20,6 +20,8 @@ def ai_toolbox():
     chat_response = None
     error = None
 
+    session["last_form_page"] = "/ai-toolbox"  # 🧠 Save last page for Save+Home
+
     # Password protection
     if not session.get("ai_toolbox_access_granted"):
         if request.method == "POST" and "password" in request.form:
@@ -30,67 +32,68 @@ def ai_toolbox():
                 error = "Incorrect password"
         return render_template("ai_toolbox.html", error=error)
 
-    if request.method == "POST" and "tool" in request.form:
-        tool = request.form.get("tool")
+    if request.method == "POST":
+        if "tool" in request.form:
+            tool = request.form.get("tool")
 
-        # Drill Generator
-        if tool == "drill":
-            drill_prompt = request.form.get("drill_prompt", "").strip()
-            if drill_prompt:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
-                            {"role": "user", "content": drill_prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    drill = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"Drill error: {e}"
+            if tool == "drill":
+                drill_prompt = request.form.get("drill_prompt", "").strip()
+                if drill_prompt:
+                    try:
+                        response = client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
+                                {"role": "user", "content": drill_prompt}
+                            ],
+                            temperature=0.7
+                        )
+                        drill = response.choices[0].message.content.strip()
+                    except Exception as e:
+                        error = f"Drill error: {e}"
 
-        # Session Plan Generator
-        elif tool == "session":
-            players = request.form.get("players", "").strip()
-            focus = request.form.get("focus", "").strip()
-            duration = request.form.get("duration", "").strip()
+            elif tool == "session":
+                players = request.form.get("players", "").strip()
+                focus = request.form.get("focus", "").strip()
+                duration = request.form.get("duration", "").strip()
+                if players and focus and duration:
+                    try:
+                        prompt = (
+                            f"Create a tennis coaching session for {players} players. "
+                            f"The focus is on {focus}. Duration: {duration} minutes. "
+                            f"Include warm-up, main drills, and cool-down."
+                        )
+                        response = client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient session plans."},
+                                {"role": "user", "content": prompt}
+                            ],
+                            temperature=0.7
+                        )
+                        session_plan = response.choices[0].message.content.strip()
+                    except Exception as e:
+                        error = f"Session plan error: {e}"
 
-            if players and focus and duration:
-                try:
-                    prompt = (
-                        f"Create a tennis coaching session for {players} players. "
-                        f"The focus is on {focus}. Duration: {duration} minutes. "
-                        f"Include warm-up, main drills, and cool-down."
-                    )
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient session plans."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    session_plan = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"Session plan error: {e}"
+            elif tool == "chat":
+                chat_prompt = request.form.get("chat_prompt", "").strip()
+                if chat_prompt:
+                    try:
+                        response = client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a helpful tennis coaching assistant."},
+                                {"role": "user", "content": chat_prompt}
+                            ],
+                            temperature=0.6
+                        )
+                        chat_response = response.choices[0].message.content.strip()
+                    except Exception as e:
+                        error = f"CoachBot error: {e}"
 
-        # ChatBot
-        elif tool == "chat":
-            chat_prompt = request.form.get("chat_prompt", "").strip()
-            if chat_prompt:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a helpful tennis coaching assistant."},
-                            {"role": "user", "content": chat_prompt}
-                        ],
-                        temperature=0.6
-                    )
-                    chat_response = response.choices[0].message.content.strip()
-                except Exception as e:
-                    error = f"CoachBot error: {e}"
+        # 💾 If Save + Home is clicked
+        if "go_home" in request.form:
+            return redirect("/home")
 
     return render_template(
         "ai_toolbox.html",
@@ -99,6 +102,7 @@ def ai_toolbox():
         chat_response=chat_response,
         error=error
     )
+
 
 from flask import jsonify, request, session
 from datetime import datetime, timedelta

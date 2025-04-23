@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
-  </script>
   <meta charset="UTF-8">
   <title>📝 My Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -49,10 +41,6 @@
       align-items: center;
     }
 
-    .note-item form {
-      margin: 0;
-    }
-
     .note-text {
       flex-grow: 1;
       margin-right: 10px;
@@ -66,51 +54,79 @@
 </head>
 <body>
 
-  <!-- Header with green background -->
   <div class="text-center py-5">
     <h2 class="text-success mb-3">📝 My Coaching Notes</h2>
     <a href="/home" class="btn btn-outline-success">🏠 Home</a>
   </div>
 
-  <!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="container mt-3">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <!-- Notes Card -->
   <div class="container">
     <div class="notes-container">
-      <form method="POST">
+      <div class="mb-3">
         <div class="mb-3">
-          <textarea name="note" class="form-control" rows="3" placeholder="Write a new note..." required></textarea>
+          <textarea id="newNote" class="form-control" rows="3" placeholder="Write a new note..."></textarea>
         </div>
-        <button type="submit" class="btn notes-btn w-100 mb-3">➕ Add Note</button>
-      </form>
+          <button id="addNoteBtn" class="btn notes-btn w-100 mt-3">➕ Add Note</button>
+      </div>
 
       <hr class="my-4">
       <h4 class="section-title mb-3">🗂 Your Saved Notes</h4>
 
-      {% for line in notes %}
-        <div class="note-item">
-          <div class="note-text">{{ line }}</div>
-          <form method="POST">
-            <input type="hidden" name="delete_note" value="{{ line }}">
-            <button class="btn btn-sm btn-outline-danger">🗑️</button>
-          </form>
-        </div>
-      {% endfor %}
+      <div id="notesList">
+        {% for line in notes %}
+          <div class="note-item">
+            <div class="note-text">{{ line }}</div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('{{ line }}')">🗑️</button>
+          </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
+  <script>
+    const noteInput = document.getElementById('newNote');
+  
+    // Auto-save on Enter (but allow Shift+Enter for new line)
+    noteInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const note = noteInput.value.trim();
+        if (!note) return;
+  
+        fetch('/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ note })
+        }).then(() => {
+          const noteItem = document.createElement('div');
+          noteItem.className = 'note-item';
+          noteItem.innerHTML = `
+            <div class="note-text">${note}</div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${note}')">🗑️</button>
+          `;
+          document.getElementById('notesList').prepend(noteItem);
+          noteInput.value = '';
+        });
+      }
+    });
+  
+    // Delete note dynamically
+    function deleteNote(note) {
+      fetch('/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ delete_note: note })
+      }).then(() => {
+        const items = document.querySelectorAll('.note-item');
+        items.forEach(item => {
+          if (item.querySelector('.note-text')?.textContent === note) {
+            item.remove();
+          }
+        });
+      });
+    }
+  </script>
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
 </body>
 </html>

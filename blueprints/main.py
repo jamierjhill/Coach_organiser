@@ -39,18 +39,15 @@ def bulletin():
     messages = load_bulletin()
     return render_template("bulletin.html", bulletin_messages=messages)
 
-
 @main_bp.route("/post-bulletin", methods=["POST"])
 @login_required
 def post_bulletin():
-    from app import mail
-    from flask_mail import Message
+    session["last_form_page"] = "/bulletin"
 
     message = request.form.get("message", "").strip()
-    send_email = "send_email" in request.form  # ✅ Check checkbox state
-
+    send_email = "send_email" in request.form
     if not message:
-        return redirect("/bulletin")
+        return '', 204
 
     coach = current_user.username
     filepath = f"data/bulletins/{coach}.json"
@@ -72,11 +69,12 @@ def post_bulletin():
     with open(filepath, "w") as f:
         json.dump(messages, f, indent=2)
 
-    # ✅ Only send email if box was ticked
     if send_email:
         send_bulletin_emails(coach, message)
 
-    return redirect("/bulletin")
+    return '', 204  # Respond silently for auto-save
+
+
 
 
 
@@ -140,6 +138,8 @@ def guide():
 @main_bp.route("/notes", methods=["GET", "POST"])
 @login_required
 def notes():
+    session["last_form_page"] = "/notes"
+
     notes_file = f"notes/{current_user.username}.txt"
     os.makedirs("notes", exist_ok=True)
 
@@ -157,8 +157,10 @@ def notes():
                 notes = [n for n in notes if n.strip() != to_delete]
                 with open(notes_file, "w") as f:
                     f.writelines(notes)
-        return redirect("/notes")
 
+        return '', 204  # ✅ No content (used for JS fetch auto-save)
+
+    # GET: Load notes
     notes_list = []
     if os.path.exists(notes_file):
         with open(notes_file, "r") as f:
@@ -167,8 +169,11 @@ def notes():
     return render_template("notes.html", notes=notes_list)
 
 
+
 @main_bp.route("/contact", methods=["GET", "POST"])
 def contact():
+    session["last_form_page"] = "/contact"
+
     if request.method == "POST":
         from app import mail
         from flask_mail import Message
@@ -190,9 +195,13 @@ def contact():
         except Exception:
             flash("⚠️ Failed to send message. Please try again later.", "danger")
 
+        if "go_home" in request.form:
+            return redirect("/home")
+
         return redirect("/contact")
 
     return render_template("contact.html")
+
 
 
 from utils import get_weather
@@ -209,6 +218,8 @@ def weather():
 @main_bp.route("/access-codes", methods=["GET", "POST"])
 @login_required
 def access_codes():
+    session["last_form_page"] = "/access-codes"
+
     filepath = "data/session_codes.json"
     if os.path.exists(filepath):
         with open(filepath) as f:
@@ -220,19 +231,28 @@ def access_codes():
 
     if request.method == "POST":
         title = request.form.get("title", "").strip()
-        if title:
-            new_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-            codes[new_code] = {
-                "title": title,
-                "created_by": coach
-            }
-            with open(filepath, "w") as f:
-                json.dump(codes, f, indent=2)
-            flash(f"✅ Created code: {new_code}", "success")
-        return redirect("/access-codes")
+
+        if "go_home" in request.form:
+            return redirect("/home")
+
+        if not title:
+            return '', 400  # Bad request for JS auto-save
+
+        new_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        codes[new_code] = {
+            "title": title,
+            "created_by": coach
+        }
+        with open(filepath, "w") as f:
+            json.dump(codes, f, indent=2)
+        flash(f"✅ Created code: {new_code}", "success")
+
+        return '', 204  # JS success (no redirect)
 
     coach_codes = {code: data for code, data in codes.items() if data["created_by"] == coach}
     return render_template("access_codes.html", codes=coach_codes)
+
+
 
 
 @main_bp.route("/delete-access-code/<code>", methods=["POST"])
@@ -240,7 +260,7 @@ def access_codes():
 def delete_access_code(code):
     filepath = "data/session_codes.json"
     if not os.path.exists(filepath):
-        return redirect("/access-codes")
+        return '', 404
 
     with open(filepath) as f:
         codes = json.load(f)
@@ -249,8 +269,6 @@ def delete_access_code(code):
         del codes[code]
         with open(filepath, "w") as f:
             json.dump(codes, f, indent=2)
-        flash(f"🗑️ Deleted access code: {code}", "success")
+        return '', 204  # ✅ Success: No content
     else:
-        flash("⚠️ You are not authorized to delete this code.", "danger")
-
-    return redirect("/access-codes")
+        return '', 403  # ❌ Unauthorized

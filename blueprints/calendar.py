@@ -4,9 +4,28 @@ import os, json
 
 calendar_bp = Blueprint("calendar", __name__)
 
-@calendar_bp.route("/calendar")
+@calendar_bp.route("/calendar", methods=["GET", "POST"])
 @login_required
 def calendar():
+    # Save last visited form page for smart Save & Home
+    session["last_form_page"] = "/calendar"
+
+    if request.method == "POST":
+        # Save calendar event if needed
+        events = request.form.get("events_json")
+        if events:
+            try:
+                filepath = f"data/events/events_{current_user.username}.json"
+                os.makedirs("data/events", exist_ok=True)
+                with open(filepath, "w") as f:
+                    json.dump(json.loads(events), f)
+            except Exception:
+                pass
+
+        # Redirect to home if Save + Home was used
+        if "go_home" in request.form:
+            return redirect("/home")
+
     return render_template("calendar.html")
 
 @calendar_bp.route("/api/events", methods=["GET", "POST"])
