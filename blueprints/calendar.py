@@ -1,5 +1,5 @@
 import os, json
-from flask import Blueprint, render_template, jsonify, request, session, redirect
+from flask import Blueprint, render_template, jsonify, request, session, redirect, Response
 from flask_login import login_required, current_user
 
 calendar_bp = Blueprint("calendar", __name__)
@@ -65,3 +65,45 @@ def events():
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"error": f"Failed to save events: {str(e)}"}), 500
+
+
+
+@calendar_bp.route("/calendar/export")
+@login_required
+def export_calendar():
+    coach = current_user.username
+    filepath = f"data/events/{coach}.json"
+
+    if not os.path.exists(filepath):
+        return Response("No events found.", status=404)
+
+    with open(filepath, "r") as f:
+        events = json.load(f)
+
+    ics_lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//CoachHub Calendar//EN"
+    ]
+
+    for event in events:
+        start = event["start"].replace("-", "").replace(":", "").replace("T", "T") + "Z"
+        end = event["end"].replace("-", "").replace(":", "").replace("T", "T") + "Z" if event.get("end") else start
+        ics_lines += [
+            "BEGIN:VEVENT",
+            f"UID:{event['id']}@coachhub",
+            f"DTSTAMP:{start}",
+            f"DTSTART:{start}",
+            f"DTEND:{end}",
+            f"SUMMARY:{event['title']}",
+            "END:VEVENT"
+        ]
+
+    ics_lines.append("END:VCALENDAR")
+    ics_content = "\r\n".join(ics_lines)
+
+    return Response(
+        ics_content,
+        mimetype="text/calendar",
+        headers={"Content-Disposition": "attachment; filename=coaching_calendar.ics"}
+    )

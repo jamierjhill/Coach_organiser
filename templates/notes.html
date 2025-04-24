@@ -89,25 +89,35 @@
     noteInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        const note = noteInput.value.trim();
-        if (!note) return;
-  
-        fetch('/notes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ note })
-        }).then(() => {
-          const noteItem = document.createElement('div');
-          noteItem.className = 'note-item';
-          noteItem.innerHTML = `
-            <div class="note-text">${note}</div>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${note}')">🗑️</button>
-          `;
-          document.getElementById('notesList').prepend(noteItem);
-          noteInput.value = '';
-        });
+        addNote();
       }
     });
+  
+    // Handle Add Note button click
+    document.getElementById('addNoteBtn').addEventListener('click', function () {
+      addNote();
+    });
+  
+    // Add note function (shared between Enter and button click)
+    function addNote() {
+      const note = noteInput.value.trim();
+      if (!note) return;
+  
+      fetch('/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ note })
+      }).then(() => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-item';
+        noteItem.innerHTML = `
+          <div class="note-text">${note}</div>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${note}')">🗑️</button>
+        `;
+        document.getElementById('notesList').prepend(noteItem);
+        noteInput.value = '';
+      });
+    }
   
     // Delete note dynamically
     function deleteNote(note) {
