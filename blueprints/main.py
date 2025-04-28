@@ -24,13 +24,43 @@ def load_bulletin():
 def root():
     return redirect("/login")
 
+# Replace with this updated version
 @main_bp.route("/home")
 @login_required
 def home():
     user_data = load_user(current_user.username)
     postcode = user_data.get("default_postcode", "SW6 4UL") if user_data else "SW6 4UL"
     bulletin_messages = load_bulletin()
-    return render_template("home.html", default_postcode=postcode, bulletin_messages=bulletin_messages)
+    
+    # Initialize match organizer variables with defaults
+    players = session.get("players", [])
+    courts = session.get("courts", 1)
+    num_matches = session.get("num_matches", 1)
+    match_type = session.get("match_type", "singles")
+    session_name = session.get("session_name", "")
+    view_mode = session.get("view_mode", "court")
+    matchups = session.get("matchups", [])
+    player_match_counts = session.get("player_match_counts", {})
+    opponent_averages = session.get("opponent_averages", {})
+    opponent_diff = session.get("opponent_diff", {})
+    rounds = session.get("rounds", {})
+    
+    return render_template(
+        "home.html", 
+        default_postcode=postcode, 
+        bulletin_messages=bulletin_messages,
+        players=players,
+        courts=courts,
+        num_matches=num_matches,
+        match_type=match_type,
+        matchups=matchups,
+        player_match_counts=player_match_counts,
+        session_name=session_name,
+        opponent_averages=opponent_averages,
+        opponent_diff=opponent_diff,
+        rounds=rounds,
+        view_mode=view_mode
+    )
 
 @main_bp.route("/bulletin")
 @login_required

@@ -2,680 +2,263 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
-  </script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FL37QBZMLC');
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎾 Tennis Match Organizer</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    :root {
-      --primary: #2e7d32;
-      --primary-light: #4caf50;
-      --primary-dark: #1b5e20;
-      --accent: #ff9800;
-      --bg-light: #f0f7f0;
-      --card-hover-transform: translateY(-5px);
-      --card-hover-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      --card-transition: all 0.3s ease;
-    }
-    
     body {
-      background-color: var(--bg-light);
-      font-family: 'Segoe UI', sans-serif;
-      padding-bottom: 3rem;
-    }
-    
-    .page-header {
-      background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
-      color: white;
-      border-radius: 0 0 20px 20px;
-      padding: 1.5rem 0;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .section-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      margin-bottom: 2rem;
-      border: none;
-    }
-
-    .card-header {
-      background: rgba(76, 175, 80, 0.1);
-      border-bottom: 1px solid rgba(76, 175, 80, 0.2);
-      padding: 1rem 1.5rem;
-    }
-
-    .card-header h5 {
-      margin: 0;
-      color: var(--primary-dark);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-
-    .card-header i {
-      margin-right: 0.75rem;
-      font-size: 1.1em;
-    }
-
-    .card-body {
-      padding: 1.5rem;
-    }
-
-    .btn-tennis {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1.5rem;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-tennis:hover {
-      background-color: var(--primary-dark);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .btn-tennis-outline {
-      background-color: transparent;
-      color: var(--primary);
-      border: 2px solid var(--primary);
-      padding: 0.5rem 1.5rem;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-tennis-outline:hover {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .btn-tennis-danger {
-      background-color: #ef5350;
-      color: white;
-      border: none;
-      padding: 0.5rem 1.5rem;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-tennis-danger:hover {
-      background-color: #d32f2f;
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .btn-icon {
-      margin-right: 0.5rem;
-    }
-
-    .player-card {
       background-color: #e8f5e9;
-      border-radius: 10px;
-      border-left: 4px solid var(--primary);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-    .player-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    .card-section {
+      background-color: #ffffff;
+      border-left: 6px solid #1b5e20;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     }
 
-    .player-name {
-      font-weight: 600;
-      color: var(--primary-dark);
-    }
-
-    .player-grade {
-      background-color: var(--primary);
+    .tennis-btn {
+      background-color: #43a047;
       color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-left: 0.5rem;
-    }
-
-    .match-card {
-      background-color: white;
-      border-radius: 10px;
-      border-left: 4px solid var(--primary);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      transition: all 0.2s;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .match-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .match-title {
-      font-weight: 600;
-      color: var(--primary-dark);
-      margin-bottom: 0.5rem;
-    }
-
-    .match-players {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .match-team {
-      display: flex;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      background-color: #f5f5f5;
-      border-radius: 50px;
-      margin-bottom: 0.5rem;
-      flex: 1;
-      min-width: 200px;
-      max-width: 45%;
-      margin-right: 0.5rem;
-    }
-
-    .match-vs {
       font-weight: bold;
-      margin: 0 1rem;
-      color: #757575;
     }
 
-    .match-round {
-      font-size: 0.8rem;
-      color: #757575;
-      margin-top: 0.5rem;
+    .tennis-btn:hover {
+      background-color: #2e7d32;
     }
 
-    .timer-card {
-      background: linear-gradient(135deg, #64b5f6, #1976d2);
-      color: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    .match {
+      background-color: #c8e6c9;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
     }
 
-    .timer-display {
-      font-size: 3rem;
-      font-weight: 700;
-      margin: 1rem 0;
-      font-family: monospace;
+    .player-box {
+      background-color: #e0f2f1;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
     }
 
     .timer-controls {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .timer-btn {
-      background-color: white;
-      color: #1976d2;
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .timer-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    .timer-input {
-      background-color: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 50px;
-      color: white;
-      padding: 0.5rem 1rem;
-      text-align: center;
-      width: 100px;
-      margin-right: 0.5rem;
-    }
-
-    .timer-input:focus {
-      outline: none;
-      background-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .timer-set {
-      background-color: white;
-      color: #1976d2;
-      border: none;
-      border-radius: 50px;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .timer-set:hover {
-      background-color: #e3f2fd;
-      transform: translateY(-2px);
-    }
-
-    .view-toggle {
-      background-color: white;
-      border-radius: 50px;
-      padding: 0.25rem;
-      display: inline-flex;
-      margin-bottom: 1rem;
-    }
-
-    .view-toggle-btn {
-      border: none;
-      background: none;
-      padding: 0.5rem 1rem;
-      border-radius: 50px;
-      font-weight: 600;
-      color: #757575;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .view-toggle-btn.active {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #eee;
-    }
-
-    .summary-item:last-child {
-      border-bottom: none;
-    }
-
-    .summary-name {
-      font-weight: 600;
-      color: var(--primary-dark);
-    }
-
-    .summary-value {
-      background-color: #e8f5e9;
-      color: var(--primary-dark);
-      padding: 0.25rem 0.75rem;
-      border-radius: 50px;
-      font-weight: 600;
+      background: #ffffff;
+      border-left: 6px solid #1b5e20;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
     }
 
     footer {
       text-align: center;
-      margin-top: 2rem;
-      padding: 1rem 0;
-      color: #757575;
-    }
-
-    .grade-badge {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      line-height: 24px;
-      text-align: center;
-      border-radius: 50%;
-      background-color: var(--primary);
-      color: white;
-      font-weight: bold;
-      font-size: 0.8rem;
-      margin-left: 0.5rem;
+      margin-top: 60px;
+      font-size: 14px;
+      color: #555;
     }
   </style>
 </head>
 <body>
+
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
-      {% for category, message in messages %}
-        <div class="toast show align-items-center text-white bg-{{ category }} border-0 mb-1" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body">{{ message }}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
   {% endif %}
   {% endwith %}
   
-  <!-- Page Header -->
-  <header class="page-header">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-7">
-          <h1 class="mb-2">Match Organizer</h1>
-          <p class="mb-0">Create balanced tennis matchups based on player grades</p>
+<div class="container py-4">
+  <h2 class="text-success text-center mb-4">🎾 Match Organizer</h2>
+
+  <!-- Navigation Buttons -->
+  <div class="text-center mb-3">
+    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+    <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+
+    <!-- Session Setup -->
+    <div class="card-section">
+      <h4>🎯 Session Setup</h4>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Courts</label>
+          <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
         </div>
-        <div class="col-md-5 text-md-end mt-3 mt-md-0">
-          <a href="/home" class="btn btn-light me-2">
-            <i class="fas fa-home btn-icon"></i>Home
-          </a>
-          <a href="/guide" class="btn btn-light">
-            <i class="fas fa-book btn-icon"></i>Coach Guide
-          </a>
+        <div class="col-md-4">
+          <label class="form-label">Matches per player</label>
+          <input type="number" class="form-control" name="num_matches" min="1" value="{{ num_matches }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Format</label>
+          <select class="form-select" name="match_type">
+            <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
+            <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
+          </select>
         </div>
       </div>
     </div>
-  </header>
 
-  <div class="container">
-    <form method="POST" enctype="multipart/form-data">
-      <!-- Session Setup Section -->
-      <div class="section-card">
-        <div class="card-header">
-          <h5><i class="fas fa-cog"></i> Session Setup</h5>
+    <!-- Add / Upload Players -->
+    <div class="card-section">
+      <h4>👤 Add or Upload Players</h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <input type="text" name="name" class="form-control" placeholder="Player name">
         </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label">Number of Courts</label>
-              <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Matches per Player</label>
-              <input type="number" class="form-control" name="num_matches" min="1" value="{{ num_matches }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Format</label>
-              <select class="form-select" name="match_type">
-                <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
-                <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">View Schedule By</label>
-              <select class="form-select" name="view_mode" id="viewModeSelect">
-                <option value="court" {% if view_mode == "court" %}selected{% endif %}>Court</option>
-                <option value="round" {% if view_mode == "round" %}selected{% endif %}>Round</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Players Section -->
-      <div class="section-card">
-        <div class="card-header">
-          <h5><i class="fas fa-user-plus"></i> Add Players</h5>
-        </div>
-        <div class="card-body">
-          <div class="row g-3 mb-4">
-            <div class="col-md-5">
-              <label class="form-label">Player Name</label>
-              <input type="text" name="name" class="form-control" placeholder="Enter player name">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Grade (1-4)</label>
-              <select name="grade" class="form-select">
-                <option value="" disabled selected>Select grade</option>
-                <option value="1">1 - Strongest</option>
-                <option value="2">2 - Intermediate</option>
-                <option value="3">3 - Beginner</option>
-                <option value="4">4 - Novice</option>
-              </select>
-            </div>
-            <div class="col-md-3 d-flex align-items-end">
-              <button type="submit" name="add_player" class="btn btn-tennis w-100">
-                <i class="fas fa-plus btn-icon"></i>Add Player
-              </button>
-            </div>
-          </div>
-
-          <hr>
-
-          <div class="row">
-            <div class="col-md-6">
-              <h6 class="mb-3">Import from CSV (Coach Only)</h6>
-              <div class="input-group mb-2">
-                <input type="password" name="csv_password" class="form-control" placeholder="Enter coach password">
-                <input type="file" name="csv_file" accept=".csv" class="form-control">
-                <button type="submit" name="upload_csv" class="btn btn-tennis">
-                  <i class="fas fa-upload btn-icon"></i>Upload
-                </button>
-              </div>
-              <small class="text-muted">CSV format: <code>name,grade</code> (grade: 1-4)</small>
-              {% if error %}
-                <div class="alert alert-danger mt-2">{{ error }}</div>
-              {% endif %}
-            </div>
-            <div class="col-md-6 d-flex justify-content-end align-items-end">
-              <div class="d-flex gap-2">
-                <button type="submit" name="organize_matches" class="btn btn-tennis">
-                  <i class="fas fa-sitemap btn-icon"></i>Organize Matches
-                </button>
-                <button type="submit" name="reshuffle" class="btn btn-tennis-outline">
-                  <i class="fas fa-random btn-icon"></i>Reshuffle
-                </button>
-                <button type="submit" name="reset" class="btn btn-tennis-danger">
-                  <i class="fas fa-trash btn-icon"></i>Reset
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Player List Section -->
-      <div class="section-card">
-        <div class="card-header">
-          <h5>
-            <i class="fas fa-users"></i> Current Players
-            <span class="badge bg-primary ms-2">{{ players|length }}</span>
-          </h5>
-        </div>
-        <div class="card-body">
-          {% if players|length > 0 %}
-            <div class="row">
-              {% for player in players %}
-                <div class="col-md-6 col-lg-4">
-                  <div class="player-card">
-                    <div>
-                      <span class="player-name">{{ player.name }}</span>
-                      <span class="grade-badge">{{ player.grade }}</span>
-                    </div>
-                    <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-sm btn-danger rounded-circle">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle me-2"></i> No players added yet. Add players to get started.
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </form>
-
-    <!-- Match Schedule Section -->
-    {% if matchups|length > 0 %}
-      <div class="section-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5><i class="fas fa-clipboard-list"></i> Match Schedule</h5>
-          <div class="view-toggle">
-            <button type="button" class="view-toggle-btn" id="courtToggle">By Court</button>
-            <button type="button" class="view-toggle-btn" id="roundToggle">By Round</button>
-          </div>
-        </div>
-        <div class="card-body">
-          <!-- Schedule by Round View -->
-          <div id="roundView" style="display: none;">
-            {% for round_num, matches in rounds.items() %}
-              <h5 class="mb-3">Round {{ round_num }}</h5>
-              <div class="row">
-                {% for court_num, match in matches %}
-                  <div class="col-md-6 col-xl-4 mb-3">
-                    <div class="match-card">
-                      <div class="match-title">Court {{ court_num }}</div>
-                      {% if match|length == 2 %}
-                        <div class="match-players">
-                          <div class="match-team">
-                            {{ match[0].name }} <span class="grade-badge">{{ match[0].grade }}</span>
-                          </div>
-                          <div class="match-vs">vs</div>
-                          <div class="match-team">
-                            {{ match[1].name }} <span class="grade-badge">{{ match[1].grade }}</span>
-                          </div>
-                        </div>
-                      {% else %}
-                        <div>
-                          <div class="match-players">
-                            <div class="match-team">
-                              {{ match[0].name }} & {{ match[1].name }}
-                              <span class="grade-badge">{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
-                            </div>
-                          </div>
-                          <div class="match-vs text-center">vs</div>
-                          <div class="match-players">
-                            <div class="match-team">
-                              {{ match[2].name }} & {{ match[3].name }}
-                              <span class="grade-badge">{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
-                            </div>
-                          </div>
-                        </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% endfor %}
-          </div>
-
-          <!-- Schedule by Court View -->
-          <div id="courtView" style="display: none;">
-            <div class="row">
-              {% for court_number in range(1, courts + 1) %}
-                <div class="col-md-6 col-xl-4 mb-4">
-                  <h5 class="mb-3">Court {{ court_number }}</h5>
-                  {% if matchups[court_number - 1] %}
-                    {% for match, round_num in matchups[court_number - 1] %}
-                      <div class="match-card">
-                        {% if match|length == 2 %}
-                          <div class="match-players">
-                            <div class="match-team">
-                              {{ match[0].name }} <span class="grade-badge">{{ match[0].grade }}</span>
-                            </div>
-                            <div class="match-vs">vs</div>
-                            <div class="match-team">
-                              {{ match[1].name }} <span class="grade-badge">{{ match[1].grade }}</span>
-                            </div>
-                          </div>
-                        {% else %}
-                          <div>
-                            <div class="match-players">
-                              <div class="match-team">
-                                {{ match[0].name }} & {{ match[1].name }}
-                                <span class="grade-badge">{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
-                              </div>
-                            </div>
-                            <div class="match-vs text-center">vs</div>
-                            <div class="match-players">
-                              <div class="match-team">
-                                {{ match[2].name }} & {{ match[3].name }}
-                                <span class="grade-badge">{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
-                              </div>
-                            </div>
-                          </div>
-                        {% endif %}
-                        <div class="match-round">Round {{ round_num }}</div>
-                      </div>
-                    {% endfor %}
-                  {% else %}
-                    <div class="alert alert-info">No matches scheduled yet.</div>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Player Summary Section -->
-      <div class="row">
-        <div class="col-md-8">
-          <div class="section-card">
-            <div class="card-header">
-              <h5><i class="fas fa-chart-bar"></i> Player Summary</h5>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                {% for player, match_count in player_match_counts.items() %}
-                  <div class="col-md-6">
-                    <div class="summary-item">
-                      <span class="summary-name">{{ player }}</span>
-                      <span class="summary-value">{{ match_count }} match{{ 'es' if match_count != 1 else '' }}</span>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="col-md-4">
-          <div class="timer-card">
-            <h5 class="mb-3">⏱️ Match Timer</h5>
-            <div class="timer-display" id="main-timer-display">20:00</div>
-            <div class="timer-controls">
-              <button class="timer-btn" onclick="startClock(document.getElementById('main-timer-display'))">
-                <i class="fas fa-play"></i>
-              </button>
-              <button class="timer-btn" onclick="pauseClock()">
-                <i class="fas fa-pause"></i>
-              </button>
-            </div>
-            <div class="d-flex justify-content-center">
-              <input type="number" id="custom-minutes" class="timer-input" min="1" max="120" value="20">
-              <button class="timer-set" onclick="setClockInput(document.getElementById('main-timer-display'))">Set</button>
-            </div>
-          </div>
+          <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" name="add_player" class="btn tennis-btn w-100">➕ Add</button>
         </div>
       </div>
-    {% endif %}
 
-    <footer>
-      <p>Cooked up by Jamie</p>
-    </footer>
+      <div class="mt-3">
+        <hr>
+        <h6>📤 Upload from CSV (Coach Only) 🔒</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input type="password" name="csv_password" class="form-control" placeholder="Password">
+          </div>
+          <div class="col-md-4">
+            <input type="file" name="csv_file" accept=".csv" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <button type="submit" name="upload_csv" class="btn tennis-btn w-100">📎 Upload CSV</button>
+          </div>
+        </div>
+        <small class="text-muted d-block mt-2">CSV format: <code>name,grade</code></small>
+        {% if error %}
+          <div class="text-danger fw-bold mt-2">⚠️ {{ error }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Player List -->
+    <div class="card-section">
+      <h4>👟 Current Players ({{ players|length }})</h4>
+      <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for player in players %}
+          <div class="col">
+            <div class="player-box d-flex justify-content-between align-items-center">
+              <span>🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})</span>
+              <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center my-4">
+      <button type="submit" name="organize_matches" class="btn tennis-btn me-2">🎯 Organize Matches</button>
+      <button type="submit" name="reshuffle" class="btn tennis-btn me-2">🔀 Reshuffle</button>
+      <button type="submit" name="reset" class="btn btn-outline-danger">🔁 Reset All</button>
+    </div>
+
+  </form>
+
+  <!-- Match Schedule -->
+  <div class="card-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">📋 Match Schedule</h4>
+      <div>
+        <label for="scheduleToggle" class="form-label me-2">🔀 View By</label>
+        <select class="form-select d-inline w-auto" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
+          <option value="court">Court</option>
+          <option value="round">Round</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Match Schedule by Round -->
+    <div id="schedule-round" style="display: none;">
+      {% for round_num, matches in rounds.items() %}
+        <h5 class="text-success">Round {{ round_num }}</h5>
+        {% for court_num, match in matches %}
+          <div class="match">
+            <strong>Court {{ court_num }}:</strong>
+            {% if match|length == 2 %}
+              {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
+            {% else %}
+              {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+              vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+    <!-- Match Schedule by Court -->
+    <div id="schedule-court" style="display: none;">
+      {% for court_number in range(1, courts + 1) %}
+        <h5 class="text-success">Court {{ court_number }}</h5>
+        {% if matchups[court_number - 1] %}
+          {% for match, round_num in matchups[court_number - 1] %}
+            <div class="match">
+              {% if match|length == 2 %}
+                {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
+              {% else %}
+                {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
+                vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
+              {% endif %}
+              <br><small>Round {{ round_num }}</small>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No matches scheduled.</p>
+        {% endif %}
+      {% endfor %}
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Summary -->
+  <div class="card-section">
+    <h4>🧮 Player Summary</h4>
+    <ul class="list-group list-group-flush">
+      {% for player, match_count in player_match_counts.items() %}
+        <li class="list-group-item">{{ player }}: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-controls">
+    <h5>⏱️ Match Timer</h5>
+    <div id="main-timer-display" class="fs-4 mb-3">20:00</div>
+    <div class="d-flex gap-2 justify-content-center mb-2">
+      <button class="btn tennis-btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
+      <button class="btn btn-secondary" onclick="pauseClock()">⏸️ Pause</button>
+    </div>
+    <div class="input-group w-50 mx-auto">
+      <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
+      <button class="btn btn-outline-success" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+    </div>
+  </div>
+
+  <footer class="mt-5">
+    <p>Cooked up by Jamie</p>
+  </footer>
+</div>
+
+
   <script>
     let timerInterval;
     let remainingTime = 1200;
@@ -705,64 +288,37 @@
 
     function setClockInput(display) {
       const minutes = parseInt(document.getElementById('custom-minutes').value);
-      if (!isNaN(minutes) && minutes > 0 && minutes <= 120) {
+      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
         remainingTime = minutes * 60;
         updateClockDisplay(display);
       } else {
-        alert("Please enter a number between 1 and 120.");
+        alert("Please enter a number between 1 and 200.");
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initialize timer display
+    window.onload = function () {
       const display = document.getElementById('main-timer-display');
       if (display) updateClockDisplay(display);
-
-      // View toggle functionality
-      const courtToggle = document.getElementById('courtToggle');
-      const roundToggle = document.getElementById('roundToggle');
-      const courtView = document.getElementById('courtView');
-      const roundView = document.getElementById('roundView');
-      const viewModeSelect = document.getElementById('viewModeSelect');
-
-      function updateViewMode() {
-        const viewMode = viewModeSelect.value;
-        
-        if (viewMode === 'court') {
-          courtView.style.display = 'block';
-          roundView.style.display = 'none';
-          courtToggle.classList.add('active');
-          roundToggle.classList.remove('active');
-        } else {
-          courtView.style.display = 'none';
-          roundView.style.display = 'block';
-          courtToggle.classList.remove('active');
-          roundToggle.classList.add('active');
-        }
-      }
-
-      courtToggle.addEventListener('click', function() {
-        viewModeSelect.value = 'court';
-        updateViewMode();
-      });
-
-      roundToggle.addEventListener('click', function() {
-        viewModeSelect.value = 'round';
-        updateViewMode();
-      });
-
-      // Initialize view based on selected value
-      updateViewMode();
-
-      // Dismiss toast messages after 4 seconds
-      setTimeout(() => {
-        const toasts = document.querySelectorAll('.toast');
-        toasts.forEach(toast => {
-          const bsToast = new bootstrap.Toast(toast);
-          bsToast.hide();
-        });
-      }, 4000);
-    });
+    };
   </script>
+<script>
+  function toggleScheduleView(view) {
+    const roundDiv = document.getElementById("schedule-round");
+    const courtDiv = document.getElementById("schedule-court");
+    roundDiv.style.display = view === "round" ? "block" : "none";
+    courtDiv.style.display = view === "court" ? "block" : "none";
+  }
+
+  window.onload = function () {
+    const defaultView = "{{ view_mode }}";
+    const selector = document.getElementById("scheduleToggle");
+    if (selector) {
+      selector.value = defaultView;
+      toggleScheduleView(defaultView);
+    }
+  };
+</script>
+
+  
 </body>
 </html>

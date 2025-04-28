@@ -2,63 +2,54 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FL37QBZMLC');
-</script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎾 Tennis Match Organizer</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
+  <meta charset="UTF-8">
+  <title>🎾 Welcome to Coach Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
     body {
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
     }
 
-    .card-section {
-      background-color: #ffffff;
+    .tennis-card {
       border-left: 6px solid #1b5e20;
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 25px;
       margin-bottom: 30px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      background-color: white;
+      transition: transform 0.3s ease;
+    }
+
+    .tennis-card:hover {
+      transform: translateY(-5px);
     }
 
     .tennis-btn {
       background-color: #43a047;
       color: white;
       font-weight: bold;
+      padding: 12px 24px;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 15px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
     .tennis-btn:hover {
       background-color: #2e7d32;
-    }
-
-    .match {
-      background-color: #c8e6c9;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-
-    .player-box {
-      background-color: #e0f2f1;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-    }
-
-    .timer-controls {
-      background: #ffffff;
-      border-left: 6px solid #1b5e20;
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 30px;
+      transform: scale(1.08);
     }
 
     footer {
@@ -66,259 +57,277 @@
       margin-top: 60px;
       font-size: 14px;
       color: #555;
+      padding-bottom: 20px;
+    }
+
+    footer a {
+      text-decoration: none;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+
+    footer a:hover {
+      color: #43a047;
+    }
+
+    #navToggleBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1050;
+      background-color: #1b5e20;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .sleek-btn {
+  background-color: #43a047;
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  text-decoration: none; /* ⛔ removes underline */
+  display: inline-block; /* ensures proper spacing and box behavior */
+}
+
+.sleek-btn:hover {
+  background-color: #2e7d32;
+  transform: translateY(-2px);
+}
+
+
+
+    #navToggleBtn:hover {
+      background-color: #2e7d32;
     }
   </style>
 </head>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endwith %}
 <body>
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
   
-<div class="container py-4">
-  <h2 class="text-success text-center mb-4">🎾 Match Organizer</h2>
 
-  <!-- Navigation Buttons -->
-  <div class="text-center mb-3">
-    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
-    <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+<!-- Toggle Button -->
+<button id="navToggleBtn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
+  ☰ Menu
+</button>
+
+<!-- Side Navigation (Offcanvas) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel" style="background-color: #c8e6c9;">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title text-success fw-bold" id="sideNavLabel">🎾 Coaches Hub</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-
-  <form method="POST" enctype="multipart/form-data">
-
-    <!-- Session Setup -->
-    <div class="card-section">
-      <h4>🎯 Session Setup</h4>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Courts</label>
-          <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Matches per player</label>
-          <input type="number" class="form-control" name="num_matches" min="1" value="{{ num_matches }}">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Format</label>
-          <select class="form-select" name="match_type">
-            <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
-            <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
-          </select>
-        </div>
-      </div>
+  <div class="offcanvas-body">
+    <div class="px-3 mb-3 text-muted small">
+      {% if current_user.is_authenticated %}
+        👋 Logged in as <strong>{{ current_user.username }}</strong>
+      {% endif %}
     </div>
-
-    <!-- Add / Upload Players -->
-    <div class="card-section">
-      <h4>👤 Add or Upload Players</h4>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <input type="text" name="name" class="form-control" placeholder="Player name">
-        </div>
-        <div class="col-md-4">
-          <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
-        </div>
-        <div class="col-md-2">
-          <button type="submit" name="add_player" class="btn tennis-btn w-100">➕ Add</button>
-        </div>
-      </div>
-
-      <div class="mt-3">
-        <hr>
-        <h6>📤 Upload from CSV (Coach Only) 🔒</h6>
-        <div class="row g-3">
-          <div class="col-md-4">
-            <input type="password" name="csv_password" class="form-control" placeholder="Password">
-          </div>
-          <div class="col-md-4">
-            <input type="file" name="csv_file" accept=".csv" class="form-control">
-          </div>
-          <div class="col-md-4">
-            <button type="submit" name="upload_csv" class="btn tennis-btn w-100">📎 Upload CSV</button>
-          </div>
-        </div>
-        <small class="text-muted d-block mt-2">CSV format: <code>name,grade</code></small>
-        {% if error %}
-          <div class="text-danger fw-bold mt-2">⚠️ {{ error }}</div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Player List -->
-    <div class="card-section">
-      <h4>👟 Current Players ({{ players|length }})</h4>
-      <div class="row row-cols-1 row-cols-md-2 g-3">
-        {% for player in players %}
-          <div class="col">
-            <div class="player-box d-flex justify-content-between align-items-center">
-              <span>🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})</span>
-              <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="text-center my-4">
-      <button type="submit" name="organize_matches" class="btn tennis-btn me-2">🎯 Organize Matches</button>
-      <button type="submit" name="reshuffle" class="btn tennis-btn me-2">🔀 Reshuffle</button>
-      <button type="submit" name="reset" class="btn btn-outline-danger">🔁 Reset All</button>
-    </div>
-
-  </form>
-
-  <!-- Match Schedule -->
-  <div class="card-section">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="mb-0">📋 Match Schedule</h4>
-      <div>
-        <label for="scheduleToggle" class="form-label me-2">🔀 View By</label>
-        <select class="form-select d-inline w-auto" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
-          <option value="court">Court</option>
-          <option value="round">Round</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Match Schedule by Round -->
-    <div id="schedule-round" style="display: none;">
-      {% for round_num, matches in rounds.items() %}
-        <h5 class="text-success">Round {{ round_num }}</h5>
-        {% for court_num, match in matches %}
-          <div class="match">
-            <strong>Court {{ court_num }}:</strong>
-            {% if match|length == 2 %}
-              {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
-            {% else %}
-              {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-              vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
-            {% endif %}
-          </div>
-        {% endfor %}
-      {% endfor %}
-    </div>
-
-    <!-- Match Schedule by Court -->
-    <div id="schedule-court" style="display: none;">
-      {% for court_number in range(1, courts + 1) %}
-        <h5 class="text-success">Court {{ court_number }}</h5>
-        {% if matchups[court_number - 1] %}
-          {% for match, round_num in matchups[court_number - 1] %}
-            <div class="match">
-              {% if match|length == 2 %}
-                {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
-              {% else %}
-                {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-                vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
-              {% endif %}
-              <br><small>Round {{ round_num }}</small>
-            </div>
-          {% endfor %}
-        {% else %}
-          <p>No matches scheduled.</p>
-        {% endif %}
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Summary -->
-  <div class="card-section">
-    <h4>🧮 Player Summary</h4>
-    <ul class="list-group list-group-flush">
-      {% for player, match_count in player_match_counts.items() %}
-        <li class="list-group-item">{{ player }}: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
-      {% endfor %}
+    <ul class="nav flex-column">
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/index">📋 Match Organizer</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/weather">🌤️ Weather</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/bulletin">📌 Bulletin</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/notes">📝 Notes</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/calendar">📅 Calendar</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/ai-toolbox">🤖 AI Toolbox</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/coachbot">🧠 CoachBot</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/guide">📖 Coach Guide</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/settings">⚙️ Settings</a></li>
+      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/access-codes">🎟️ Access Codes</a></li>
+      <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/logout">🚪 Logout</a></li>
     </ul>
+    
   </div>
-
-  <!-- Timer -->
-  <div class="timer-controls">
-    <h5>⏱️ Match Timer</h5>
-    <div id="main-timer-display" class="fs-4 mb-3">20:00</div>
-    <div class="d-flex gap-2 justify-content-center mb-2">
-      <button class="btn tennis-btn" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
-      <button class="btn btn-secondary" onclick="pauseClock()">⏸️ Pause</button>
-    </div>
-    <div class="input-group w-50 mx-auto">
-      <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
-      <button class="btn btn-outline-success" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
-    </div>
-  </div>
-
-  <footer class="mt-5">
-    <p>Cooked up by Jamie</p>
-  </footer>
 </div>
 
+<div class="container py-5" style="padding-top: 100px;">
+  <h1 class="text-success text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
 
-  <script>
-    let timerInterval;
-    let remainingTime = 1200;
+  <!-- Save Button -->
+  <div class="text-center mb-4">
+    <form method="POST" action="{{ session.get('last_form_page', '/calendar') }}" style="display:inline;">
+      <input type="hidden" name="go_home" value="1">
+      <button type="submit" class="btn btn-outline-success">💾 Save</button>
+    </form>
+  </div>
+  <div class="row g-4">
 
-    function updateClockDisplay(display) {
-      const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-      const seconds = String(remainingTime % 60).padStart(2, '0');
-      display.textContent = `${minutes}:${seconds}`;
-    }
+    
+    <!-- Match Organizer -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>🏟️ Match Organizer</h3>
+          <p>Create fair and balanced singles or doubles matchups in seconds.</p>
+        </div>
+        <a href="/index" class="sleek-btn">Open Match Organizer</a>
+      </div>
+    </div>
+    
+    <!-- Weather -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>🌤️ Today’s Weather</h3>
+          <p id="todayWeather">
+        <img id="weatherIcon" src="" alt="weather icon" style="width: 75px; vertical-align: middle; display: none;">
+        <span id="weatherText">Loading weather...</span>
+      </p>
+          </div>
+    <a href="/weather" class="sleek-btn mt-3">📅 5-Day Forecast</a>
+  </div>
+</div>
 
-    function startClock(display) {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (remainingTime > 0) {
-          remainingTime--;
-          updateClockDisplay(display);
-        } else {
-          clearInterval(timerInterval);
-          display.textContent = "Time's up!";
-        }
-      }, 1000);
-    }
+<!-- Coach Bulletin -->
+<div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+  <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+    <div>
+      <h3 class="mb-3">📌 Coach Bulletin</h3>
+      {% if bulletin_messages %}
+        {% set latest = bulletin_messages[-1] %}
+        <p class="mb-1">🗨️ {{ latest.text }}</p>
+        <p class="text-muted small">🕒 {{ latest.timestamp }}</p>
+        {% else %}
+        <p>No messages yet.</p>
+        {% endif %}
+      </div>
+      <a href="/bulletin" class="sleek-btn mt-3">📋 View All Bulletins</a>
+    </div>
+  </div>
+  
+  
+  
+  
+  <!-- Notes -->
+  <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="400">
+    <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+      <div>
+        <h3>📝 Notes</h3>
+        <p>Keep private notes from your coaching sessions.</p>
+      </div>
+      <a href="/notes" class="sleek-btn">Launch Notes</a>
+    </div>
+    </div>
+    
+    <!-- Calendar -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="400">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>📅 Calendar</h3>
+          <p>Plan and view your weekly tennis events.</p>
+        </div>
+        <a href="/calendar" class="sleek-btn">📆 Open Calendar</a>
+      </div>
+    </div>
+    
+    <!-- Toolbox -->
+    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="400">
+      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between h-100">
+        <div>
+          <h3>🤖 AI Coaching Toolbox</h3>
+          <p>Generate smart drills and full session plans with just a few prompts.</p>
+        </div>
+        <a href="/ai-toolbox" class="sleek-btn">🔒 Launch AI Toolbox</a>
+      </div>
+    </div>
+  </div>
+</div>
 
-    function pauseClock() {
-      clearInterval(timerInterval);
-    }
+<footer>
+  Built by Jamie • v2.0 • <a href="/contact">Contact Us</a>
+</footer>
 
-    function setClockInput(display) {
-      const minutes = parseInt(document.getElementById('custom-minutes').value);
-      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
-        remainingTime = minutes * 60;
-        updateClockDisplay(display);
-      } else {
-        alert("Please enter a number between 1 and 200.");
-      }
-    }
-
-    window.onload = function () {
-      const display = document.getElementById('main-timer-display');
-      if (display) updateClockDisplay(display);
-    };
-  </script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
-  function toggleScheduleView(view) {
-    const roundDiv = document.getElementById("schedule-round");
-    const courtDiv = document.getElementById("schedule-court");
-    roundDiv.style.display = view === "round" ? "block" : "none";
-    courtDiv.style.display = view === "court" ? "block" : "none";
-  }
-
-  window.onload = function () {
-    const defaultView = "{{ view_mode }}";
-    const selector = document.getElementById("scheduleToggle");
-    if (selector) {
-      selector.value = defaultView;
-      toggleScheduleView(defaultView);
-    }
-  };
+  AOS.init({ duration: 800, once: true });
 </script>
 
-  
+<!-- Inject postcode from Flask -->
+<script>
+  const userPostcode = "{{ default_postcode }}";
+</script>
+
+<script>
+  async function fetchTodayWeather(postcode) {
+    const apiKey = "fd94c86864c1809c326f7f0b6add6acc";
+    const fallback = "Fulham";
+    const forecastEl = document.getElementById("weatherText");
+    const iconImg = document.getElementById("weatherIcon");
+
+    async function tryGeocode(query) {
+      const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)},GB&limit=1&appid=${apiKey}`);
+      return await geoRes.json();
+    }
+
+    try {
+      let geoData = await tryGeocode(postcode);
+
+      if (!geoData.length) {
+        const outwardCode = postcode.split(" ")[0];
+        console.warn(`Full postcode failed. Trying outward code: ${outwardCode}`);
+        geoData = await tryGeocode(outwardCode);
+      }
+
+      if (!geoData.length) {
+        console.warn(`Outward code failed. Falling back to: ${fallback}`);
+        geoData = await tryGeocode(fallback);
+      }
+
+      if (!geoData.length) throw new Error("Could not resolve any location");
+
+      const { lat, lon } = geoData[0];
+      const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
+      const data = await weatherRes.json();
+
+      const desc = data.weather[0].description;
+      const temp = data.main.temp;
+      const icon = data.weather[0].icon;
+      const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+
+      forecastEl.textContent = `${desc}, ${temp.toFixed(1)}°C`;
+      iconImg.src = iconUrl;
+      iconImg.alt = desc;
+      iconImg.style.display = "inline-block";
+
+    } catch (err) {
+      forecastEl.textContent = "⚠️ Could not load weather.";
+      iconImg.style.display = "none";
+      console.error("Weather error:", err);
+    }
+  }
+
+  window.onload = () => fetchTodayWeather(userPostcode || "SW6");
+</script>
+
+
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => new bootstrap.Alert(alert).close());
+  }, 4000);
+</script>
+
 </html>
