@@ -48,3 +48,5 @@ sessions/
 notes/
 *.json
 
+offline_archive/
+

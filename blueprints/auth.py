@@ -1,10 +1,11 @@
 import os, json
-from flask import Blueprint, render_template, request, redirect, session, current_app
+from flask import Blueprint, render_template, request, redirect, session, current_app, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from models import User
 from user_utils import load_user, save_user, delete_user_file, delete_feature_file
 from user_utils import feature_path
+from password_utils import hash_password, verify_password
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -16,12 +17,38 @@ def login():
         password = request.form.get("password")
 
         user_data = load_user(username)
-        if user_data and user_data["password"] == password:
-            user = User(id=username, username=username)
-            login_user(user)
-            return redirect("/home")
+        if not user_data:
+            return render_template("login.html", error="Invalid credentials.")
+            
+        # Check if password uses the new hashing method
+        if "password_hash" in user_data:
+            # Verify using hashed password
+            is_valid = verify_password(
+                user_data["password_hash"], 
+                user_data["password_salt"], 
+                password
+            )
+            
+            if is_valid:
+                user = User(id=username, username=username)
+                login_user(user)
+                return redirect("/home")
+        else:
+            # Legacy plaintext password check
+            if user_data["password"] == password:
+                # Migrate to hashed password on successful login
+                hashed, salt = hash_password(password)
+                user_data["password_hash"] = hashed
+                user_data["password_salt"] = salt
+                # Keep the old password field for backward compatibility
+                save_user(user_data)
+                
+                user = User(id=username, username=username)
+                login_user(user)
+                return redirect("/home")
 
         return render_template("login.html", error="Invalid credentials.")
+    
     return render_template("login.html")
 
 # === LOGOUT ===
@@ -30,7 +57,7 @@ def login():
 def logout():
     logout_user()
     session.clear()
-    return redirect("/login?message=You’ve been logged out successfully.")
+    return redirect("/login?message=You've been logged out successfully.")
 
 # === REGISTER ===
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -47,10 +74,15 @@ def register():
         if load_user(username):
             return render_template("register.html", error="Username already exists.")
 
-        # Create user file
+        # Hash the password
+        hashed_password, salt = hash_password(password)
+        
+        # Create user file with hashed password
         user_data = {
             "username": username,
-            "password": password,
+            "password": password,  # Keep for backward compatibility
+            "password_hash": hashed_password,
+            "password_salt": salt,
             "default_postcode": postcode
         }
         save_user(user_data)

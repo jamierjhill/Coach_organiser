@@ -19,24 +19,50 @@
     body {
       background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
-      padding-top: 60px;
     }
+
+    .top-bar {
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      background-color: #e8f5e9;
+    }
+
     .calendar-container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: auto;
-      background: white;
+      background-color: white;
+      border-radius: 1rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
     }
-    .notes-btn {
+
+    .section-card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-title {
+      color: #1b5e20;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .btn-success {
       background-color: #43a047;
       color: white;
       font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
-    .notes-btn:hover {
+
+    .btn-success:hover {
       background-color: #2e7d32;
+      transform: translateY(-2px);
     }
+
     .fc-event {
       background-color: #43a047 !important;
       color: white !important;
@@ -45,17 +71,69 @@
       padding: 2px 6px;
       font-size: 0.9rem;
     }
+
     .modal-header {
       background-color: #e8f5e9;
+      border-bottom: none;
+    }
+    
+    .modal-footer {
+      border-top: none;
+    }
+    
+    .list-group-item {
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background-color: #f1f8e9;
+      transition: transform 0.2s;
+    }
+    
+    .list-group-item:hover {
+      transform: translateY(-2px);
+      background-color: #e8f5e9;
+    }
+    
+    .badge {
+      background-color: #43a047;
+      font-weight: normal;
+      padding: 6px 10px;
+    }
+    
+    #calendar {
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    
+    .fc-button-primary {
+      background-color: #43a047 !important;
+      border-color: #43a047 !important;
+    }
+    
+    .fc-button-primary:hover {
+      background-color: #2e7d32 !important;
+      border-color: #2e7d32 !important;
+    }
+    
+    .fc-col-header-cell {
+      background-color: #e8f5e9;
+    }
+    
+    .fc-day-today {
+      background-color: #f1f8e9 !important;
     }
   </style>
 </head>
-<body style="background-color: #e8f5e9; font-family: 'Segoe UI', sans-serif;">
+<body>
 
-  <!-- Header with green background and buttons -->
-  <div class="text-center py-5">
-    <h1 class="text-success mb-3 fw-bold">📅 Your Coaching Calendar</h1>
-    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+  <!-- Header with green background -->
+  <div class="top-bar">
+    <h1 class="display-5 text-success fw-bold mb-2">📅 Coaching Calendar</h1>
+    <div>
+      <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+    </div>
   </div>
 
   <!-- Flash Messages -->
@@ -75,19 +153,21 @@
 <!-- Main calendar content container -->
 <div class="container pb-5">
   <div class="calendar-container">
-    <a href="/calendar/export" class="btn btn-success mb-3">📤 Export to Calendar</a>
-    <button type="button" class="btn btn-success mb-3" onclick="openNewEventModal()">
-      ➕ Add Event
-    </button>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <a href="/calendar/export" class="btn btn-success me-2">📤 Export to Calendar</a>
+        <button type="button" class="btn btn-success" onclick="openNewEventModal()">
+          ➕ Add Event
+        </button>
+      </div>
+    </div>
 
     <!-- Calendar Display -->
-    <div id="calendar" style="padding: 2x;"></div>
+    <div id="calendar"></div>
 
     <!-- Upcoming Events Panel -->
-    <div class="mt-5">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="text-success mb-0">📅 Upcoming Events</h5>
-      </div>
+    <div class="section-card mt-4">
+      <h4 class="section-title">📋 Upcoming Events</h4>
       <ul class="list-group" id="upcomingEventsList">
         <li class="list-group-item text-muted">Loading...</li>
       </ul>
@@ -95,15 +175,13 @@
   </div>
 </div>
 
-
-
 <!-- Modal -->
 <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="eventForm">
         <div class="modal-header">
-          <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+          <h5 class="modal-title text-success" id="eventModalLabel">Event Details</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -134,8 +212,9 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" id="deleteEvent" class="btn btn-danger me-auto" style="display: none;">Delete</button>
-          <button type="submit" class="btn btn-success">Save</button>
+          <button type="button" id="deleteEvent" class="btn btn-danger me-auto" style="display: none;">🗑️ Delete</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">💾 Save</button>
         </div>
       </form>
     </div>
@@ -192,7 +271,7 @@
           });
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.innerHTML = `<span>${event.title}</span><span class="badge bg-success">${timeStr}</span>`;
+      li.innerHTML = `<span>${event.title}</span><span class="badge bg-success rounded-pill">${timeStr}</span>`;
       list.appendChild(li);
     });
   }
@@ -211,6 +290,7 @@
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+      height: 600,
       dateClick: function (info) {
         resetForm();
         selectedDate = info.dateStr;
@@ -302,7 +382,7 @@ calendar.on("eventRemove", function() {
     });
 
     document.getElementById("deleteEvent").addEventListener("click", function () {
-      if (editingEvent) {
+      if (confirm("Are you sure you want to delete this event?") && editingEvent) {
         editingEvent.remove();
         saveEvents();
         bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
