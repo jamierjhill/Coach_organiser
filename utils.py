@@ -136,73 +136,118 @@ def organize_matches(players, courts, match_type, num_matches):
 
 
 
-from collections import defaultdict
-from datetime import datetime
 import os
+import json
+import time
+from datetime import datetime, timedelta
 import requests
+
+# Define a cache directory
+CACHE_DIR = "cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 def get_weather(location_input):
     API_KEY = os.getenv("OPENWEATHER_API_KEY")
     if not API_KEY:
         return {"error": "Missing API key"}
-
+    
+    # Create a cache key based on the location
+    # Normalize the location to avoid case sensitivity
+    cache_key = location_input.strip().lower().replace(" ", "_")
+    cache_file = os.path.join(CACHE_DIR, f"weather_{cache_key}.json")
+    
+    # Check if we have a valid cache
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r") as f:
+                cached_data = json.load(f)
+            
+            # Check if the cache is still valid (less than 1 hour old)
+            cache_time = cached_data.get("cache_timestamp", 0)
+            if time.time() - cache_time < 3600:  # 1 hour in seconds
+                print(f"✅ Using cached weather data for {location_input}")
+                return cached_data
+        except Exception as e:
+            print(f"❌ Cache read error for {location_input}: {e}")
+    
+    # Cache miss or invalid - fetch new data
+    print(f"🔄 Fetching fresh weather data for {location_input}")
+    
     # Help the API resolve vague UK location inputs
     if len(location_input.strip()) <= 5:  # e.g. "SW6", "W4"
         query = f"{location_input}, London, UK"
     else:
         query = location_input
 
-    geo = requests.get("http://api.openweathermap.org/geo/1.0/direct", params={
-        "q": query,
-        "limit": 1,
-        "appid": API_KEY
-    }).json()
+    try:
+        geo = requests.get("http://api.openweathermap.org/geo/1.0/direct", params={
+            "q": query,
+            "limit": 1,
+            "appid": API_KEY
+        }).json()
 
-    if not geo:
-        return {"error": "Location not found"}
+        if not geo:
+            return {"error": "Location not found"}
 
-    lat, lon = geo[0]["lat"], geo[0]["lon"]
-    location = f"{geo[0]['name']}, {geo[0]['country']}"
+        lat, lon = geo[0]["lat"], geo[0]["lon"]
+        location = f"{geo[0]['name']}, {geo[0]['country']}"
 
-    res = requests.get("https://api.openweathermap.org/data/2.5/forecast", params={
-        "lat": lat,
-        "lon": lon,
-        "units": "metric",
-        "appid": API_KEY
-    })
-    data = res.json()
-
-    if "list" not in data:
-        return {"error": "No forecast data"}
-
-    day_blocks = defaultdict(list)
-
-    for entry in data["list"]:
-        dt = datetime.fromtimestamp(entry["dt"])
-        day = dt.strftime("%A")
-        block = {
-            "time": dt.strftime("%H:%M"),
-            "temp": entry["main"]["temp"],
-            "desc": entry["weather"][0]["description"].title(),
-            "icon": entry["weather"][0]["icon"],
-            "wind": entry["wind"]["speed"],
-            "clouds": entry["clouds"]["all"],
-            "rain": entry.get("rain", {}).get("3h", 0)
-        }
-        day_blocks[day].append(block)
-
-    forecast = []
-    for day, hourly_list in day_blocks.items():
-        score = sum([b["clouds"] + b["rain"]*20 + b["wind"]*2 for b in hourly_list])
-        avg_score = score / max(len(hourly_list), 1)
-        good_for_tennis = avg_score < 100
-        forecast.append({
-            "day": day,
-            "hourly": hourly_list,
-            "good_for_tennis": good_for_tennis
+        res = requests.get("https://api.openweathermap.org/data/2.5/forecast", params={
+            "lat": lat,
+            "lon": lon,
+            "units": "metric",
+            "appid": API_KEY
         })
+        data = res.json()
 
-    return {
-        "location": location,
-        "forecast": forecast[:5]
-    }
+        if "list" not in data:
+            return {"error": "No forecast data"}
+
+        # Process the weather data as before
+        # [Your existing code for processing weather data]
+        day_blocks = defaultdict(list)
+
+        for entry in data["list"]:
+            dt = datetime.fromtimestamp(entry["dt"])
+            day = dt.strftime("%A")
+            block = {
+                "time": dt.strftime("%H:%M"),
+                "temp": entry["main"]["temp"],
+                "desc": entry["weather"][0]["description"].title(),
+                "icon": entry["weather"][0]["icon"],
+                "wind": entry["wind"]["speed"],
+                "clouds": entry["clouds"]["all"],
+                "rain": entry.get("rain", {}).get("3h", 0)
+            }
+            day_blocks[day].append(block)
+
+        forecast = []
+        for day, hourly_list in day_blocks.items():
+            score = sum([b["clouds"] + b["rain"]*20 + b["wind"]*2 for b in hourly_list])
+            avg_score = score / max(len(hourly_list), 1)
+            good_for_tennis = avg_score < 100
+            forecast.append({
+                "day": day,
+                "hourly": hourly_list,
+                "good_for_tennis": good_for_tennis
+            })
+
+        # Prepare the response with cache timestamp
+        response = {
+            "location": location,
+            "forecast": forecast[:5],
+            "cache_timestamp": time.time()
+        }
+        
+        # Save to cache
+        try:
+            with open(cache_file, "w") as f:
+                json.dump(response, f)
+        except Exception as e:
+            print(f"❌ Cache write error for {location_input}: {e}")
+        
+        return response
+        
+    except Exception as e:
+        print(f"❌ Weather API error for {location_input}: {e}")
+        return {"error": f"API error: {str(e)}"}

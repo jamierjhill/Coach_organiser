@@ -228,81 +228,349 @@
       <div id="calendar"></div>
     </div>
 
-<!-- ☀️ Forecast Section -->
+    <!-- Enhanced Weather Component for player_portal.html -->
 <div class="forecast-container section-card">
-    <h3 class="section-title">☀️ Forecast — <span class="text-muted">{{ weather.location }}</span></h3>
-  
-    {% if weather.error %}
-      <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
-    {% elif weather.forecast and weather.forecast|length > 0 %}
-      {% set today = weather.forecast[0] %}
-      <div class="forecast-day">
-        <div class="forecast-header">
-          <span>{{ today.day }} (Today)</span>
-        </div>
+  <h3 class="section-title">☀️ Weather Forecast — <span class="text-muted">{{ weather.location }}</span></h3>
+
+  {% if weather.error %}
+    <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
+  {% elif weather.forecast and weather.forecast|length > 0 %}
+    {% set today = weather.forecast[0] %}
+    <div class="weather-card mb-4">
+      <div class="weather-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ today.day }} (Today)</h5>
+        {% if today.good_for_tennis %}
+          <span class="tennis-badge good">✅ Good for Tennis</span>
+        {% else %}
+          <span class="tennis-badge bad">⚠️ Check Conditions</span>
+        {% endif %}
+      </div>
+      
+      <div class="weather-summary-row d-flex align-items-center mt-3 mb-3">
+        {% if today.hourly and today.hourly|length > 0 %}
+          {% set current = today.hourly[0] %}
+          <div class="weather-icon-container">
+            <img src="https://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="{{ current.desc }}">
+          </div>
+          <div class="ms-3">
+            <div class="temp-display">{{ current.temp|round(0) }}°C</div>
+            <div class="weather-description">{{ current.desc }}</div>
+          </div>
+          <div class="ms-auto text-end weather-metrics">
+            <div><i class="weather-icon">☁️</i> {{ current.clouds|round(0) }}% clouds</div>
+            <div><i class="weather-icon">💨</i> {{ (current.wind * 2.237)|round(0) }} mph wind</div>
+            <div><i class="weather-icon">🌧️</i> {{ (current.rain * 10)|round(0) }}% rain chance</div>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Today's Hourly Forecast -->
+      <div class="hourly-forecast">
         <div class="forecast-scroll-row">
-          {% for e in today.hourly %}
-            {% set wind_mph = (e.wind * 2.237) | round(0) %}
-            {% set wind_ms = e.wind | round(0) %}
-            {% set rain_chance = (e.rain * 10) | round(0) %}
+          {% for entry in today.hourly %}
+            {% set wind_mph = (entry.wind * 2.237) | round(0) %}
+            {% set rain_chance = (entry.rain * 10) | round(0) %}
             <div class="period-block">
-              <div class="period-label">{{ e.time }}</div>
-              <div style="background-color: #fff; padding: 6px; border-radius: 10px; display: inline-block; margin-bottom: 6px;">
-                <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" class="weather-icon-tiny" alt="icon">
+              <div class="period-time">{{ entry.time }}</div>
+              <div class="weather-icon-wrapper">
+                <img src="https://openweathermap.org/img/wn/{{ entry.icon }}.png" class="weather-icon-small" alt="{{ entry.desc }}">
               </div>
-              <div class="weather-metric">🌡️ {{ e.temp }}°C</div>
-              <div class="weather-desc">{{ e.desc }}</div>
-              <div class="weather-metric mt-1">
-                ☁️ {{ e.clouds | round(0) }}% cloud cover<br>
-                💨 {{ wind_mph | round(0) }} mph wind<br>
-                🌧️ {{ rain_chance | round(0) }}% chance of rain
+              <div class="period-temp">{{ entry.temp|round(0) }}°C</div>
+              <div class="period-desc">{{ entry.desc }}</div>
+              <div class="period-metrics">
+                <span><i class="weather-icon-tiny">💨</i> {{ wind_mph }}mph</span>
+                <span><i class="weather-icon-tiny">🌧️</i> {{ rain_chance }}%</span>
               </div>
             </div>
           {% endfor %}
         </div>
       </div>
-  
-      <!-- Expand Button -->
-      <div class="text-center mt-3">
-        <button class="btn btn-outline-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#forecastFuture">
-          Show Full 5-Day Forecast
-        </button>
-      </div>
-  
-      <!-- Remaining Days (Collapsed by default) -->
-      <div class="collapse mt-4" id="forecastFuture">
-        {% for day in weather.forecast[1:] %}
-          <div class="forecast-day">
-            <div class="forecast-header">
-              <span>{{ day.day }}</span>
-            </div>
+      
+      <!-- Tennis playing tip based on weather -->
+      {% if today.hourly and today.hourly|length > 0 %}
+        {% set current = today.hourly[0] %}
+        <div class="tennis-tip mt-3">
+          <div class="tip-icon">💡</div>
+          <div class="tip-content">
+            {% if current.temp > 25 %}
+              <strong>Hot Weather Tip:</strong> Stay hydrated and wear a hat! Bring extra water and take breaks in the shade.
+            {% elif current.temp < 10 %}
+              <strong>Cold Weather Tip:</strong> Layer clothing and do a thorough warm-up! Keep moving between points to stay warm.
+            {% elif current.rain > 0.2 %}
+              <strong>Rainy Weather Tip:</strong> Check court conditions before playing. Consider indoor options if available.
+            {% elif current.wind > 5 %}
+              <strong>Windy Conditions Tip:</strong> Adjust your serving toss height and add more spin to your shots for better control.
+            {% else %}
+              <strong>Perfect Tennis Weather:</strong> Great conditions for your game! Focus on technique and enjoy your session.
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Expanded forecast toggle -->
+    <div class="text-center">
+      <button class="btn btn-outline-success btn-sm" type="button" 
+              data-bs-toggle="collapse" data-bs-target="#forecastFuture"
+              aria-expanded="false" aria-controls="forecastFuture">
+        <span class="expand-text">Show Full 5-Day Forecast</span>
+        <span class="collapse-text" style="display:none;">Hide Forecast</span>
+      </button>
+    </div>
+    
+    <!-- Remaining Days Forecast (Collapsed by default) -->
+    <div class="collapse mt-4" id="forecastFuture">
+      {% for day in weather.forecast[1:] %}
+        <div class="weather-card mb-3">
+          <div class="weather-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ day.day }}</h5>
+            {% if day.good_for_tennis %}
+              <span class="tennis-badge good">✅ Good for Tennis</span>
+            {% else %}
+              <span class="tennis-badge bad">⚠️ Check Conditions</span>
+            {% endif %}
+          </div>
+          
+          <div class="hourly-forecast mt-3">
             <div class="forecast-scroll-row">
-              {% for e in day.hourly %}
-                {% set wind_mph = (e.wind * 2.237) | round(0) %}
-                {% set wind_ms = e.wind | round(1) %}
-                {% set rain_chance = (e.rain * 10) | round(0) %}
+              {% for entry in day.hourly %}
+                {% set wind_mph = (entry.wind * 2.237) | round(0) %}
+                {% set rain_chance = (entry.rain * 10) | round(0) %}
                 <div class="period-block">
-                  <div class="period-label">{{ e.time }}</div>
-                  <div style="background-color: #fff; padding: 6px; border-radius: 10px; display: inline-block; margin-bottom: 6px;">
-                    <img src="https://openweathermap.org/img/wn/{{ e.icon }}.png" class="weather-icon-tiny" alt="icon">
+                  <div class="period-time">{{ entry.time }}</div>
+                  <div class="weather-icon-wrapper">
+                    <img src="https://openweathermap.org/img/wn/{{ entry.icon }}.png" class="weather-icon-small" alt="{{ entry.desc }}">
                   </div>
-                  <div class="weather-metric">🌡️ {{ e.temp }}°C</div>
-                  <div class="weather-desc">{{ e.desc }}</div>
-                  <div class="weather-metric mt-1">
-                    ☁️ {{ e.clouds }}%<br>
-                    💨 {{ wind_ms }} m/s ({{ wind_mph }} mph)<br>
-                    🌧️ Chance of rain: {{ rain_chance }}%
+                  <div class="period-temp">{{ entry.temp|round(0) }}°C</div>
+                  <div class="period-desc">{{ entry.desc }}</div>
+                  <div class="period-metrics">
+                    <span><i class="weather-icon-tiny">💨</i> {{ wind_mph }}mph</span>
+                    <span><i class="weather-icon-tiny">🌧️</i> {{ rain_chance }}%</span>
                   </div>
                 </div>
               {% endfor %}
             </div>
           </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="text-muted">No forecast data available.</div>
-    {% endif %}
-  </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-muted">No forecast data available.</div>
+  {% endif %}
+</div>
+
+<!-- Additional CSS styles to add to your <style> section -->
+<style>
+  /* Enhanced Weather Component Styles */
+  .forecast-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  
+  .weather-card {
+    background-color: #f9fefc;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease;
+  }
+  
+  .weather-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .weather-header {
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #c8e6c9;
+  }
+  
+  .tennis-badge {
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  
+  .tennis-badge.good {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .tennis-badge.bad {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .weather-icon-container {
+    background-color: white;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .temp-display {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1b5e20;
+  }
+  
+  .weather-description {
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  .weather-metrics {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+  }
+  
+  .weather-icon {
+    display: inline-block;
+    margin-right: 4px;
+  }
+  
+  .forecast-scroll-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+  
+  .forecast-scroll-row::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .forecast-scroll-row::-webkit-scrollbar-thumb {
+    background-color: #c8e6c9;
+    border-radius: 6px;
+  }
+  
+  .period-block {
+    min-width: 110px;
+    flex: 0 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    border: 1px solid #e0f2f1;
+    transition: transform 0.2s ease;
+  }
+  
+  .period-block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .period-time {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1b5e20;
+  }
+  
+  .weather-icon-wrapper {
+    background-color: #f1f8f1;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .weather-icon-small {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .period-temp {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1b5e20;
+  }
+  
+  .period-desc {
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .period-metrics {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #666;
+  }
+  
+  .weather-icon-tiny {
+    font-style: normal;
+  }
+  
+  .tennis-tip {
+    display: flex;
+    background-color: #e8f5e9;
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 15px;
+  }
+  
+  .tip-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .tip-content {
+    font-size: 0.9rem;
+    color: #1b5e20;
+    line-height: 1.4;
+  }
+  
+  .btn-outline-success {
+    color: #2e7d32;
+    border-color: #2e7d32;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-success:hover {
+    background-color: #2e7d32;
+    color: white;
+  }
+</style>
+
+<!-- JavaScript for the expand/collapse toggle button text -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const collapseToggle = document.querySelector('[data-bs-toggle="collapse"]');
+    const expandText = document.querySelector('.expand-text');
+    const collapseText = document.querySelector('.collapse-text');
+    
+    if (collapseToggle) {
+      collapseToggle.addEventListener('click', function() {
+        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+        expandText.style.display = isExpanded ? 'none' : 'inline';
+        collapseText.style.display = isExpanded ? 'inline' : 'none';
+      });
+    }
+  });
+</script>
+
+
   
   
   
