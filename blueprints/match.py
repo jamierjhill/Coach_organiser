@@ -7,6 +7,7 @@ from utils import organize_matches
 match_bp = Blueprint("match", __name__)
 
 @match_bp.route("/index", methods=["GET", "POST"])
+@login_required  # Add this line
 def index():
     session["last_form_page"] = "/index"  # 🧠 Smart Save & Home tracking
 

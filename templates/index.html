@@ -87,7 +87,7 @@
 
   <!-- Navigation Buttons -->
   <div class="text-center mb-3">
-    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+    <a href="{% if current_user.is_authenticated %}/home{% else %}/login{% endif %}" class="btn btn-outline-success me-2">🏠 Home</a>
     <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
   </div>
 
