@@ -94,136 +94,94 @@
   </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-{% if not session.get('ai_toolbox_access_granted') %}
-  <div class="container py-5">
-    <div class="card p-4 shadow rounded-4 border-0" style="max-width: 500px; margin: auto; background: white;">
-      <h2 class="text-success text-center mb-3">🔒 Enter Password to Access AI Toolbox</h2>
-
-      <div class="text-center mb-3">
-        <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-      </div>
-
-      <form method="POST">
-        <div class="mb-3">
-          <input type="password" class="form-control" name="password" placeholder="Enter password" required>
-        </div>
-        <button type="submit" class="btn btn-success w-100">Unlock</button>
-        {% if error %}
-          <p class="text-danger text-center mt-2">{{ error }}</p>
-        {% endif %}
-      </form>
-    </div>
+<!-- Remove password section and give direct access -->
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h1 class="text-center text-success mb-4">🎾 AI Coaching Toolbox</h1>
+    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
   </div>
-{% else %}
 
-
-
-  <div class="container py-5">
-    <div class="text-center mb-4">
-      <h1 class="text-center text-success mb-4">🎾 AI Coaching Toolbox</h1>
-      <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-    </div>
-
-    <form method="POST" id="aiForm">
-      <div class="row g-4">
-
-        <!-- Drill Generator -->
-        <div class="col-md-4 d-flex" data-aos="fade-up">
-          <div class="tennis-card w-100">
-            <div>
-              <h4>🎾 Drill Generator</h4>
-              <p>Create a focused drill for warm-up, technique or match play.</p>
-              <textarea name="drill_prompt" class="form-control mt-2" rows="4" placeholder="Describe the drill you want...">Beginner warm-up drill</textarea>
-            </div>
-            <button type="submit" name="tool" value="drill" class="btn tennis-btn mt-3 w-100">⚡ Generate Drill</button>
+  <form method="POST" id="aiForm">
+    <div class="row g-4">
+      <!-- Drill Generator -->
+      <div class="col-md-4 d-flex" data-aos="fade-up">
+        <div class="tennis-card w-100">
+          <div>
+            <h4>🎾 Drill Generator</h4>
+            <p>Create a focused drill for warm-up, technique or match play.</p>
+            <textarea name="drill_prompt" class="form-control mt-2" rows="4" placeholder="Describe the drill you want...">Beginner warm-up drill</textarea>
           </div>
+          <button type="submit" name="tool" value="drill" class="btn tennis-btn mt-3 w-100">⚡ Generate Drill</button>
         </div>
+      </div>
 
-        <!-- Session Generator -->
-        <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
-          <div class="tennis-card w-100">
-            <div>
-              <h4>📋 Session Generator</h4>
-              <p>Create a full session plan based on your focus, time, and player count.</p>
-              <label class="form-label mt-2">Number of Players:</label>
-              <input type="number" class="form-control mb-2" name="players" placeholder="e.g. 6">
+      <!-- Session Generator -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
+        <div class="tennis-card w-100">
+          <div>
+            <h4>📋 Session Generator</h4>
+            <p>Create a full session plan based on your focus, time, and player count.</p>
+            <label class="form-label mt-2">Number of Players:</label>
+            <input type="number" class="form-control mb-2" name="players" placeholder="e.g. 6">
 
-              <label class="form-label">Focus Area:</label>
-              <input type="text" class="form-control mb-2" name="focus" placeholder="e.g. volleys, consistency">
+            <label class="form-label">Focus Area:</label>
+            <input type="text" class="form-control mb-2" name="focus" placeholder="e.g. volleys, consistency">
 
-              <label class="form-label">Duration (minutes):</label>
-              <input type="number" class="form-control mb-2" name="duration" placeholder="e.g. 90">
-            </div>
-            <button type="submit" name="tool" value="session" class="btn tennis-btn mt-2 w-100">⚡ Generate Session</button>
+            <label class="form-label">Duration (minutes):</label>
+            <input type="number" class="form-control mb-2" name="duration" placeholder="e.g. 90">
           </div>
+          <button type="submit" name="tool" value="session" class="btn tennis-btn mt-2 w-100">⚡ Generate Session</button>
         </div>
-<!-- CoachBot -->
-<div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-  <div class="tennis-card w-100 d-flex flex-column justify-content-between">
-    <div>
-      <h4 class="text-success">🧠 CoachBot</h4>
-      <div id="chatbox" style="height: 300px; overflow-y: auto; background: #f1f8e9; border-radius: 10px; padding: 10px; margin-bottom: 10px;"></div>
-      <div class="input-group">
-        <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
-        <button type="button" class="btn btn-success" onclick="sendChat()">Send</button>
+      </div>
+
+      <!-- CoachBot -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+        <div class="tennis-card w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h4 class="text-success">🧠 CoachBot</h4>
+            <div id="chatbox" style="height: 300px; overflow-y: auto; background: #f1f8e9; border-radius: 10px; padding: 10px; margin-bottom: 10px;"></div>
+            <div class="input-group">
+              <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
+              <button type="button" class="btn btn-success" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-danger mt-3" onclick="clearChat()">🧹 Clear Chat</button>
+        </div>
       </div>
     </div>
-    <button class="btn btn-sm btn-outline-danger mt-3" onclick="clearChat()">🧹 Clear Chat</button>
+  </form>
+
+  {% if drill %}
+  <div id="drillOutput" class="output-box mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">✅ Drill Result</h5>
+      <button type="button" class="btn btn-sm btn-danger" onclick="clearOutput('drillOutput')">Clear</button>
+    </div>
+    <div class="output-content">{{ drill }}</div>
   </div>
-</div>
-
-
-
-
-
-      </div>
-    </form>
-
-    {% if drill %}
-    <div id="drillOutput" class="output-box mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">✅ Drill Result</h5>
-        <button type="button" class="btn btn-sm btn-danger" onclick="clearOutput('drillOutput')">Clear</button>
-      </div>
-      <div class="output-content">{{ drill }}</div>
-    </div>
   {% endif %}
-  
+
   {% if session_plan %}
-    <div id="sessionOutput" class="output-box mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">✅ Session Plan</h5>
-        <button type="button" class="btn btn-sm btn-danger" onclick="clearOutput('sessionOutput')">Clear</button>
-      </div>
-      <div class="output-content">{{ session_plan }}</div>
+  <div id="sessionOutput" class="output-box mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">✅ Session Plan</h5>
+      <button type="button" class="btn btn-sm btn-danger" onclick="clearOutput('sessionOutput')">Clear</button>
+    </div>
+    <div class="output-content">{{ session_plan }}</div>
+  </div>
+  {% endif %}
+
+  {% if chat_response %}
+    <div class="alert alert-warning mt-4">
+      <h5>🧠 CoachBot Says</h5>
+      <pre>{{ chat_response }}</pre>
     </div>
   {% endif %}
-  
-  
 
-    {% if chat_response %}
-      <div class="alert alert-warning mt-4">
-        <h5>🧠 CoachBot Says</h5>
-        <pre>{{ chat_response }}</pre>
-      </div>
-    {% endif %}
-
-    {% if error %}
-      <div class="alert alert-danger mt-4">{{ error }}</div>
-    {% endif %}
-  </div>
-
+  {% if error %}
+    <div class="alert alert-danger mt-4">{{ error }}</div>
+  {% endif %}
+</div>
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -285,7 +243,7 @@
   </script>
   
 
-{% endif %}
+
 
 </body>
 </html>

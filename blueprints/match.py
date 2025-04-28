@@ -6,9 +6,6 @@ from utils import organize_matches
 
 match_bp = Blueprint("match", __name__)
 
-CSV_UPLOAD_PASSWORD = os.getenv("CSV_UPLOAD_PASSWORD")
-
-
 @match_bp.route("/index", methods=["GET", "POST"])
 def index():
     session["last_form_page"] = "/index"  # 🧠 Smart Save & Home tracking
@@ -53,28 +50,24 @@ def index():
             session["players"] = players
 
         if "upload_csv" in request.form:
-            csv_password = request.form.get("csv_password", "")
-            if csv_password != CSV_UPLOAD_PASSWORD:
-                error = "❌ Incorrect password for CSV upload."
+            file = request.files.get("csv_file")
+            if file and file.filename.endswith(".csv"):
+                try:
+                    content = file.read().decode("utf-8")
+                    reader = csv.DictReader(io.StringIO(content))
+                    for row in reader:
+                        name = row.get("name", "").strip()
+                        try:
+                            grade = int(row.get("grade", "").strip())
+                        except (ValueError, AttributeError):
+                            continue
+                        if name and grade in [1, 2, 3, 4]:
+                            players.append({"name": name, "grade": grade})
+                    session["players"] = players
+                except Exception as e:
+                    error = f"❌ Failed to read CSV: {str(e)}"
             else:
-                file = request.files.get("csv_file")
-                if file and file.filename.endswith(".csv"):
-                    try:
-                        content = file.read().decode("utf-8")
-                        reader = csv.DictReader(io.StringIO(content))
-                        for row in reader:
-                            name = row.get("name", "").strip()
-                            try:
-                                grade = int(row.get("grade", "").strip())
-                            except (ValueError, AttributeError):
-                                continue
-                            if name and grade in [1, 2, 3, 4]:
-                                players.append({"name": name, "grade": grade})
-                        session["players"] = players
-                    except Exception as e:
-                        error = f"❌ Failed to read CSV: {str(e)}"
-                else:
-                    error = "⚠️ Please upload a valid .csv file."
+                error = "⚠️ Please upload a valid .csv file."
 
             if error:
                 return render_template(
@@ -157,4 +150,3 @@ def index():
         rounds=rounds,
         view_mode=view_mode
     )
-

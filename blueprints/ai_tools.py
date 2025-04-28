@@ -8,7 +8,6 @@ ai_tools_bp = Blueprint("ai_tools", __name__)
 
 # === OpenAI Config ===
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-AI_TOOLBOX_PASSWORD = os.getenv("AI_TOOLBOX_PASSWORD")
 COACHBOT_PASSWORD = os.getenv("COACHBOT_PASSWORD")
 DRILL_PASSWORD = os.getenv("DRILL_PASSWORD")
 SESSION_PASSWORD = os.getenv("SESSION_PASSWORD")
@@ -21,15 +20,9 @@ def ai_toolbox():
     chat_response = None
     error = None
     session["last_form_page"] = "/ai-toolbox"
-
-    if not session.get("ai_toolbox_access_granted"):
-        if request.method == "POST" and "password" in request.form:
-            if request.form["password"] == AI_TOOLBOX_PASSWORD:
-                session["ai_toolbox_access_granted"] = True
-                return redirect("/ai-toolbox")
-            else:
-                error = "Incorrect password"
-        return render_template("ai_toolbox.html", error=error)
+    
+    # No longer checking for password - direct access
+    session["ai_toolbox_access_granted"] = True
 
     if request.method == "POST" and "tool" in request.form:
         tool = request.form["tool"]
@@ -88,6 +81,7 @@ def ai_toolbox():
             return redirect("/home")
 
     return render_template("ai_toolbox.html", drill=drill, session_plan=session_plan, chat_response=chat_response, error=error)
+
 
 # === COACHBOT AJAX ===
 @ai_tools_bp.route("/chatbot", methods=["POST"])
@@ -226,13 +220,6 @@ def logout_session_generator():
 # === INLINE COACHBOT PAGE ===
 @ai_tools_bp.route("/coachbot", methods=["GET", "POST"])
 def coachbot():
-    error = None
-    if not session.get("coachbot_access_granted"):
-        if request.method == "POST":
-            if request.form.get("password") == COACHBOT_PASSWORD:
-                session["coachbot_access_granted"] = True
-                return redirect("/coachbot")
-            error = "Incorrect password"
-        return render_template("coachbot.html", error=error)
-
+    # No longer checking for password - direct access
+    session["coachbot_access_granted"] = True
     return render_template("coachbot.html")
