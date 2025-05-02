@@ -181,6 +181,10 @@
       <button type="button" onclick="return reshuffleAll()" class="btn tennis-btn me-2">🔀 Reshuffle</button>
       <button type="submit" name="reset" class="btn btn-outline-danger">🔁 Reset All</button>
     </div>
+    
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
 
   <!-- Match Schedule -->
   <div class="card-section">
@@ -194,6 +198,17 @@
         </select>
       </div>
     </div>
+
+    {% if not matchups or not rounds %}
+      <div class="alert alert-warning">
+        <p class="mb-0">⚠️ No matches scheduled. This might be because:</p>
+        <ul class="mb-0 mt-2">
+          <li>Not enough players for the selected format (Singles needs at least 2 players per court, Doubles needs at least 4)</li>
+          <li>Player count doesn't work well with the number of courts</li>
+          <li>Try adjusting the number of courts or adding more players</li>
+        </ul>
+      </div>
+    {% else %}
 
     <!-- Match Schedule by Round -->
     <div id="schedule-round" style="display: none;">
@@ -213,6 +228,27 @@
             {% endif %}
           </div>
         {% endfor %}
+        
+        {# Find players sitting out in this round #}
+        {% set playing_players = [] %}
+        {% for court_num, match in matches %}
+          {% for player in match %}
+            {% set _ = playing_players.append(player.name) %}
+          {% endfor %}
+        {% endfor %}
+        
+        {% set sitting_out = [] %}
+        {% for player in players %}
+          {% if player.name not in playing_players %}
+            {% set _ = sitting_out.append(player.name) %}
+          {% endif %}
+        {% endfor %}
+        
+        {% if sitting_out %}
+          <div class="alert alert-info mt-2 mb-3">
+            <strong>🪑 Sitting out:</strong> {{ sitting_out|join(', ') }}
+          </div>
+        {% endif %}
       {% endfor %}
     </div>
 
@@ -221,8 +257,6 @@
       {% for court_number in range(1, courts + 1) %}
         <div class="court-header d-flex justify-content-between align-items-center">
           <h5 class="text-success mb-0">Court {{ court_number }}</h5>
-          {% if matchups[court_number - 1] %}
-          {% endif %}
         </div>
         {% if matchups[court_number - 1] %}
           {% for match, round_num in matchups[court_number - 1] %}
@@ -237,23 +271,15 @@
             </div>
           {% endfor %}
         {% else %}
-          <p>No matches scheduled.</p>
+          <p class="text-muted">No matches scheduled for this court.</p>
         {% endif %}
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 
   </form>
 
-  <!-- Summary -->
-  <div class="card-section">
-    <h4>🧮 Player Summary</h4>
-    <ul class="list-group list-group-flush">
-      {% for player, match_count in player_match_counts.items() %}
-        <li class="list-group-item">{{ player }}: {{ match_count }} match{{ 'es' if match_count != 1 else '' }}</li>
-      {% endfor %}
-    </ul>
-  </div>
 
   <!-- Timer -->
   <div class="timer-controls">
@@ -383,6 +409,13 @@ function reshuffleRound(roundNum) {
             currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
         }
         
+        // Update the player summary section (back to simple list)
+        const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+        const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+        if (newSummary && currentSummary) {
+            currentSummary.innerHTML = newSummary.innerHTML;
+        }
+        
         // Restore scroll position
         window.scrollTo(0, scrollPosition);
     })
@@ -494,7 +527,7 @@ function reshuffleAll() {
            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
        }
        
-       // Also update the player summary section
+       // Also update the player summary section (back to simple list)
        const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
        const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
        if (newSummary && currentSummary) {
@@ -520,7 +553,34 @@ function reshuffleAll() {
 }
 
 function organizeMatches() {
-   const formData = new FormData(document.querySelector('form'));
+   // Get form values
+   const form = document.querySelector('form');
+   const courts = parseInt(form.querySelector('input[name="courts"]').value) || 1;
+   const match_type = form.querySelector('select[name="match_type"]').value;
+   const players = document.querySelectorAll('.player-box').length;
+   
+   // Validate player count
+   const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
+   if (players < minPlayersNeeded) {
+       alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
+       return false;
+   }
+   
+   // Check if there are enough players for the number of courts
+   const playersPerCourt = match_type === 'singles' ? 2 : 4;
+   if (players < courts * playersPerCourt) {
+       const maxCourts = Math.floor(players / playersPerCourt);
+       if (maxCourts === 0) {
+           alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
+           return false;
+       } else {
+           if (!confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`)) {
+               return false;
+           }
+       }
+   }
+   
+   const formData = new FormData(form);
    formData.append('organize_matches', 'true');
    
    // Store current scroll position
@@ -549,6 +609,13 @@ function organizeMatches() {
            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
        }
        
+       // Update the entire match schedule section to include warnings
+       const newScheduleSection = doc.querySelector('.card-section:nth-of-type(5)');
+       const currentScheduleSection = document.querySelector('.card-section:nth-of-type(5)');
+       if (newScheduleSection && currentScheduleSection) {
+           currentScheduleSection.innerHTML = newScheduleSection.innerHTML;
+       }
+       
        // Also update the player summary section
        const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
        const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
@@ -557,14 +624,26 @@ function organizeMatches() {
        }
        
        // Update error messages if any
-       const newError = doc.querySelector('.text-danger.fw-bold');
-       const currentError = document.querySelector('.text-danger.fw-bold');
-       if (newError && currentError) {
-           currentError.innerHTML = newError.innerHTML;
+       const newError = doc.querySelector('.alert-danger');
+       const existingError = document.querySelector('.alert-danger');
+       if (newError) {
+           if (existingError) {
+               existingError.innerHTML = newError.innerHTML;
+           } else {
+               // Add new error alert after action buttons
+               const actionButtons = document.querySelector('.text-center.my-4');
+               actionButtons.insertAdjacentHTML('afterend', newError.outerHTML);
+           }
+       } else if (existingError) {
+           existingError.remove();
        }
        
        // Restore scroll position
        window.scrollTo(0, scrollPosition);
+       
+       // Re-run the toggle function to show the correct view
+       const currentView = document.getElementById('scheduleToggle').value;
+       toggleScheduleView(currentView);
    })
    .catch(error => {
        console.error('Error:', error);
