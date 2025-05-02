@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+from datetime import timedelta
 from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -17,6 +18,13 @@ def create_app():
     
     # Add this for ngrok HTTPS support
     app.config['PREFERRED_URL_SCHEME'] = 'https'
+    
+    # Add session configuration
+    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Session lasts 24 hours
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
     # Mail config
     app.config.update(
