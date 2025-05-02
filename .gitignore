@@ -46,7 +46,7 @@ build/
 data/
 sessions/
 notes/
-*.json
+cache/
 
 offline_archive/
 
