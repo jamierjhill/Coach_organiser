@@ -12,12 +12,12 @@ def user_path(username):
 
 def load_user(username):
     path = user_path(username)
-    print(f"🔍 Attempting to load user file: {path}")  # Debug logging
+    print(f"🔍 Loading user: {username}")  # Only log username
     if os.path.exists(path):
         try:
             with open(path) as f:
                 data = json.load(f)
-                print("✅ Loaded user data:", data)
+                print(f"✅ User {username} loaded successfully")
                 return data
         except json.JSONDecodeError as e:
             print(f"❌ JSON error in user file: {e}")

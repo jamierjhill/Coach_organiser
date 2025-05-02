@@ -3,17 +3,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_mail import Mail
 from blueprints import all_blueprints
-from models import User, load_user_by_id  # ✅ updated
+from models import User, load_user_by_id
 
 mail = Mail()
 
 def create_app():
     app = Flask(__name__)
     app.secret_key = os.getenv("FLASK_SECRET_KEY")
+    
+    # Add this for ngrok HTTPS support
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 
     # Mail config
     app.config.update(
@@ -30,15 +33,15 @@ def create_app():
     os.makedirs("sessions", exist_ok=True)
     os.makedirs("notes", exist_ok=True)
     os.makedirs("data/events", exist_ok=True)
-    os.makedirs("data/users", exist_ok=True)  # ✅ ensure user folder exists
+    os.makedirs("data/users", exist_ok=True)
     os.makedirs("data", exist_ok=True)
+    os.makedirs("static", exist_ok=True)
 
     # Flask-Login setup
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"
     login_manager.init_app(app)
 
-    # ✅ Load user from individual user files
     @login_manager.user_loader
     def load_user(user_id):
         return load_user_by_id(user_id)
@@ -46,9 +49,14 @@ def create_app():
     # Register blueprints
     for bp in all_blueprints:
         app.register_blueprint(bp)
+    
+    # Define the static file route for service worker
+    @app.route('/static/<path:filename>')
+    def serve_static(filename):
+        return send_from_directory('static', filename)
 
     return app
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)  # Changed to listen on all interfaces
