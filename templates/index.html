@@ -189,8 +189,8 @@
       <div>
         <label for="scheduleToggle" class="form-label me-2">🔀 View By</label>
         <select class="form-select d-inline w-auto" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
-          <option value="court">Court</option>
           <option value="round">Round</option>
+          <option value="court">Court</option>
         </select>
       </div>
     </div>
@@ -222,7 +222,6 @@
         <div class="court-header d-flex justify-content-between align-items-center">
           <h5 class="text-success mb-0">Court {{ court_number }}</h5>
           {% if matchups[court_number - 1] %}
-            <button type="button" onclick="return reshuffleCourt({{ court_number }})" class="btn btn-sm btn-outline-success court-reshuffle-btn">🔀 Reshuffle Court {{ court_number }}</button>
           {% endif %}
         </div>
         {% if matchups[court_number - 1] %}
@@ -320,26 +319,35 @@
 
 <script>
   function toggleScheduleView(view) {
-    const roundDiv = document.getElementById("schedule-round");
     const courtDiv = document.getElementById("schedule-court");
-    roundDiv.style.display = view === "round" ? "block" : "none";
+    const roundDiv = document.getElementById("schedule-round");
     courtDiv.style.display = view === "court" ? "block" : "none";
+    roundDiv.style.display = view === "round" ? "block" : "none";
   }
 
   window.onload = function () {
-    const defaultView = "{{ view_mode }}";
-    const selector = document.getElementById("scheduleToggle");
-    if (selector) {
-      selector.value = defaultView;
-      toggleScheduleView(defaultView);
-    }
-  };
+  const defaultView = "round";  // Changed to always default to "round"
+  const selector = document.getElementById("scheduleToggle");
+  if (selector) {
+    selector.value = defaultView;
+    toggleScheduleView(defaultView);
+  }
+};
 </script>
 
 <script>
 function reshuffleRound(roundNum) {
-    const formData = new FormData();
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
     formData.append('reshuffle_round', roundNum);
+    
+    // Add all existing form inputs to maintain state
+    const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
+    inputs.forEach(input => {
+        if (input.name && input.value) {
+            formData.append(input.name, input.value);
+        }
+    });
     
     // Store current scroll position
     const scrollPosition = window.pageYOffset;
@@ -348,17 +356,31 @@ function reshuffleRound(roundNum) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+        return response.text();
+    })
     .then(html => {
-        // Create a temporary DOM element to parse the response
+        if (!html) return;
+        
+        // Parse the response and update the entire page
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // Extract and update the match schedule section
-        const newSchedule = doc.querySelector('#schedule-round');
-        const currentSchedule = document.querySelector('#schedule-round');
-        if (newSchedule && currentSchedule) {
-            currentSchedule.innerHTML = newSchedule.innerHTML;
+        // Update the entire schedule sections
+        const newScheduleRound = doc.querySelector('#schedule-round');
+        const currentScheduleRound = document.querySelector('#schedule-round');
+        if (newScheduleRound && currentScheduleRound) {
+            currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+        }
+        
+        const newScheduleCourt = doc.querySelector('#schedule-court');
+        const currentScheduleCourt = document.querySelector('#schedule-court');
+        if (newScheduleCourt && currentScheduleCourt) {
+            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
         }
         
         // Restore scroll position
@@ -366,47 +388,80 @@ function reshuffleRound(roundNum) {
     })
     .catch(error => {
         console.error('Error:', error);
-        // Fallback to regular form submission if AJAX fails
-        document.querySelector('form').submit();
+        // Fallback to regular form submission
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'reshuffle_round';
+        input.value = roundNum;
+        form.appendChild(input);
+        form.submit();
     });
     
     return false;
-  }
+}
 
 function reshuffleCourt(courtNum) {
-   const formData = new FormData();
-   formData.append('reshuffle_court', courtNum);
-   
-   // Store current scroll position
-   const scrollPosition = window.pageYOffset;
-   
-   fetch('/index', {
-       method: 'POST',
-       body: formData
-   })
-   .then(response => response.text())
-   .then(html => {
-       // Create a temporary DOM element to parse the response
-       const parser = new DOMParser();
-       const doc = parser.parseFromString(html, 'text/html');
-       
-       // Extract and update the match schedule section
-       const newSchedule = doc.querySelector('#schedule-court');
-       const currentSchedule = document.querySelector('#schedule-court');
-       if (newSchedule && currentSchedule) {
-           currentSchedule.innerHTML = newSchedule.innerHTML;
-       }
-       
-       // Restore scroll position
-       window.scrollTo(0, scrollPosition);
-   })
-   .catch(error => {
-       console.error('Error:', error);
-       // Fallback to regular form submission if AJAX fails
-       document.querySelector('form').submit();
-   });
-   
-   return false; // Prevent default form submission
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
+    formData.append('reshuffle_court', courtNum);
+    
+    // Add all existing form inputs to maintain state
+    const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
+    inputs.forEach(input => {
+        if (input.name && input.value) {
+            formData.append(input.name, input.value);
+        }
+    });
+    
+    // Store current scroll position
+    const scrollPosition = window.pageYOffset;
+    
+    fetch('/index', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+        return response.text();
+    })
+    .then(html => {
+        if (!html) return;
+        
+        // Parse the response and update the entire page
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Update the entire schedule sections
+        const newScheduleRound = doc.querySelector('#schedule-round');
+        const currentScheduleRound = document.querySelector('#schedule-round');
+        if (newScheduleRound && currentScheduleRound) {
+            currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+        }
+        
+        const newScheduleCourt = doc.querySelector('#schedule-court');
+        const currentScheduleCourt = document.querySelector('#schedule-court');
+        if (newScheduleCourt && currentScheduleCourt) {
+            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback to regular form submission
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'reshuffle_court';
+        input.value = courtNum;
+        form.appendChild(input);
+        form.submit();
+    });
+    
+    return false;
 }
 
 function reshuffleAll() {

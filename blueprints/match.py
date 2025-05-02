@@ -20,7 +20,7 @@ def index():
     num_matches = session.get("num_matches", 1)
     match_type = session.get("match_type", "singles")
     session_name = session.get("session_name", "")
-    view_mode = session.get("view_mode", "court")
+    view_mode = session.get("view_mode", "round")
 
     matchups = session.get("matchups", [])
     player_match_counts = session.get("player_match_counts", {})
@@ -147,33 +147,51 @@ def index():
             current_matchups = session.get("matchups", [])
             current_rounds = session.get("rounds", {})
             
+            # Convert all round keys to integers to ensure consistency
+            rounds_int_keys = {}
+            for k, v in current_rounds.items():
+                try:
+                    rounds_int_keys[int(k)] = v
+                except (ValueError, TypeError):
+                    continue
+            current_rounds = rounds_int_keys
+            
             if round_to_reshuffle in current_rounds:
-                # Get all players in this round
-                players_in_round = []
-                for court_num, match in current_rounds[round_to_reshuffle]:
-                    players_in_round.extend(match)
+                # Get the original matches to preserve exact structure
+                original_matches = current_rounds[round_to_reshuffle]
                 
-                # Shuffle only these players
-                random.shuffle(players_in_round)
+                # Debug: Print original structure
+                print(f"Original matches in round {round_to_reshuffle}: {len(original_matches)} matches")
+                for court_num, match in original_matches:
+                    print(f"Court {court_num}: {len(match)} players")
                 
-                # Reconstruct matches for this round
+                # Get all unique players in this round
+                all_players = []
+                seen_players = set()
+                for court_num, match in original_matches:
+                    for player in match:
+                        player_name = player['name']
+                        if player_name not in seen_players:
+                            all_players.append(player)
+                            seen_players.add(player_name)
+                
+                print(f"Total unique players: {len(all_players)}")
+                
+                # Shuffle all players
+                random.shuffle(all_players)
+                
+                # Recreate matches with the EXACT same structure
                 new_round_matches = []
-                court_idx = 0
+                player_idx = 0
                 
-                if match_type == "doubles":
-                    # Create new doubles matches
-                    for i in range(0, len(players_in_round), 4):
-                        if i + 3 < len(players_in_round):
-                            match = players_in_round[i:i+4]
-                            new_round_matches.append((court_idx + 1, match))
-                            court_idx += 1
-                else:
-                    # Create new singles matches
-                    for i in range(0, len(players_in_round), 2):
-                        if i + 1 < len(players_in_round):
-                            match = [players_in_round[i], players_in_round[i+1]]
-                            new_round_matches.append((court_idx + 1, match))
-                            court_idx += 1
+                for court_num, original_match in original_matches:
+                    match_size = len(original_match)
+                    if player_idx + match_size <= len(all_players):
+                        new_match = all_players[player_idx:player_idx + match_size]
+                        new_round_matches.append((court_num, new_match))
+                        player_idx += match_size
+                
+                print(f"New matches created: {len(new_round_matches)}")
                 
                 # Update the rounds structure
                 current_rounds[round_to_reshuffle] = new_round_matches
@@ -185,77 +203,13 @@ def index():
                 
                 # Then add the new matches back to the appropriate courts
                 for court_num, match in new_round_matches:
-                    if court_num <= len(current_matchups):
-                        current_matchups[court_num - 1].append((match, round_to_reshuffle))
+                    current_matchups[court_num - 1].append((match, round_to_reshuffle))
                 
                 # Sort matches within each court by round number
                 for court_matches in current_matchups:
-                    court_matches.sort(key=lambda x: x[1])
+                    court_matches.sort(key=lambda x: int(x[1]))
                 
-                # Update session
-                session["matchups"] = current_matchups
-                session["rounds"] = current_rounds
-                matchups = current_matchups
-                rounds = current_rounds
-
-        elif "reshuffle_court" in request.form:
-            court_to_reshuffle = int(request.form.get("reshuffle_court"))
-            
-            # Ensure we have the current data
-            current_matchups = session.get("matchups", [])
-            current_rounds = session.get("rounds", {})
-            
-            if court_to_reshuffle <= len(current_matchups):
-                # Get all matches on this court
-                court_matches = current_matchups[court_to_reshuffle - 1]
-                
-                # Extract all players from all matches on this court
-                players_on_court = []
-                round_assignments = []
-                
-                for match, round_num in court_matches:
-                    players_on_court.extend(match)
-                    round_assignments.append(round_num)
-                
-                # Shuffle players
-                random.shuffle(players_on_court)
-                
-                # Reconstruct matches for this court
-                new_court_matches = []
-                player_idx = 0
-                
-                if match_type == "doubles":
-                    # Create new doubles matches
-                    for round_num in round_assignments:
-                        if player_idx + 3 < len(players_on_court):
-                            match = players_on_court[player_idx:player_idx+4]
-                            new_court_matches.append((match, round_num))
-                            player_idx += 4
-                else:
-                    # Create new singles matches
-                    for round_num in round_assignments:
-                        if player_idx + 1 < len(players_on_court):
-                            match = [players_on_court[player_idx], players_on_court[player_idx+1]]
-                            new_court_matches.append((match, round_num))
-                            player_idx += 2
-                
-                # Update the matchups for this court
-                current_matchups[court_to_reshuffle - 1] = new_court_matches
-                
-                # Update the rounds structure
-                for round_num in current_rounds:
-                    # Remove matches for this court from the round
-                    current_rounds[round_num] = [(c, m) for c, m in current_rounds[round_num] if c != court_to_reshuffle]
-                    
-                    # Add the new matches for this court to the appropriate rounds
-                    for match, match_round in new_court_matches:
-                        if match_round == round_num:
-                            current_rounds[round_num].append((court_to_reshuffle, match))
-                    
-                    # Sort by court number
-                    current_rounds[round_num].sort(key=lambda x: x[0])
-                
-                # Update session
+                # Update session with clean data
                 session["matchups"] = current_matchups
                 session["rounds"] = current_rounds
                 matchups = current_matchups
