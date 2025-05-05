@@ -1,3 +1,4 @@
+# auth.py
 import os, json
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, session, current_app, flash
@@ -31,6 +32,21 @@ def login():
             )
             
             if is_valid:
+                # Add login timestamp when user successfully logs in
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                user_data["last_login"] = current_time
+                
+                # Also track login history (last 10 logins)
+                if "login_history" not in user_data:
+                    user_data["login_history"] = []
+                
+                user_data["login_history"].insert(0, current_time)
+                # Keep only the last 10 login records
+                user_data["login_history"] = user_data["login_history"][:10]
+                
+                # Save updated user data with login timestamp
+                save_user(user_data)
+                
                 is_admin = user_data.get("is_admin", False)
                 user = User(id=username, username=username, is_admin=is_admin)
                 login_user(user)
@@ -38,6 +54,18 @@ def login():
         else:
             # Legacy plaintext password check
             if user_data["password"] == password:
+                # Track login timestamp
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                user_data["last_login"] = current_time
+                
+                # Also track login history (last 10 logins)
+                if "login_history" not in user_data:
+                    user_data["login_history"] = []
+                
+                user_data["login_history"].insert(0, current_time)
+                # Keep only the last 10 login records
+                user_data["login_history"] = user_data["login_history"][:10]
+                
                 # Migrate to hashed password on successful login
                 hashed, salt = hash_password(password)
                 user_data["password_hash"] = hashed

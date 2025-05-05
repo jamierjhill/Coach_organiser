@@ -1,3 +1,4 @@
+# admin.py
 import os
 import json
 from flask import Blueprint, render_template, request, redirect, flash, session, abort
@@ -51,11 +52,45 @@ def load_all_users():
                     print(f"Error loading user {filename}: {e}")
     return users
 
+# Format last login timestamp into human-readable format
+def format_last_login(timestamp_str):
+    """Format the last login time in a human-readable format."""
+    if not timestamp_str:
+        return "Never"
+        
+    try:
+        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+        now = datetime.now()
+        delta = now - timestamp
+        
+        if delta.days == 0:
+            if delta.seconds < 3600:  # Less than an hour
+                minutes = delta.seconds // 60
+                return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+            else:  # Less than a day
+                hours = delta.seconds // 3600
+                return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        elif delta.days == 1:
+            return "Yesterday"
+        elif delta.days < 7:
+            return f"{delta.days} days ago"
+        elif delta.days < 30:
+            weeks = delta.days // 7
+            return f"{weeks} week{'s' if weeks != 1 else ''} ago"
+        elif delta.days < 365:
+            months = delta.days // 30
+            return f"{months} month{'s' if months != 1 else ''} ago"
+        else:
+            return timestamp.strftime("%Y-%m-%d")
+    except:
+        return timestamp_str
+
 # Get system metrics
 def get_system_metrics():
     metrics = {
         'total_coaches': 0,
         'active_coaches': 0,  # Coaches who logged in within last 30 days
+        'active_coaches_week': 0,  # Coaches who logged in within the last week
         'total_access_codes': 0,
         'total_bulletins': 0,
         'total_events': 0,
@@ -68,13 +103,38 @@ def get_system_metrics():
         'avg_access_codes_per_coach': 0
     }
     
-    # Count coaches
+    # Count coaches and active coaches
     users_dir = "data/users"
     if os.path.exists(users_dir):
+        now = datetime.now()
+        active_30_days = 0
+        active_7_days = 0
+        
+        for filename in os.listdir(users_dir):
+            if filename.endswith('.json'):
+                try:
+                    with open(os.path.join(users_dir, filename), 'r') as f:
+                        user_data = json.load(f)
+                        
+                    last_login = user_data.get('last_login')
+                    if last_login:
+                        try:
+                            login_time = datetime.strptime(last_login, "%Y-%m-%d %H:%M:%S")
+                            delta = now - login_time
+                            
+                            if delta.days <= 30:
+                                active_30_days += 1
+                                
+                            if delta.days <= 7:
+                                active_7_days += 1
+                        except:
+                            pass
+                except:
+                    pass
+                    
         metrics['total_coaches'] = len([f for f in os.listdir(users_dir) if f.endswith('.json')])
-    
-    # Count active coaches (placeholder - would need login tracking)
-    metrics['active_coaches'] = metrics['total_coaches']  # For now, assume all are active
+        metrics['active_coaches'] = active_30_days
+        metrics['active_coaches_week'] = active_7_days
     
     # Count access codes
     codes_path = "data/session_codes.json"
@@ -131,6 +191,15 @@ def get_system_metrics():
 @admin_required
 def admin_dashboard():
     users = load_all_users()
+    
+    # Format the last login times
+    for user in users:
+        last_login = user.get("last_login")
+        if last_login:
+            user["last_login_formatted"] = format_last_login(last_login)
+        else:
+            user["last_login_formatted"] = "Never"
+    
     metrics = get_system_metrics()
     return render_template("admin/dashboard.html", users=users, metrics=metrics)
 
@@ -202,6 +271,13 @@ def admin_analytics():
                         except:
                             pass
                     
+                    # Format last login time
+                    last_login = user.get('last_login')
+                    if last_login:
+                        last_login_formatted = format_last_login(last_login)
+                    else:
+                        last_login_formatted = "Never"
+                    
                     # Track location
                     location = user.get('default_postcode', 'Unknown')
                     location_data[location] = location_data.get(location, 0) + 1
@@ -212,6 +288,7 @@ def admin_analytics():
                         'registration_date': user.get('registration_date', 'Unknown'),
                         'location': location,
                         'is_admin': user.get('is_admin', False),
+                        'last_login': last_login_formatted,
                         'events': events_count,
                         'bulletins': bulletins_count,
                         'notes': notes_count,
