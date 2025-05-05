@@ -191,9 +191,19 @@ CACHE_DIR = "cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 def get_weather(location_input):
+    """
+    Get weather data from OpenWeatherMap API with improved error handling
+    and fallback mechanisms.
+    
+    Args:
+        location_input: Location string (postcode, city name, etc.)
+        
+    Returns:
+        dict: Weather data or error information
+    """
     API_KEY = os.getenv("OPENWEATHER_API_KEY")
     if not API_KEY:
-        return {"error": "Missing API key"}
+        return {"error": "Missing API key", "location": location_input}
     
     # Create a cache key based on the location
     # Normalize the location to avoid case sensitivity
@@ -217,81 +227,141 @@ def get_weather(location_input):
     # Cache miss or invalid - fetch new data
     print(f"🔄 Fetching fresh weather data for {location_input}")
     
+    # Handle empty input
+    if not location_input.strip():
+        return {"error": "No location provided", "location": "Unknown"}
+    
     # Help the API resolve vague UK location inputs
     if len(location_input.strip()) <= 5:  # e.g. "SW6", "W4"
         query = f"{location_input}, London, UK"
     else:
         query = location_input
 
-    try:
-        geo = requests.get("http://api.openweathermap.org/geo/1.0/direct", params={
-            "q": query,
-            "limit": 1,
-            "appid": API_KEY
-        }).json()
-
-        if not geo:
-            return {"error": "Location not found"}
-
-        lat, lon = geo[0]["lat"], geo[0]["lon"]
-        location = f"{geo[0]['name']}, {geo[0]['country']}"
-
-        res = requests.get("https://api.openweathermap.org/data/2.5/forecast", params={
-            "lat": lat,
-            "lon": lon,
-            "units": "metric",
-            "appid": API_KEY
-        })
-        data = res.json()
-
-        if "list" not in data:
-            return {"error": "No forecast data"}
-
-        # Process the weather data as before
-        # [Your existing code for processing weather data]
-        day_blocks = defaultdict(list)
-
-        for entry in data["list"]:
-            dt = datetime.fromtimestamp(entry["dt"])
-            day = dt.strftime("%A")
-            block = {
-                "time": dt.strftime("%H:%M"),
-                "temp": entry["main"]["temp"],
-                "desc": entry["weather"][0]["description"].title(),
-                "icon": entry["weather"][0]["icon"],
-                "wind": entry["wind"]["speed"],
-                "clouds": entry["clouds"]["all"],
-                "rain": entry.get("rain", {}).get("3h", 0)
-            }
-            day_blocks[day].append(block)
-
-        forecast = []
-        for day, hourly_list in day_blocks.items():
-            score = sum([b["clouds"] + b["rain"]*20 + b["wind"]*2 for b in hourly_list])
-            avg_score = score / max(len(hourly_list), 1)
-            good_for_tennis = avg_score < 100
-            forecast.append({
-                "day": day,
-                "hourly": hourly_list,
-                "good_for_tennis": good_for_tennis
-            })
-
-        # Prepare the response with cache timestamp
-        response = {
-            "location": location,
-            "forecast": forecast[:5],
-            "cache_timestamp": time.time()
-        }
-        
-        # Save to cache
+    # Maximum retry attempts
+    max_retries = 2
+    retry_count = 0
+    
+    while retry_count <= max_retries:
         try:
-            with open(cache_file, "w") as f:
-                json.dump(response, f)
+            geo_response = requests.get(
+                "http://api.openweathermap.org/geo/1.0/direct", 
+                params={
+                    "q": query,
+                    "limit": 1,
+                    "appid": API_KEY
+                },
+                timeout=5  # 5 second timeout
+            )
+            
+            if geo_response.status_code != 200:
+                print(f"⚠️ Geocoding API error: {geo_response.status_code}")
+                if retry_count < max_retries:
+                    retry_count += 1
+                    time.sleep(1)  # Wait 1 second before retry
+                    continue
+                return {"error": f"Location search failed: {geo_response.status_code}", "location": location_input}
+                
+            geo = geo_response.json()
+            
+            if not geo:
+                # Try a more generic search if specific search fails
+                if retry_count == 0 and "," in query:
+                    parts = query.split(",")
+                    query = parts[0].strip()  # Use just the first part
+                    retry_count += 1
+                    continue
+                return {"error": "Location not found", "location": location_input}
+
+            lat, lon = geo[0]["lat"], geo[0]["lon"]
+            location = f"{geo[0].get('name', '')}, {geo[0].get('country', '')}"
+
+            weather_response = requests.get(
+                "https://api.openweathermap.org/data/2.5/forecast", 
+                params={
+                    "lat": lat,
+                    "lon": lon,
+                    "units": "metric",
+                    "appid": API_KEY
+                },
+                timeout=5  # 5 second timeout
+            )
+            
+            if weather_response.status_code != 200:
+                print(f"⚠️ Weather API error: {weather_response.status_code}")
+                if retry_count < max_retries:
+                    retry_count += 1
+                    time.sleep(1)  # Wait 1 second before retry
+                    continue
+                return {"error": f"Weather API error: {weather_response.status_code}", "location": location}
+                
+            data = weather_response.json()
+
+            if "list" not in data:
+                return {"error": "No forecast data", "location": location}
+
+            # Process the weather data
+            day_blocks = defaultdict(list)
+
+            for entry in data["list"]:
+                dt = datetime.fromtimestamp(entry["dt"])
+                day = dt.strftime("%A")
+                
+                # Extract weather data with safe defaults for missing fields
+                block = {
+                    "time": dt.strftime("%H:%M"),
+                    "temp": entry.get("main", {}).get("temp", 0),
+                    "desc": entry.get("weather", [{}])[0].get("description", "Unknown").title(),
+                    "icon": entry.get("weather", [{}])[0].get("icon", "01d"),
+                    "wind": entry.get("wind", {}).get("speed", 0),
+                    "clouds": entry.get("clouds", {}).get("all", 0),
+                    "rain": entry.get("rain", {}).get("3h", 0)
+                }
+                day_blocks[day].append(block)
+
+            forecast = []
+            for day, hourly_list in day_blocks.items():
+                score = sum([b["clouds"] + b["rain"]*20 + b["wind"]*2 for b in hourly_list])
+                avg_score = score / max(len(hourly_list), 1)
+                good_for_tennis = avg_score < 100
+                forecast.append({
+                    "day": day,
+                    "hourly": hourly_list,
+                    "good_for_tennis": good_for_tennis
+                })
+
+            # Prepare the response with cache timestamp
+            response = {
+                "location": location,
+                "forecast": forecast[:5],
+                "cache_timestamp": time.time()
+            }
+            
+            # Save to cache
+            try:
+                os.makedirs(CACHE_DIR, exist_ok=True)
+                with open(cache_file, "w") as f:
+                    json.dump(response, f)
+            except Exception as e:
+                print(f"❌ Cache write error for {location_input}: {e}")
+            
+            return response
+            
+        except requests.exceptions.Timeout:
+            print(f"⚠️ Weather API timeout for {location_input}")
+            if retry_count < max_retries:
+                retry_count += 1
+                time.sleep(1)  # Wait 1 second before retry
+            else:
+                return {"error": "API request timed out", "location": location_input}
+                
+        except requests.exceptions.ConnectionError:
+            print(f"⚠️ Weather API connection error for {location_input}")
+            if retry_count < max_retries:
+                retry_count += 1
+                time.sleep(1)  # Wait 1 second before retry
+            else:
+                return {"error": "Connection error", "location": location_input}
+                
         except Exception as e:
-            print(f"❌ Cache write error for {location_input}: {e}")
-        
-        return response
-        
-    except Exception as e:
-        print(f"❌ Weather API error for {location_input}: {e}")
-        return {"error": f"API error: {str(e)}"}
+            print(f"❌ Weather API error for {location_input}: {e}")
+            return {"error": f"API error: {str(e)}", "location": location_input}

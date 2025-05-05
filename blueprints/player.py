@@ -1,7 +1,10 @@
-import os, json
+# Import optimization to prevent circular imports
+import os
+import json
+from functools import lru_cache
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from utils import get_weather
-from user_utils import load_user  # replaces load_settings
+from user_utils import load_user
 from pathlib import Path
 
 player_bp = Blueprint("player", __name__)
@@ -10,10 +13,23 @@ SESSION_CODE_FILE = "data/session_codes.json"
 EMAILS_DIR = "data/emails"
 BULLETINS_DIR = "data/bulletins"
 
+@lru_cache(maxsize=1)
 def load_codes():
-    if Path(SESSION_CODE_FILE).exists():
-        with open(SESSION_CODE_FILE) as f:
-            return json.load(f)
+    """
+    Load access codes with caching to improve performance.
+    
+    Returns:
+        dict: Dictionary of access codes
+    """
+    code_path = Path(SESSION_CODE_FILE)
+    if code_path.exists():
+        try:
+            with open(code_path) as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print(f"❌ Error parsing session codes file")
+        except Exception as e:
+            print(f"❌ Error loading session codes: {e}")
     return {}
 
 @player_bp.route("/player-access", methods=["GET", "POST"])
@@ -21,12 +37,18 @@ def player_access():
     if request.method == "POST":
         code = request.form.get("access_code", "").strip().upper()
         codes = load_codes()
+        
+        if not code:
+            flash("❌ Please enter an access code.", "danger")
+            return redirect(url_for("auth.login"))
+            
         if code in codes:
             session["player_code"] = code
             email = request.args.get("email", "").strip().lower()
             if email:
                 session["subscriber_email"] = email
             return redirect(url_for("player.player_portal"))
+            
         flash("❌ Invalid access code. Please try again.", "danger")
     return redirect(url_for("auth.login"))
 

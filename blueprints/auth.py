@@ -12,6 +12,7 @@ from password_utils import hash_password, verify_password
 auth_bp = Blueprint("auth", __name__)
 
 # === LOGIN ===
+# Improved password validation with constant-time comparison
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -30,53 +31,37 @@ def login():
                 user_data["password_salt"], 
                 password
             )
-            
-            if is_valid:
-                # Add login timestamp when user successfully logs in
-                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                user_data["last_login"] = current_time
-                
-                # Also track login history (last 10 logins)
-                if "login_history" not in user_data:
-                    user_data["login_history"] = []
-                
-                user_data["login_history"].insert(0, current_time)
-                # Keep only the last 10 login records
-                user_data["login_history"] = user_data["login_history"][:10]
-                
-                # Save updated user data with login timestamp
-                save_user(user_data)
-                
-                is_admin = user_data.get("is_admin", False)
-                user = User(id=username, username=username, is_admin=is_admin)
-                login_user(user)
-                return redirect("/home")
         else:
-            # Legacy plaintext password check
-            if user_data["password"] == password:
-                # Track login timestamp
-                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                user_data["last_login"] = current_time
-                
-                # Also track login history (last 10 logins)
-                if "login_history" not in user_data:
-                    user_data["login_history"] = []
-                
-                user_data["login_history"].insert(0, current_time)
-                # Keep only the last 10 login records
-                user_data["login_history"] = user_data["login_history"][:10]
-                
-                # Migrate to hashed password on successful login
+            # Legacy plaintext password check with constant-time comparison
+            is_valid = secrets.compare_digest(user_data.get("password", ""), password)
+            
+        if is_valid:
+            # Add login timestamp when user successfully logs in
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            user_data["last_login"] = current_time
+            
+            # Also track login history (last 10 logins)
+            if "login_history" not in user_data:
+                user_data["login_history"] = []
+            
+            user_data["login_history"].insert(0, current_time)
+            # Keep only the last 10 login records
+            user_data["login_history"] = user_data["login_history"][:10]
+            
+            # If using legacy password, migrate to hashed
+            if "password_hash" not in user_data:
                 hashed, salt = hash_password(password)
                 user_data["password_hash"] = hashed
                 user_data["password_salt"] = salt
                 # Keep the old password field for backward compatibility
-                save_user(user_data)
-                
-                is_admin = user_data.get("is_admin", False)
-                user = User(id=username, username=username, is_admin=is_admin)
-                login_user(user)
-                return redirect("/home")
+            
+            # Save updated user data
+            save_user(user_data)
+            
+            is_admin = user_data.get("is_admin", False)
+            user = User(id=username, username=username, is_admin=is_admin)
+            login_user(user)
+            return redirect("/home")
 
         return render_template("login.html", error="Invalid credentials.")
     
