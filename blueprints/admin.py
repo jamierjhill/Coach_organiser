@@ -5,7 +5,8 @@ from flask_login import login_required, current_user
 from user_utils import load_user
 from datetime import datetime
 
-admin_bp = Blueprint("admin", __name__)
+# Create the blueprint first before using it
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 # Admin role check decorator
 def admin_required(f):
@@ -63,7 +64,8 @@ def get_system_metrics():
         'avg_matches_per_coach': 0,
         'avg_events_per_coach': 0,
         'avg_notes_per_coach': 0,
-        'avg_bulletins_per_coach': 0
+        'avg_bulletins_per_coach': 0,
+        'avg_access_codes_per_coach': 0
     }
     
     # Count coaches
@@ -123,9 +125,121 @@ def get_system_metrics():
     
     return metrics
 
+# Admin dashboard
+@admin_bp.route("/")
+@login_required
+@admin_required
+def admin_dashboard():
+    users = load_all_users()
+    metrics = get_system_metrics()
+    return render_template("admin/dashboard.html", users=users, metrics=metrics)
+
+# Analytics dashboard
+@admin_bp.route("/analytics")
+@login_required
+@admin_required
+def admin_analytics():
+    metrics = get_system_metrics()
+    
+    # Get detailed coach data
+    coach_data = []
+    location_data = {}
+    
+    users_dir = "data/users"
+    if os.path.exists(users_dir):
+        for filename in os.listdir(users_dir):
+            if filename.endswith('.json'):
+                try:
+                    with open(os.path.join(users_dir, filename), 'r') as f:
+                        user = json.load(f)
+                        
+                    username = user.get('username')
+                    if not username:
+                        continue
+                        
+                    # Count events
+                    events_count = 0
+                    events_path = os.path.join("data/events", f"{username}.json")
+                    if os.path.exists(events_path):
+                        try:
+                            with open(events_path, 'r') as f:
+                                events = json.load(f)
+                                events_count = len(events) if isinstance(events, list) else 1
+                        except:
+                            pass
+                    
+                    # Count bulletins
+                    bulletins_count = 0
+                    bulletins_path = os.path.join("data/bulletins", f"{username}.json")
+                    if os.path.exists(bulletins_path):
+                        try:
+                            with open(bulletins_path, 'r') as f:
+                                bulletins = json.load(f)
+                                bulletins_count = len(bulletins) if isinstance(bulletins, list) else 1
+                        except:
+                            pass
+                    
+                    # Count notes
+                    notes_count = 0
+                    notes_path = os.path.join("notes", f"{username}.json")
+                    if os.path.exists(notes_path):
+                        try:
+                            with open(notes_path, 'r') as f:
+                                notes = json.load(f)
+                                notes_count = len(notes) if isinstance(notes, list) else 1
+                        except:
+                            pass
+                    
+                    # Count access codes
+                    access_codes_count = 0
+                    codes_path = "data/session_codes.json"
+                    if os.path.exists(codes_path):
+                        try:
+                            with open(codes_path, 'r') as f:
+                                codes = json.load(f)
+                                access_codes_count = sum(1 for _, data in codes.items() 
+                                                        if data.get('created_by') == username)
+                        except:
+                            pass
+                    
+                    # Track location
+                    location = user.get('default_postcode', 'Unknown')
+                    location_data[location] = location_data.get(location, 0) + 1
+                    
+                    # Add to coach data
+                    coach_data.append({
+                        'username': username,
+                        'registration_date': user.get('registration_date', 'Unknown'),
+                        'location': location,
+                        'is_admin': user.get('is_admin', False),
+                        'events': events_count,
+                        'bulletins': bulletins_count,
+                        'notes': notes_count,
+                        'access_codes': access_codes_count
+                    })
+                
+                except Exception as e:
+                    print(f"Error processing user {filename}: {e}")
+    
+    # Sort coach data by username
+    coach_data.sort(key=lambda x: x['username'])
+    
+    # Calculate average access codes per coach
+    coach_count = max(1, len(coach_data))
+    metrics['avg_access_codes_per_coach'] = round(sum(c['access_codes'] for c in coach_data) / coach_count, 1)
+    
+    # Sort location data by count (descending)
+    location_data = dict(sorted(location_data.items(), key=lambda x: x[1], reverse=True))
+    
+    return render_template(
+        "admin/analytics.html", 
+        metrics=metrics, 
+        coach_data=coach_data,
+        location_data=location_data
+    )
 
 # Toggle admin status
-@admin_bp.route("/admin/toggle-admin/<username>", methods=["POST"])
+@admin_bp.route("/toggle-admin/<username>", methods=["POST"])
 @login_required
 @admin_required
 def toggle_admin(username):
@@ -150,7 +264,7 @@ def toggle_admin(username):
     return redirect("/admin")
 
 # Delete user account (admin version)
-@admin_bp.route("/admin/delete-user/<username>", methods=["POST"])
+@admin_bp.route("/delete-user/<username>", methods=["POST"])
 @login_required
 @admin_required
 def delete_user(username):
@@ -189,20 +303,3 @@ def delete_user(username):
         flash(f"❌ Error deleting user: {str(e)}", "danger")
     
     return redirect("/admin")
-
-# Admin dashboard
-@admin_bp.route("/admin")
-@login_required
-@admin_required
-def admin_dashboard():
-    users = load_all_users()
-    metrics = get_system_metrics()
-    return render_template("admin/dashboard.html", users=users, metrics=metrics)
-
-# Analytics dashboard
-@admin_bp.route("/admin/analytics")
-@login_required
-@admin_required
-def admin_analytics():
-    metrics = get_system_metrics()
-    return render_template("admin/analytics.html", metrics=metrics)
