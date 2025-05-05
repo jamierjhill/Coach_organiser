@@ -58,7 +58,12 @@ def get_system_metrics():
         'total_access_codes': 0,
         'total_bulletins': 0,
         'total_events': 0,
-        'total_notes': 0
+        'total_notes': 0,
+        # Analytics data
+        'avg_matches_per_coach': 0,
+        'avg_events_per_coach': 0,
+        'avg_notes_per_coach': 0,
+        'avg_bulletins_per_coach': 0
     }
     
     # Count coaches
@@ -80,36 +85,44 @@ def get_system_metrics():
             pass
     
     # Count bulletins, events, and notes
-    for dirname, key in [
-        ("data/bulletins", "total_bulletins"),
-        ("data/events", "total_events"),
-        ("notes", "total_notes")
+    bulletin_counts = []
+    event_counts = []
+    note_counts = []
+    
+    for dirname, key, counts_list in [
+        ("data/bulletins", "total_bulletins", bulletin_counts),
+        ("data/events", "total_events", event_counts),
+        ("notes", "total_notes", note_counts)
     ]:
         if os.path.exists(dirname):
-            count = 0
+            total_count = 0
             for filename in os.listdir(dirname):
                 if filename.endswith('.json'):
                     try:
                         with open(os.path.join(dirname, filename), 'r') as f:
                             data = json.load(f)
+                            file_count = 0
                             if isinstance(data, list):
-                                count += len(data)
+                                file_count = len(data)
                             elif isinstance(data, dict):
-                                count += 1
+                                file_count = 1
+                            total_count += file_count
+                            counts_list.append(file_count)
                     except:
                         pass
-            metrics[key] = count
+            metrics[key] = total_count
+    
+    # Calculate averages (avoid division by zero)
+    coach_count = max(1, metrics['total_coaches'])
+    metrics['avg_notes_per_coach'] = round(sum(note_counts) / coach_count, 1) if note_counts else 0
+    metrics['avg_events_per_coach'] = round(sum(event_counts) / coach_count, 1) if event_counts else 0
+    metrics['avg_bulletins_per_coach'] = round(sum(bulletin_counts) / coach_count, 1) if bulletin_counts else 0
+    
+    # Placeholder for matches data (would need session data tracking)
+    metrics['avg_matches_per_coach'] = 5.3  # Mock value
     
     return metrics
 
-# Admin dashboard
-@admin_bp.route("/admin")
-@login_required
-@admin_required
-def admin_dashboard():
-    users = load_all_users()
-    metrics = get_system_metrics()
-    return render_template("admin/dashboard.html", users=users, metrics=metrics)
 
 # Toggle admin status
 @admin_bp.route("/admin/toggle-admin/<username>", methods=["POST"])
@@ -176,3 +189,20 @@ def delete_user(username):
         flash(f"❌ Error deleting user: {str(e)}", "danger")
     
     return redirect("/admin")
+
+# Admin dashboard
+@admin_bp.route("/admin")
+@login_required
+@admin_required
+def admin_dashboard():
+    users = load_all_users()
+    metrics = get_system_metrics()
+    return render_template("admin/dashboard.html", users=users, metrics=metrics)
+
+# Analytics dashboard
+@admin_bp.route("/admin/analytics")
+@login_required
+@admin_required
+def admin_analytics():
+    metrics = get_system_metrics()
+    return render_template("admin/analytics.html", metrics=metrics)
