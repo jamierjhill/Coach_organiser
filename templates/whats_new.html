@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
+  <meta charset="UTF-8">
+  <title>🆕 What's New - Coaches Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e8f5e9;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .whats-new-container {
+      max-width: 800px;
+      margin: auto;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .update-item {
+      border-left: 4px solid #1b5e20;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      background-color: #f9fcfa;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      transition: transform 0.3s ease;
+    }
+
+    .update-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .update-date {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .update-title {
+      color: #1b5e20;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      background-color: #c8e6c9;
+      color: #1b5e20;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .feature-tag.enhancement {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .feature-tag.new {
+      background-color: #d1f4ff;
+      color: #0277bd;
+    }
+
+    .feature-tag.fix {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    .feature-tag.security {
+      background-color: #e8eaf6;
+      color: #3949ab;
+    }
+
+    .update-details {
+      margin-top: 10px;
+    }
+
+    .update-details ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+
+    .update-details li {
+      margin-bottom: 8px;
+    }
+
+    .update-details li:last-child {
+      margin-bottom: 0;
+    }
+
+    .heading-with-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #1b5e20;
+    }
+
+    .heading-with-line::after {
+      content: "";
+      flex: 1;
+      margin-left: 15px;
+      height: 1px;
+      background-color: #c8e6c9;
+    }
+
+    .tennis-btn {
+      background-color: #43a047;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+
+    .tennis-btn:hover {
+      background-color: #2e7d32;
+      transform: translateY(-2px);
+      color: white;
+    }
+
+    .section-divider {
+      margin: 40px 0;
+      border-top: 1px dashed #c8e6c9;
+    }
+
+    /* Animation for new items */
+    @keyframes highlight {
+      from { background-color: #e8f5e9; }
+      to { background-color: #f9fcfa; }
+    }
+
+    .update-item.new-item {
+      animation: highlight 1.5s ease;
+      border-left-color: #43a047;
+      border-left-width: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Top Header -->
+  <div class="text-center py-5">
+    <h1 class="display-5 text-success fw-bold mb-2">🆕 What's New</h1>
+    <p class="lead mb-4">Stay updated with the latest features and improvements in Coaches Hub</p>
+    <div>
+      <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+      <a href="/guide" class="btn btn-outline-success">📘 Coach's Guide</a>
+    </div>
+  </div>
+
+  <!-- Updates Container -->
+  <div class="container pb-5">
+    <div class="whats-new-container">
+      
+      <!-- Latest Updates -->
+      <h3 class="heading-with-line">Latest Updates</h3>
+      
+      <!-- Update Item - Most recent -->
+      <div class="update-item new-item" data-aos="fade-up">
+        <div class="update-date">May 5, 2025</div>
+        <h4 class="update-title">What's New Section Added</h4>
+        <div>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>You can now easily track all updates and improvements to the Coaches Hub platform in one place!</p>
+          <ul>
+            <li>See all recent feature additions and enhancements</li>
+            <li>Stay informed about platform improvements</li>
+            <li>Get notified when new sections are added</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
+        <div class="update-date">April 28, 2025</div>
+        <h4 class="update-title">Enhanced Player Portal & AI Toolbox</h4>
+        <div>
+          <span class="feature-tag enhancement">Enhancement</span>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>The player portal and AI toolbox have been significantly improved!</p>
+          <ul>
+            <li>Weather forecast now shows 5-day detailed forecasts with tennis playability ratings</li>
+            <li>AI Coaching Toolbox now features a direct access without password requirements</li>
+            <li>CoachBot has been refined for better tennis-specific responses</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
+        <div class="update-date">April 15, 2025</div>
+        <h4 class="update-title">Security Enhancements</h4>
+        <div>
+          <span class="feature-tag security">Security</span>
+          <span class="feature-tag enhancement">Enhancement</span>
+        </div>
+        <div class="update-details">
+          <p>We've enhanced the security of your account with improved password management.</p>
+          <ul>
+            <li>Passwords are now securely hashed using SHA-256 with unique salts</li>
+            <li>User data is better protected with enhanced file management</li>
+            <li>Account settings now allow for easier password changes</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="300">
+        <div class="update-date">April 8, 2025</div>
+        <h4 class="update-title">Calendar Integration & Bulletin Board</h4>
+        <div>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>Enjoy better scheduling with new calendar features and communication options!</p>
+          <ul>
+            <li>Export your coaching calendar to your personal calendar apps (ics format)</li>
+            <li>Bulletin board now supports email notifications to subscribed players</li>
+            <li>Players can now subscribe/unsubscribe to email notifications in their portal</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+      
+      <!-- Previous Updates -->
+      <h3 class="heading-with-line">Previous Updates</h3>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up">
+        <div class="update-date">March 22, 2025</div>
+        <h4 class="update-title">Match Organizer Improvements</h4>
+        <div>
+          <span class="feature-tag enhancement">Enhancement</span>
+          <span class="feature-tag fix">Fix</span>
+        </div>
+        <div class="update-details">
+          <p>Several improvements to the match organization system!</p>
+          <ul>
+            <li>Added ability to reshuffle individual rounds for better flexibility</li>
+            <li>Fixed issues with CSV player uploads</li>
+            <li>Improved match balance algorithm for fairer games</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
+        <div class="update-date">March 10, 2025</div>
+        <h4 class="update-title">Progressive Web App Support</h4>
+        <div>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>Coaches Hub can now be installed as an app on your devices!</p>
+          <ul>
+            <li>Install on iOS, Android, or desktop for quick access</li>
+            <li>Improved offline functionality</li>
+            <li>Better mobile experience with responsive design updates</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Update Item -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
+        <div class="update-date">February 25, 2025</div>
+        <h4 class="update-title">Initial Release</h4>
+        <div>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>Welcome to Coaches Hub! The platform has been officially launched with these features:</p>
+          <ul>
+            <li>Match organization tool for singles and doubles</li>
+            <li>AI-powered drill and session generators</li>
+            <li>Player access codes for sharing schedules</li>
+            <li>Notes system for coaching observations</li>
+          </ul>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Coming Soon Section -->
+    <div class="whats-new-container" data-aos="fade-up">
+      <h3 class="heading-with-line">Coming Soon</h3>
+      <div class="update-item" style="background-color: #f0f4fc; border-left-color: #3949ab;">
+        <h4 class="update-title">Features in Development</h4>
+        <div class="update-details">
+          <ul>
+            <li><strong>Player Profiles</strong> - Track individual player progress and performance</li>
+            <li><strong>Drag and Drop Court Assignments</strong> - Easier visual management of court allocations</li>
+            <li><strong>Enhanced Analytics</strong> - Get insights into player performance and session effectiveness</li>
+            <li><strong>Mobile App</strong> - Native mobile application for iOS and Android</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="text-center mt-4">
+        <p>Have a feature suggestion? Let us know!</p>
+        <a href="/contact" class="btn tennis-btn">📩 Send Feedback</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-muted py-4">
+    <p>Built by Jamie • v2.1 • <a href="/contact" class="text-success">Contact Us</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true });
+  </script>
+</body>
+</html>

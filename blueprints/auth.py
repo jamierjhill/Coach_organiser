@@ -1,4 +1,5 @@
 import os, json
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, session, current_app, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
@@ -30,7 +31,8 @@ def login():
             )
             
             if is_valid:
-                user = User(id=username, username=username)
+                is_admin = user_data.get("is_admin", False)
+                user = User(id=username, username=username, is_admin=is_admin)
                 login_user(user)
                 return redirect("/home")
         else:
@@ -43,7 +45,8 @@ def login():
                 # Keep the old password field for backward compatibility
                 save_user(user_data)
                 
-                user = User(id=username, username=username)
+                is_admin = user_data.get("is_admin", False)
+                user = User(id=username, username=username, is_admin=is_admin)
                 login_user(user)
                 return redirect("/home")
 
@@ -80,14 +83,18 @@ def register():
         # Create user file with hashed password
         user_data = {
             "username": username,
+            "email": email,  # Now storing email too for admin features
             "password": password,  # Keep for backward compatibility
             "password_hash": hashed_password,
             "password_salt": salt,
-            "default_postcode": postcode
+            "default_postcode": postcode,
+            "is_admin": False,  # Default not admin
+            "registration_date": datetime.now().strftime("%Y-%m-%d")
         }
         save_user(user_data)
 
-        user = User(id=username, username=username)
+        # Create User object for login
+        user = User(id=username, username=username, is_admin=False)
         login_user(user)
 
         # Send welcome email

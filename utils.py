@@ -3,6 +3,7 @@ import requests, os, random
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+# Modified organize_matches function for utils.py with prioritization for limited-round players
 def organize_matches(players, courts, match_type, num_matches):
     matchups = [[] for _ in range(courts)]
     match_counts = {p['name']: 0 for p in players}
@@ -68,9 +69,54 @@ def organize_matches(players, courts, match_type, num_matches):
 
         return (best_group, best_match_key) if best_group else (None, None)
 
-    for round_num in range(num_matches):
-        available_players = sorted(players, key=lambda p: match_counts[p['name']])
-        random.shuffle(available_players)
+    # Process rounds in order (1 to num_matches)
+    for round_num in range(1, num_matches + 1):
+        # Filter players based on their max_rounds constraint
+        # Only include players who haven't reached their match limit
+        # AND whose max_rounds is >= the current round number
+        available_players = [
+            p for p in players 
+            if match_counts[p['name']] < p.get('max_rounds', num_matches) and
+               round_num <= p.get('max_rounds', num_matches)
+        ]
+        
+        # Sort available players by:
+        # 1. Limited players first (players with max_rounds < num_matches)
+        # 2. Players with fewer remaining rounds
+        # 3. Players who have played fewer matches so far
+        available_players.sort(key=lambda p: (
+            # Primary: Unlimited players last (False sorts before True)
+            p.get('max_rounds', num_matches) >= num_matches,
+            # Secondary: Sort by remaining rounds (fewer remaining rounds first)
+            p.get('max_rounds', num_matches) - round_num + 1,
+            # Tertiary: Sort by matches played so far (fewer played first)
+            match_counts[p['name']]
+        ))
+        
+        # Add some randomness within each priority group
+        # We'll identify groups with the same priority and shuffle within each group
+        priority_groups = {}
+        for player in available_players:
+            # Create a priority key based on our sorting criteria
+            priority_key = (
+                player.get('max_rounds', num_matches) >= num_matches,
+                player.get('max_rounds', num_matches) - round_num + 1,
+                match_counts[player['name']]
+            )
+            if priority_key not in priority_groups:
+                priority_groups[priority_key] = []
+            priority_groups[priority_key].append(player)
+        
+        # Shuffle each priority group
+        for group in priority_groups.values():
+            import random
+            random.shuffle(group)
+        
+        # Reconstruct the available_players list maintaining the priority order
+        available_players = []
+        for key in sorted(priority_groups.keys()):
+            available_players.extend(priority_groups[key])
+        
         used_names = set()
         new_round_groups = {p['name']: set() for p in players}
 
@@ -120,7 +166,7 @@ def organize_matches(players, courts, match_type, num_matches):
                         played_matches[p['name']].add(opp['name'])
                         opponent_grades[p['name']].append(opp['grade'])
 
-            matchups[court_index].append((pair, round_num + 1))
+            matchups[court_index].append((pair, round_num))
 
     opponent_averages = {
         name: round(sum(grades) / len(grades), 2) if grades else 0
@@ -133,8 +179,6 @@ def organize_matches(players, courts, match_type, num_matches):
     }
 
     return matchups, match_counts, opponent_averages, opponent_diff
-
-
 
 import os
 import json

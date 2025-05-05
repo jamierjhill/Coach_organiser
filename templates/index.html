@@ -159,21 +159,33 @@
   {% endif %}
 </div>
     </div>
-
-    <!-- Player List -->
-    <div class="card-section">
-      <h4>👟 Current Players ({{ players|length }})</h4>
-      <div class="row row-cols-1 row-cols-md-2 g-3">
-        {% for player in players %}
-          <div class="col">
-            <div class="player-box d-flex justify-content-between align-items-center">
-              <span>🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})</span>
-              <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
-            </div>
+<!-- Player List - Modified to include round limits -->
+<div class="card-section">
+  <h4>👟 Current Players ({{ players|length }})</h4>
+  <div class="row row-cols-1 row-cols-md-2 g-3">
+    {% for player in players %}
+      <div class="col">
+        <div class="player-box d-flex justify-content-between align-items-center">
+          <div>
+            🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
+            {% if player.max_rounds is defined %}
+              <span class="badge bg-info">{{ player.max_rounds }} rounds max</span>
+            {% endif %}
           </div>
-        {% endfor %}
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" 
+                   onclick="editPlayerRounds('{{ player.name }}')">
+              🔄 Rounds
+            </button>
+            <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
+          </div>
+        </div>
       </div>
-    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
 
     <!-- Action Buttons -->
     <div class="text-center my-4">
@@ -280,6 +292,31 @@
 
   </form>
 
+  <!-- Modal for Editing Player Rounds -->
+<div class="modal fade" id="editRoundsModal" tabindex="-1" aria-labelledby="editRoundsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editRoundsModalLabel">Edit Player Rounds</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editRoundsForm" method="POST">
+          <input type="hidden" id="editPlayerName" name="edit_player_name">
+          <div class="mb-3">
+            <label for="maxRounds" class="form-label">Maximum Rounds:</label>
+            <input type="number" class="form-control" id="maxRounds" name="max_rounds" min="1" required>
+            <div class="form-text">Set how many rounds this player can participate in (max: {{ num_matches }})</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitEditRounds()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- Timer -->
   <div class="timer-controls">
@@ -300,68 +337,249 @@
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let timerInterval;
-    let remainingTime = 1200;
+  let timerInterval;
+  let remainingTime = 1200;
 
-    function updateClockDisplay(display) {
-      const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-      const seconds = String(remainingTime % 60).padStart(2, '0');
-      display.textContent = `${minutes}:${seconds}`;
-    }
+  function updateClockDisplay(display) {
+    const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
+    const seconds = String(remainingTime % 60).padStart(2, '0');
+    display.textContent = `${minutes}:${seconds}`;
+  }
 
-    function startClock(display) {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (remainingTime > 0) {
-          remainingTime--;
-          updateClockDisplay(display);
-        } else {
-          clearInterval(timerInterval);
-          display.textContent = "Time's up!";
-        }
-      }, 1000);
-    }
-
-    function pauseClock() {
-      clearInterval(timerInterval);
-    }
-
-    function setClockInput(display) {
-      const minutes = parseInt(document.getElementById('custom-minutes').value);
-      if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
-        remainingTime = minutes * 60;
+  function startClock(display) {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (remainingTime > 0) {
+        remainingTime--;
         updateClockDisplay(display);
       } else {
-        alert("Please enter a number between 1 and 200.");
+        clearInterval(timerInterval);
+        display.textContent = "Time's up!";
       }
+    }, 1000);
+  }
+
+  function pauseClock() {
+    clearInterval(timerInterval);
+  }
+
+  function setClockInput(display) {
+    const minutes = parseInt(document.getElementById('custom-minutes').value);
+    if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
+      remainingTime = minutes * 60;
+      updateClockDisplay(display);
+    } else {
+      alert("Please enter a number between 1 and 200.");
     }
-
-    window.onload = function () {
-      const display = document.getElementById('main-timer-display');
-      if (display) updateClockDisplay(display);
-    };
-</script>
-
-<script>
-  function toggleScheduleView(view) {
-    const courtDiv = document.getElementById("schedule-court");
-    const roundDiv = document.getElementById("schedule-round");
-    courtDiv.style.display = view === "court" ? "block" : "none";
-    roundDiv.style.display = view === "round" ? "block" : "none";
   }
 
   window.onload = function () {
-  const defaultView = "round";  // Changed to always default to "round"
-  const selector = document.getElementById("scheduleToggle");
-  if (selector) {
-    selector.value = defaultView;
-    toggleScheduleView(defaultView);
-  }
+    const display = document.getElementById('main-timer-display');
+    if (display) updateClockDisplay(display);
+  };
+</script>
+
+<script>
+function toggleScheduleView(view) {
+  const courtDiv = document.getElementById("schedule-court");
+  const roundDiv = document.getElementById("schedule-round");
+  courtDiv.style.display = view === "court" ? "block" : "none";
+  roundDiv.style.display = view === "round" ? "block" : "none";
+}
+
+window.onload = function () {
+const defaultView = "round";  // Changed to always default to "round"
+const selector = document.getElementById("scheduleToggle");
+if (selector) {
+  selector.value = defaultView;
+  toggleScheduleView(defaultView);
+}
 };
 </script>
 
 <script>
+// Fixed script for player rounds modal
+function editPlayerRounds(playerName, currentMaxRounds) {
+  // Make sure Bootstrap is loaded before attempting to initialize the modal
+  if (typeof bootstrap === 'undefined') {
+    console.error("Bootstrap is not loaded. Make sure bootstrap.bundle.min.js is included.");
+    return;
+  }
+
+  // Get the modal element
+  const modalElement = document.getElementById('editRoundsModal');
+  
+  if (!modalElement) {
+    console.error("Modal element not found. Make sure the HTML for the modal exists in the document.");
+    return;
+  }
+  
+  try {
+    // Initialize the modal with Bootstrap
+    const modal = new bootstrap.Modal(modalElement);
+    
+    // Set the values in the form
+    document.getElementById('editPlayerName').value = playerName;
+    document.getElementById('maxRounds').value = currentMaxRounds;
+    
+    // Set the max attribute on the input to match the total rounds
+    const totalRounds = parseInt(document.querySelector('input[name="num_matches"]').value) || 1;
+    document.getElementById('maxRounds').max = totalRounds;
+    
+    // Show the modal
+    modal.show();
+  } catch (e) {
+    console.error("Error initializing modal:", e);
+    alert("There was an error opening the edit form. Please try again.");
+  }
+}
+
+function submitEditRounds() {
+  const playerName = document.getElementById('editPlayerName').value;
+  const maxRounds = document.getElementById('maxRounds').value;
+  
+  if (!playerName || !maxRounds) {
+    alert("Please ensure all fields are filled out.");
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('edit_player_rounds', 'true');
+  formData.append('edit_player_name', playerName);
+  formData.append('max_rounds', maxRounds);
+  
+  // Add all existing form inputs to maintain state
+  const mainForm = document.querySelector('form');
+  const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
+  inputs.forEach(input => {
+    if (input.name && input.value && !formData.has(input.name)) {
+      formData.append(input.name, input.value);
+    }
+  });
+  
+  // Store current scroll position
+  const scrollPosition = window.pageYOffset;
+  
+  fetch('/index', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (response.redirected) {
+      window.location.href = response.url;
+      return;
+    }
+    return response.text();
+  })
+  .then(html => {
+    if (!html) return;
+    
+    // Parse the response
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Update the player list section
+    const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
+    const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
+    if (newPlayerList && currentPlayerList) {
+      currentPlayerList.innerHTML = newPlayerList.innerHTML;
+    }
+    
+    // Close the modal
+    try {
+      const modalElement = document.getElementById('editRoundsModal');
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    } catch (e) {
+      console.error("Error closing modal:", e);
+    }
+    
+    // Restore scroll position
+    window.scrollTo(0, scrollPosition);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert("There was an error saving your changes. Please try again.");
+  });
+}
+
+// Add this to your document ready or window.onload to ensure modal is properly initialized
+document.addEventListener('DOMContentLoaded', function() {
+  // Make sure the modal is the last element in the body
+  const modalElement = document.getElementById('editRoundsModal');
+  if (modalElement) {
+    document.body.appendChild(modalElement);
+  }
+});
+
+function reshuffleCourt(courtNum) {
+  const form = document.querySelector('form');
+  const formData = new FormData(form);
+  formData.append('reshuffle_court', courtNum);
+  
+  // Add all existing form inputs to maintain state
+  const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
+  inputs.forEach(input => {
+      if (input.name && input.value) {
+          formData.append(input.name, input.value);
+      }
+  });
+  
+  // Store current scroll position
+  const scrollPosition = window.pageYOffset;
+  
+  fetch('/index', {
+      method: 'POST',
+      body: formData
+  })
+  .then(response => {
+      if (response.redirected) {
+          window.location.href = response.url;
+          return;
+      }
+      return response.text();
+  })
+  .then(html => {
+      if (!html) return;
+      
+      // Parse the response and update the entire page
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update the entire schedule sections
+      const newScheduleRound = doc.querySelector('#schedule-round');
+      const currentScheduleRound = document.querySelector('#schedule-round');
+      if (newScheduleRound && currentScheduleRound) {
+          currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+      }
+      
+      const newScheduleCourt = doc.querySelector('#schedule-court');
+      const currentScheduleCourt = document.querySelector('#schedule-court');
+      if (newScheduleCourt && currentScheduleCourt) {
+          currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+      }
+      
+      // Restore scroll position
+      window.scrollTo(0, scrollPosition);
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      // Fallback to regular form submission
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'reshuffle_court';
+      input.value = courtNum;
+      form.appendChild(input);
+      form.submit();
+  });
+  
+  return false;
+}
+
 function reshuffleRound(roundNum) {
     const form = document.querySelector('form');
     const formData = new FormData(form);
@@ -418,6 +636,10 @@ function reshuffleRound(roundNum) {
         
         // Restore scroll position
         window.scrollTo(0, scrollPosition);
+        
+        // Re-run the toggle function to show the correct view
+        const currentView = document.getElementById('scheduleToggle').value;
+        toggleScheduleView(currentView);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -433,298 +655,234 @@ function reshuffleRound(roundNum) {
     return false;
 }
 
-function reshuffleCourt(courtNum) {
-    const form = document.querySelector('form');
-    const formData = new FormData(form);
-    formData.append('reshuffle_court', courtNum);
-    
-    // Add all existing form inputs to maintain state
-    const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
-    inputs.forEach(input => {
-        if (input.name && input.value) {
-            formData.append(input.name, input.value);
-        }
-    });
-    
-    // Store current scroll position
-    const scrollPosition = window.pageYOffset;
-    
-    fetch('/index', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.redirected) {
-            window.location.href = response.url;
-            return;
-        }
-        return response.text();
-    })
-    .then(html => {
-        if (!html) return;
-        
-        // Parse the response and update the entire page
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Update the entire schedule sections
-        const newScheduleRound = doc.querySelector('#schedule-round');
-        const currentScheduleRound = document.querySelector('#schedule-round');
-        if (newScheduleRound && currentScheduleRound) {
-            currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-        }
-        
-        const newScheduleCourt = doc.querySelector('#schedule-court');
-        const currentScheduleCourt = document.querySelector('#schedule-court');
-        if (newScheduleCourt && currentScheduleCourt) {
-            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-        }
-        
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Fallback to regular form submission
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'reshuffle_court';
-        input.value = courtNum;
-        form.appendChild(input);
-        form.submit();
-    });
-    
-    return false;
-}
-
 function reshuffleAll() {
-   const formData = new FormData();
-   formData.append('reshuffle', 'true');
-   
-   // Store current scroll position
-   const scrollPosition = window.pageYOffset;
-   
-   fetch('/index', {
-       method: 'POST',
-       body: formData
-   })
-   .then(response => response.text())
-   .then(html => {
-       // Create a temporary DOM element to parse the response
-       const parser = new DOMParser();
-       const doc = parser.parseFromString(html, 'text/html');
-       
-       // Update both schedule views
-       const newScheduleRound = doc.querySelector('#schedule-round');
-       const currentScheduleRound = document.querySelector('#schedule-round');
-       if (newScheduleRound && currentScheduleRound) {
-           currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-       }
-       
-       const newScheduleCourt = doc.querySelector('#schedule-court');
-       const currentScheduleCourt = document.querySelector('#schedule-court');
-       if (newScheduleCourt && currentScheduleCourt) {
-           currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-       }
-       
-       // Also update the player summary section (back to simple list)
-       const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
-       const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
-       if (newSummary && currentSummary) {
-           currentSummary.innerHTML = newSummary.innerHTML;
-       }
-       
-       // Restore scroll position
-       window.scrollTo(0, scrollPosition);
-   })
-   .catch(error => {
-       console.error('Error:', error);
-       // Fallback to regular form submission if AJAX fails
-       const form = document.querySelector('form');
-       const input = document.createElement('input');
-       input.type = 'hidden';
-       input.name = 'reshuffle';
-       input.value = 'true';
-       form.appendChild(input);
-       form.submit();
-   });
-   
-   return false; // Prevent default form submission
+ const formData = new FormData();
+ formData.append('reshuffle', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => response.text())
+ .then(html => {
+     // Create a temporary DOM element to parse the response
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update both schedule views
+     const newScheduleRound = doc.querySelector('#schedule-round');
+     const currentScheduleRound = document.querySelector('#schedule-round');
+     if (newScheduleRound && currentScheduleRound) {
+         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+     }
+     
+     const newScheduleCourt = doc.querySelector('#schedule-court');
+     const currentScheduleCourt = document.querySelector('#schedule-court');
+     if (newScheduleCourt && currentScheduleCourt) {
+         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+     }
+     
+     // Also update the player summary section (back to simple list)
+     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+     if (newSummary && currentSummary) {
+         currentSummary.innerHTML = newSummary.innerHTML;
+     }
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission if AJAX fails
+     const form = document.querySelector('form');
+     const input = document.createElement('input');
+     input.type = 'hidden';
+     input.name = 'reshuffle';
+     input.value = 'true';
+     form.appendChild(input);
+     form.submit();
+ });
+ 
+ return false; // Prevent default form submission
 }
 
 function organizeMatches() {
-   // Get form values
-   const form = document.querySelector('form');
-   const courts = parseInt(form.querySelector('input[name="courts"]').value) || 1;
-   const match_type = form.querySelector('select[name="match_type"]').value;
-   const players = document.querySelectorAll('.player-box').length;
-   
-   // Validate player count
-   const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
-   if (players < minPlayersNeeded) {
-       alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
-       return false;
-   }
-   
-   // Check if there are enough players for the number of courts
-   const playersPerCourt = match_type === 'singles' ? 2 : 4;
-   if (players < courts * playersPerCourt) {
-       const maxCourts = Math.floor(players / playersPerCourt);
-       if (maxCourts === 0) {
-           alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
-           return false;
-       } else {
-           if (!confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`)) {
-               return false;
-           }
-       }
-   }
-   
-   const formData = new FormData(form);
-   formData.append('organize_matches', 'true');
-   
-   // Store current scroll position
-   const scrollPosition = window.pageYOffset;
-   
-   fetch('/index', {
-       method: 'POST',
-       body: formData
-   })
-   .then(response => response.text())
-   .then(html => {
-       // Create a temporary DOM element to parse the response
-       const parser = new DOMParser();
-       const doc = parser.parseFromString(html, 'text/html');
-       
-       // Update both schedule views
-       const newScheduleRound = doc.querySelector('#schedule-round');
-       const currentScheduleRound = document.querySelector('#schedule-round');
-       if (newScheduleRound && currentScheduleRound) {
-           currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-       }
-       
-       const newScheduleCourt = doc.querySelector('#schedule-court');
-       const currentScheduleCourt = document.querySelector('#schedule-court');
-       if (newScheduleCourt && currentScheduleCourt) {
-           currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-       }
-       
-       // Update the entire match schedule section to include warnings
-       const newScheduleSection = doc.querySelector('.card-section:nth-of-type(5)');
-       const currentScheduleSection = document.querySelector('.card-section:nth-of-type(5)');
-       if (newScheduleSection && currentScheduleSection) {
-           currentScheduleSection.innerHTML = newScheduleSection.innerHTML;
-       }
-       
-       // Also update the player summary section
-       const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
-       const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
-       if (newSummary && currentSummary) {
-           currentSummary.innerHTML = newSummary.innerHTML;
-       }
-       
-       // Update error messages if any
-       const newError = doc.querySelector('.alert-danger');
-       const existingError = document.querySelector('.alert-danger');
-       if (newError) {
-           if (existingError) {
-               existingError.innerHTML = newError.innerHTML;
-           } else {
-               // Add new error alert after action buttons
-               const actionButtons = document.querySelector('.text-center.my-4');
-               actionButtons.insertAdjacentHTML('afterend', newError.outerHTML);
-           }
-       } else if (existingError) {
-           existingError.remove();
-       }
-       
-       // Restore scroll position
-       window.scrollTo(0, scrollPosition);
-       
-       // Re-run the toggle function to show the correct view
-       const currentView = document.getElementById('scheduleToggle').value;
-       toggleScheduleView(currentView);
-   })
-   .catch(error => {
-       console.error('Error:', error);
-       // Fallback to regular form submission if AJAX fails
-       const form = document.querySelector('form');
-       const input = document.createElement('input');
-       input.type = 'hidden';
-       input.name = 'organize_matches';
-       input.value = 'true';
-       form.appendChild(input);
-       form.submit();
-   });
-   
-   return false; // Prevent default form submission
+ // Get form values
+ const form = document.querySelector('form');
+ const courts = parseInt(form.querySelector('input[name="courts"]').value) || 1;
+ const match_type = form.querySelector('select[name="match_type"]').value;
+ const players = document.querySelectorAll('.player-box').length;
+ 
+ // Validate player count
+ const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
+ if (players < minPlayersNeeded) {
+     alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
+     return false;
+ }
+ 
+ // Check if there are enough players for the number of courts
+ const playersPerCourt = match_type === 'singles' ? 2 : 4;
+ if (players < courts * playersPerCourt) {
+     const maxCourts = Math.floor(players / playersPerCourt);
+     if (maxCourts === 0) {
+         alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
+         return false;
+     } else {
+         if (!confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`)) {
+             return false;
+         }
+     }
+ }
+ 
+ const formData = new FormData(form);
+ formData.append('organize_matches', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => response.text())
+ .then(html => {
+     // Create a temporary DOM element to parse the response
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update both schedule views
+     const newScheduleRound = doc.querySelector('#schedule-round');
+     const currentScheduleRound = document.querySelector('#schedule-round');
+     if (newScheduleRound && currentScheduleRound) {
+         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+     }
+     
+     const newScheduleCourt = doc.querySelector('#schedule-court');
+     const currentScheduleCourt = document.querySelector('#schedule-court');
+     if (newScheduleCourt && currentScheduleCourt) {
+         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+     }
+     
+     // Update the entire match schedule section to include warnings
+     const newScheduleSection = doc.querySelector('.card-section:nth-of-type(5)');
+     const currentScheduleSection = document.querySelector('.card-section:nth-of-type(5)');
+     if (newScheduleSection && currentScheduleSection) {
+         currentScheduleSection.innerHTML = newScheduleSection.innerHTML;
+     }
+     
+     // Also update the player summary section
+     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+     if (newSummary && currentSummary) {
+         currentSummary.innerHTML = newSummary.innerHTML;
+     }
+     
+     // Update error messages if any
+     const newError = doc.querySelector('.alert-danger');
+     const existingError = document.querySelector('.alert-danger');
+     if (newError) {
+         if (existingError) {
+             existingError.innerHTML = newError.innerHTML;
+         } else {
+             // Add new error alert after action buttons
+             const actionButtons = document.querySelector('.text-center.my-4');
+             actionButtons.insertAdjacentHTML('afterend', newError.outerHTML);
+         }
+     } else if (existingError) {
+         existingError.remove();
+     }
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+     
+     // Re-run the toggle function to show the correct view
+     const currentView = document.getElementById('scheduleToggle').value;
+     toggleScheduleView(currentView);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission if AJAX fails
+     const form = document.querySelector('form');
+     const input = document.createElement('input');
+     input.type = 'hidden';
+     input.name = 'organize_matches';
+     input.value = 'true';
+     form.appendChild(input);
+     form.submit();
+ });
+ 
+ return false; // Prevent default form submission
 }
 
 function uploadCSV() {
-   const fileInput = document.querySelector('input[name="csv_file"]');
-   const file = fileInput.files[0];
-   
-   if (!file) {
-       alert('Please select a file');
-       return false;
-   }
-   
-   const formData = new FormData();
-   formData.append('csv_file', file);
-   formData.append('upload_csv', 'true');
-   
-   // Store current scroll position
-   const scrollPosition = window.pageYOffset;
-   
-   fetch('/index', {
-       method: 'POST',
-       body: formData
-   })
-   .then(response => {
-       if (response.redirected && response.url.includes('/login')) {
-           // Session expired, redirect to login
-           window.location.href = '/login';
-           return;
-       }
-       return response.text();
-   })
-   .then(html => {
-       if (!html) return;
-       
-       // Update the page content
-       const parser = new DOMParser();
-       const doc = parser.parseFromString(html, 'text/html');
-       
-       // Update player list
-       const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
-       const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
-       if (newPlayerList && currentPlayerList) {
-           currentPlayerList.innerHTML = newPlayerList.innerHTML;
-       }
-       
-       // Update error messages
-       const newError = doc.querySelector('.text-danger.fw-bold');
-       const errorContainer = document.querySelector('.text-danger.fw-bold')?.parentElement || 
-                              document.querySelector('.mt-3');
-       if (newError && errorContainer) {
-           errorContainer.innerHTML = newError.outerHTML;
-       } else if (errorContainer && errorContainer.querySelector('.text-danger.fw-bold')) {
-           errorContainer.querySelector('.text-danger.fw-bold').remove();
-       }
-       
-       // Clear file input
-       fileInput.value = '';
-       
-       // Restore scroll position
-       window.scrollTo(0, scrollPosition);
-   })
-   .catch(error => {
-       console.error('Error:', error);
-       // Fallback to regular form submission
-       document.querySelector('form').submit();
-   });
-   
-   return false;
+ const fileInput = document.querySelector('input[name="csv_file"]');
+ const file = fileInput.files[0];
+ 
+ if (!file) {
+     alert('Please select a file');
+     return false;
+ }
+ 
+ const formData = new FormData();
+ formData.append('csv_file', file);
+ formData.append('upload_csv', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => {
+     if (response.redirected && response.url.includes('/login')) {
+         // Session expired, redirect to login
+         window.location.href = '/login';
+         return;
+     }
+     return response.text();
+ })
+ .then(html => {
+     if (!html) return;
+     
+     // Update the page content
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update player list
+     const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
+     const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
+     if (newPlayerList && currentPlayerList) {
+         currentPlayerList.innerHTML = newPlayerList.innerHTML;
+     }
+     
+     // Update error messages
+     const newError = doc.querySelector('.text-danger.fw-bold');
+     const errorContainer = document.querySelector('.text-danger.fw-bold')?.parentElement || 
+                            document.querySelector('.mt-3');
+     if (newError && errorContainer) {
+         errorContainer.innerHTML = newError.outerHTML;
+     } else if (errorContainer && errorContainer.querySelector('.text-danger.fw-bold')) {
+         errorContainer.querySelector('.text-danger.fw-bold').remove();
+     }
+     
+     // Clear file input
+     fileInput.value = '';
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission
+     document.querySelector('form').submit();
+ });
+ 
+ return false;
 }
 </script>
 

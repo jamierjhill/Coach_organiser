@@ -49,6 +49,26 @@ def index():
             "view_mode": view_mode
         })
 
+        # Handle editing player rounds
+        if "edit_player_rounds" in request.form:
+            player_name = request.form.get("edit_player_name")
+            try:
+                max_rounds = int(request.form.get("max_rounds", num_matches))
+                # Find the player in the list and update max_rounds
+                for player in players:
+                    if player["name"] == player_name:
+                        if max_rounds < num_matches:
+                            player["max_rounds"] = max_rounds
+                        else:
+                            # If max_rounds is equal to or greater than num_matches, 
+                            # remove the restriction
+                            if "max_rounds" in player:
+                                del player["max_rounds"]
+                        break
+                session["players"] = players
+            except (ValueError, TypeError):
+                pass
+
         if "remove_player" in request.form:
             name_to_remove = request.form.get("remove_player")
             players = [p for p in players if p["name"] != name_to_remove]
@@ -140,8 +160,6 @@ def index():
                 session["players"] = players
                 session.pop("error", None)
 
-        # This is the fixed reshuffle_round logic that should be implemented in blueprints/match.py
-
         elif "reshuffle_round" in request.form:
             round_to_reshuffle = int(request.form.get("reshuffle_round"))
             
@@ -159,60 +177,112 @@ def index():
             current_rounds = rounds_int_keys
             
             if round_to_reshuffle in current_rounds:
-                # Get all players
+                # Remove the matches for this round
+                for court_matches in current_matchups:
+                    court_matches[:] = [(match, rnd) for match, rnd in court_matches if rnd != round_to_reshuffle]
+                
+                # Update the session before reorganizing this round
+                session["matchups"] = current_matchups
+                session["rounds"] = {k: v for k, v in current_rounds.items() if k != round_to_reshuffle}
+                
+                # Recalculate player match counts
                 all_players = session.get("players", [])
+                player_match_counts = {p['name']: 0 for p in all_players}
+                for court_matches in current_matchups:
+                    for match, round_num in court_matches:
+                        for player in match:
+                            player_match_counts[player['name']] += 1
                 
-                # Get players who were playing in other rounds
-                players_in_other_rounds = set()
-                for round_num, matches in current_rounds.items():
-                    if round_num != round_to_reshuffle:
-                        for court_num, match in matches:
-                            for player in match:
-                                players_in_other_rounds.add(player['name'])
+                session["player_match_counts"] = player_match_counts
                 
-                # Identify who can play in this round (not already playing too many times)
-                available_players = []
-                for player in all_players:
-                    # Count how many times this player is playing in other rounds
-                    play_count = 0
-                    for round_num, matches in current_rounds.items():
-                        if round_num != round_to_reshuffle:
-                            for court_num, match in matches:
-                                if any(p['name'] == player['name'] for p in match):
-                                    play_count += 1
-                                    break
+                # Now call the organize_matches function for just this round
+                # This is a simplified version to organize just one round
+                def organize_single_round(players, courts, match_type, round_num, current_player_match_counts):
+                    # Filter players based on their max_rounds constraint
+                    # Only include players who haven't reached their match limit
+                    available_players = [
+                        p for p in players 
+                        if current_player_match_counts[p['name']] < p.get('max_rounds', num_matches) and
+                           round_num <= p.get('max_rounds', num_matches)
+                    ]
                     
-                    # If player hasn't reached their match limit, they're available
-                    if play_count < num_matches:
-                        available_players.append(player)
-                
-                # Shuffle all available players
-                random.shuffle(available_players)
-                
-                # Determine how many players we need per match
-                players_per_match = 2 if match_type == "singles" else 4
+                    # Sort available players by:
+                    # 1. Limited players first (players with max_rounds < num_matches)
+                    # 2. Players with fewer remaining rounds
+                    # 3. Players who have played fewer matches so far
+                    available_players.sort(key=lambda p: (
+                        # Primary: Unlimited players last (False sorts before True)
+                        p.get('max_rounds', num_matches) >= num_matches,
+                        # Secondary: Sort by remaining rounds (fewer remaining rounds first)
+                        p.get('max_rounds', num_matches) - round_num + 1,
+                        # Tertiary: Sort by matches played so far (fewer played first)
+                        current_player_match_counts[p['name']]
+                    ))
+                    
+                    # Add some randomness while maintaining priority
+                    import random
+                    
+                    # Group players by priority
+                    priority_groups = {}
+                    for player in available_players:
+                        priority_key = (
+                            player.get('max_rounds', num_matches) >= num_matches,
+                            player.get('max_rounds', num_matches) - round_num + 1,
+                            current_player_match_counts[player['name']]
+                        )
+                        if priority_key not in priority_groups:
+                            priority_groups[priority_key] = []
+                        priority_groups[priority_key].append(player)
+                    
+                    # Shuffle each priority group separately
+                    for players_group in priority_groups.values():
+                        random.shuffle(players_group)
+                    
+                    # Rebuild the available_players list
+                    available_players = []
+                    for key in sorted(priority_groups.keys()):
+                        available_players.extend(priority_groups[key])
+                    
+                    # Create matches for this round
+                    round_matches = []
+                    used_names = set()
+                    
+                    # Determine how many players we need per match
+                    players_per_match = 2 if match_type == "singles" else 4
+                    
+                    for court_num in range(1, courts + 1):
+                        # Get players who haven't been used in this round yet
+                        remaining_players = [p for p in available_players if p['name'] not in used_names]
+                        
+                        if len(remaining_players) >= players_per_match:
+                            # Just take the next available players based on our prioritized order
+                            match_players = remaining_players[:players_per_match]
+                            round_matches.append((court_num, match_players))
+                            
+                            # Mark these players as used
+                            used_names.update(p['name'] for p in match_players)
+                            
+                            # Update player match counts
+                            for player in match_players:
+                                current_player_match_counts[player['name']] += 1
+                    
+                    return round_matches, current_player_match_counts
                 
                 # Create new matches for this round
-                new_round_matches = []
-                player_idx = 0
+                new_round_matches, updated_match_counts = organize_single_round(
+                    all_players, courts, match_type, round_to_reshuffle, player_match_counts
+                )
                 
-                for court_num in range(1, courts + 1):
-                    if player_idx + players_per_match <= len(available_players):
-                        match_players = available_players[player_idx:player_idx + players_per_match]
-                        new_round_matches.append((court_num, match_players))
-                        player_idx += players_per_match
+                # Update player match counts
+                session["player_match_counts"] = updated_match_counts
                 
                 # Update the rounds structure
                 current_rounds[round_to_reshuffle] = new_round_matches
                 
-                # Update the matchups structure
-                # First, clear the matches for this round from all courts
-                for court_matches in current_matchups:
-                    court_matches[:] = [(match, rnd) for match, rnd in court_matches if rnd != round_to_reshuffle]
-                
-                # Then add the new matches back to the appropriate courts
+                # Add the new matches back to the court structure
                 for court_num, match in new_round_matches:
-                    current_matchups[court_num - 1].append((match, round_to_reshuffle))
+                    if court_num <= len(current_matchups):
+                        current_matchups[court_num - 1].append((match, round_to_reshuffle))
                 
                 # Sort matches within each court by round number
                 for court_matches in current_matchups:
@@ -223,15 +293,6 @@ def index():
                 session["rounds"] = current_rounds
                 matchups = current_matchups
                 rounds = current_rounds
-                
-                # Recalculate player match counts
-                player_match_counts = {p['name']: 0 for p in all_players}
-                for court_matches in current_matchups:
-                    for match, round_num in court_matches:
-                        for player in match:
-                            player_match_counts[player['name']] += 1
-                
-                session["player_match_counts"] = player_match_counts
 
         elif "organize_matches" in request.form or "reshuffle" in request.form:
             if "reshuffle" in request.form:
