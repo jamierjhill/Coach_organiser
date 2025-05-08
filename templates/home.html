@@ -80,25 +80,6 @@
     footer a:hover {
       color: #43a047;
     }
-
-    #navToggleBtn {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 1050;
-      background-color: #1b5e20;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 15px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    #navToggleBtn:hover {
-      background-color: #2e7d32;
-    }
     
     .weather-icon {
       width: 70px;
@@ -111,237 +92,654 @@
       text-align: center;
       margin-bottom: 15px;
     }
+    
+    /* Navbar Toggle Button */
+    .nav-toggle-btn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1050;
+      background-color: #1b5e20;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .nav-toggle-btn:hover {
+      background-color: #2e7d32;
+      transform: scale(1.05);
+    }
+    
+    .toggle-icon {
+      position: relative;
+      width: 22px;
+      height: 2px;
+      background-color: white;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .toggle-icon:before,
+    .toggle-icon:after {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 22px;
+      height: 2px;
+      background-color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .toggle-icon:before {
+      top: -7px;
+    }
+    
+    .toggle-icon:after {
+      bottom: -7px;
+    }
+    
+    /* Toggle button animation */
+    .toggle-icon.open {
+      background-color: transparent;
+    }
+    
+    .toggle-icon.open:before {
+      transform: rotate(45deg);
+      top: 0;
+    }
+    
+    .toggle-icon.open:after {
+      transform: rotate(-45deg);
+      bottom: 0;
+    }
+    
+    /* Sidebar Styles */
+    .offcanvas {
+      border-right: none;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      max-width: 280px;
+    }
+    
+    .offcanvas-header {
+      background: linear-gradient(to right, #1b5e20, #43a047);
+      padding: 20px;
+    }
+    
+    .offcanvas-body {
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 76px); /* Adjust based on header height */
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      color: white;
+    }
+    
+    .logo-container {
+      width: 36px;
+      height: 36px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+    
+    .offcanvas-title {
+      color: white;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .btn-close {
+      filter: brightness(0) invert(1);
+      opacity: 0.8;
+    }
+    
+    /* User Info */
+    .user-info {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      border-radius: 12px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e8f5e9;
+      color: #1b5e20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+    
+    .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .username {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    .user-role {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    /* Navigation Sections */
+    .nav-section {
+      margin-bottom: 25px;
+    }
+    
+    .nav-section-title {
+      text-transform: uppercase;
+      color: #888;
+      font-size: 12px;
+      margin-bottom: 12px;
+      padding-left: 15px;
+    }
+    
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .nav-item {
+      margin-bottom: 5px;
+      border-radius: 8px;
+      position: relative;
+      transition: background-color 0.3s ease;
+    }
+    
+    .nav-item:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .nav-item.active {
+      background-color: #e8f5e9;
+    }
+    
+    .nav-item.active:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background-color: #1b5e20;
+      border-radius: 4px 0 0 4px;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      color: #444;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item.active .nav-link {
+      color: #1b5e20;
+      font-weight: 500;
+    }
+    
+    .nav-icon {
+      margin-right: 12px;
+      font-style: normal;
+      display: inline-block;
+      width: 24px;
+      text-align: center;
+    }
+    
+    /* Admin Link Styling */
+    .admin-link {
+      color: #1b5e20;
+      font-weight: 500;
+    }
+    
+    /* Footer/Logout */
+    .nav-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      color: #e53935;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .logout-btn:hover {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 576px) {
+      .offcanvas {
+        max-width: 80%;
+      }
+      
+      .nav-toggle-btn {
+        width: 42px;
+        height: 42px;
+      }
+      
+      .toggle-icon,
+      .toggle-icon:before,
+      .toggle-icon:after {
+        width: 20px;
+      }
+    }
   </style>
 </head>
 
 <body>
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
   {% endwith %}
 
-<!-- Toggle Button -->
-<button id="navToggleBtn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
-  ☰ Menu
-</button>
+  <!-- Updated Navigation System -->
+  <button id="navToggleBtn" class="nav-toggle-btn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
+    <span class="toggle-icon"></span>
+  </button>
 
-<!-- Side Navigation (Offcanvas) -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel" style="background-color: #c8e6c9;">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title text-success fw-bold" id="sideNavLabel">🎾 Coaches Hub</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <div class="px-3 mb-3 text-muted small">
-      {% if current_user.is_authenticated %}
-        👋 Logged in as <strong>{{ current_user.username }}</strong>
-      {% endif %}
-    </div>
-    <ul class="nav flex-column">
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/whats-new">🆕 What's New</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/index">📋 Match Organizer</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/weather">🌤️ Weather</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/bulletin">📌 Bulletin</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/notes">📝 Notes</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/calendar">📅 Calendar</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/ai-toolbox">🤖 AI Toolbox</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/coachbot">🧠 CoachBot</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/guide">📖 Coach Guide</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/settings">⚙️ Settings</a></li>
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/access-codes">🎟️ Access Codes</a></li>
-      {% if current_user.is_admin %}
-      <li class="nav-item"><a class="nav-link text-success fw-bold" href="/admin">👑 Admin Dashboard</a></li>
-      {% endif %}
-      <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/logout">🚪 Logout</a></li>
-    </ul>
-  </div>
-</div>
-
-<div class="container py-5" style="padding-top: 100px;">
-  <h1 class="text-success text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
-
- <div class="row g-4">
-
-    
-    <!-- Match Organizer -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">🏟️ Match Organizer</h3>
-          <p>Create fair and balanced singles or doubles matchups in seconds.</p>
-        </div>
-        <a href="/index" class="sleek-btn">Open Match Organizer</a>
+  <!-- Side Navigation (Offcanvas) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel">
+    <div class="offcanvas-header">
+      <div class="nav-brand">
+        <div class="logo-container">🎾</div>
+        <h5 class="offcanvas-title" id="sideNavLabel">Coaches Hub</h5>
       </div>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     
-    <!-- Weather -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">🌤️ Today's Weather</h3>
-          <div class="weather-display">
-            <img id="weatherIcon" src="" alt="weather icon" class="weather-icon" style="display: none;">
-            <p id="weatherText">Loading weather...</p>
+    <div class="offcanvas-body">
+      <div class="user-info">
+        {% if current_user.is_authenticated %}
+          <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
+          <div class="user-details">
+            <span class="username">{{ current_user.username }}</span>
+            <span class="user-role">{% if current_user.is_admin %}Admin{% else %}Coach{% endif %}</span>
           </div>
-        </div>
-        <a href="/weather" class="sleek-btn">View 5-Day Forecast</a>
+        {% endif %}
       </div>
-    </div>
-
-    <!-- Coach Bulletin -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">📌 Coach Bulletin</h3>
-          {% if bulletin_messages %}
-            {% set latest = bulletin_messages[-1] %}
-            <div style="background-color: #f1f8e9; padding: 10px; border-radius: 8px;">
-              <p class="mb-1">{{ latest.text }}</p>
-              <p class="text-muted small mb-0">{{ latest.timestamp }}</p>
-            </div>
-          {% else %}
-            <p>No messages yet.</p>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Quick Links</h6>
+        <ul class="nav-menu">
+          <li class="nav-item {% if request.path == '/whats-new' %}active{% endif %}">
+            <a class="nav-link" href="/whats-new">
+              <i class="nav-icon">🆕</i>
+              <span>What's New</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/index' %}active{% endif %}">
+            <a class="nav-link" href="/index">
+              <i class="nav-icon">📋</i>
+              <span>Match Organizer</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/ai-toolbox' %}active{% endif %}">
+            <a class="nav-link" href="/ai-toolbox">
+              <i class="nav-icon">🤖</i>
+              <span>AI Toolbox</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Planning Tools</h6>
+        <ul class="nav-menu">
+          <li class="nav-item {% if request.path == '/calendar' %}active{% endif %}">
+            <a class="nav-link" href="/calendar">
+              <i class="nav-icon">📅</i>
+              <span>Calendar</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/weather' %}active{% endif %}">
+            <a class="nav-link" href="/weather">
+              <i class="nav-icon">🌤️</i>
+              <span>Weather</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/coachbot' %}active{% endif %}">
+            <a class="nav-link" href="/coachbot">
+              <i class="nav-icon">🧠</i>
+              <span>CoachBot</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Communication</h6>
+        <ul class="nav-menu">
+          <li class="nav-item {% if request.path == '/bulletin' %}active{% endif %}">
+            <a class="nav-link" href="/bulletin">
+              <i class="nav-icon">📌</i>
+              <span>Bulletin</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/notes' %}active{% endif %}">
+            <a class="nav-link" href="/notes">
+              <i class="nav-icon">📝</i>
+              <span>Notes</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/access-codes' %}active{% endif %}">
+            <a class="nav-link" href="/access-codes">
+              <i class="nav-icon">🎟️</i>
+              <span>Access Codes</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Extras</h6>
+        <ul class="nav-menu">
+          <li class="nav-item {% if request.path == '/guide' %}active{% endif %}">
+            <a class="nav-link" href="/guide">
+              <i class="nav-icon">📖</i>
+              <span>Coach Guide</span>
+            </a>
+          </li>
+          <li class="nav-item {% if request.path == '/settings' %}active{% endif %}">
+            <a class="nav-link" href="/settings">
+              <i class="nav-icon">⚙️</i>
+              <span>Settings</span>
+            </a>
+          </li>
+          {% if current_user.is_admin %}
+          <li class="nav-item {% if request.path == '/admin' %}active{% endif %}">
+            <a class="nav-link admin-link" href="/admin">
+              <i class="nav-icon">👑</i>
+              <span>Admin Dashboard</span>
+            </a>
+          </li>
           {% endif %}
-        </div>
-        <a href="/bulletin" class="sleek-btn">View All Bulletins</a>
+        </ul>
+      </div>
+      
+      <div class="nav-footer">
+        <a class="logout-btn" href="/logout">
+          <i class="nav-icon">🚪</i>
+          <span>Logout</span>
+        </a>
       </div>
     </div>
-  
-    <!-- Notes -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">📝 Notes</h3>
-          <p>Keep private notes from your coaching sessions.</p>
-        </div>
-        <a href="/notes" class="sleek-btn">Launch Notes</a>
-      </div>
-    </div>
-    
-    <!-- Calendar -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">📅 Calendar</h3>
-          <p>Plan and view your weekly tennis events.</p>
-        </div>
-        <a href="/calendar" class="sleek-btn">Open Calendar</a>
-      </div>
-    </div>
-    
-    <!-- Toolbox -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">🤖 AI Coaching Tools</h3>
-          <p>Generate smart drills and full session plans with just a few prompts.</p>
-        </div>
-        <a href="/ai-toolbox" class="sleek-btn">Launch AI Toolbox</a>
-      </div>
-    </div>
-
-    <!-- Add this new card to your home.html file -->
-    <!-- Look for the <div class="row g-4"> section and add this card: -->
-
-    <!-- What's New Card -->
-    <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="300">
-      <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
-        <div>
-          <h3 class="card-title">🆕 What's New</h3>
-          <p>Stay updated on the latest features and improvements to Coaches Hub.</p>
-        </div>
-        <a href="/whats-new" class="sleek-btn">View Updates</a>
-      </div>
-    </div>
-
-
   </div>
-</div>
 
+  <div class="container py-5" style="padding-top: 100px;">
+    <h1 class="text-success text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
 
+    <div class="row g-4">
+      <!-- Match Organizer -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">🏟️ Match Organizer</h3>
+            <p>Create fair and balanced singles or doubles matchups in seconds.</p>
+          </div>
+          <a href="/index" class="sleek-btn">Open Match Organizer</a>
+        </div>
+      </div>
+      
+      <!-- Weather -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">🌤️ Today's Weather</h3>
+            <div class="weather-display">
+              <img id="weatherIcon" src="" alt="weather icon" class="weather-icon" style="display: none;">
+              <p id="weatherText">Loading weather...</p>
+            </div>
+          </div>
+          <a href="/weather" class="sleek-btn">View 5-Day Forecast</a>
+        </div>
+      </div>
 
-<footer>
-  <p>Built by Jamie • v2.1 • <a href="/contact">Contact Us</a></p>
-</footer>
+      <!-- Coach Bulletin -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">📌 Coach Bulletin</h3>
+            {% if bulletin_messages %}
+              {% set latest = bulletin_messages[-1] %}
+              <div style="background-color: #f1f8e9; padding: 10px; border-radius: 8px;">
+                <p class="mb-1">{{ latest.text }}</p>
+                <p class="text-muted small mb-0">{{ latest.timestamp }}</p>
+              </div>
+            {% else %}
+              <p>No messages yet.</p>
+            {% endif %}
+          </div>
+          <a href="/bulletin" class="sleek-btn">View All Bulletins</a>
+        </div>
+      </div>
+    
+      <!-- Notes -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">📝 Notes</h3>
+            <p>Keep private notes from your coaching sessions.</p>
+          </div>
+          <a href="/notes" class="sleek-btn">Launch Notes</a>
+        </div>
+      </div>
+      
+      <!-- Calendar -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">📅 Calendar</h3>
+            <p>Plan and view your weekly tennis events.</p>
+          </div>
+          <a href="/calendar" class="sleek-btn">Open Calendar</a>
+        </div>
+      </div>
+      
+      <!-- Toolbox -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="200">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">🤖 AI Coaching Tools</h3>
+            <p>Generate smart drills and full session plans with just a few prompts.</p>
+          </div>
+          <a href="/ai-toolbox" class="sleek-btn">Launch AI Toolbox</a>
+        </div>
+      </div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script>
-  AOS.init({ duration: 800, once: true });
-</script>
+      <!-- What's New Card -->
+      <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="300">
+        <div class="tennis-card text-center w-100 d-flex flex-column justify-content-between">
+          <div>
+            <h3 class="card-title">🆕 What's New</h3>
+            <p>Stay updated on the latest features and improvements to Coaches Hub.</p>
+          </div>
+          <a href="/whats-new" class="sleek-btn">View Updates</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- Inject postcode from Flask -->
-<script>
-  const userPostcode = "{{ default_postcode }}";
-</script>
+  <footer>
+    <p>Built by Jamie • v2.1 • <a href="/contact">Contact Us</a></p>
+  </footer>
 
-<script>
-  async function fetchTodayWeather(postcode) {
-    const apiKey = "fd94c86864c1809c326f7f0b6add6acc";
-    const fallback = "Fulham";
-    const forecastEl = document.getElementById("weatherText");
-    const iconImg = document.getElementById("weatherIcon");
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true });
+  </script>
 
-    async function tryGeocode(query) {
-      const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)},GB&limit=1&appid=${apiKey}`);
-      return await geoRes.json();
-    }
+  <!-- Inject postcode from Flask -->
+  <script>
+    const userPostcode = "{{ default_postcode }}";
+  </script>
 
-    try {
-      let geoData = await tryGeocode(postcode);
+  <script>
+    async function fetchTodayWeather(postcode) {
+      const apiKey = "fd94c86864c1809c326f7f0b6add6acc";
+      const fallback = "Fulham";
+      const forecastEl = document.getElementById("weatherText");
+      const iconImg = document.getElementById("weatherIcon");
 
-      if (!geoData.length) {
-        const outwardCode = postcode.split(" ")[0];
-        console.warn(`Full postcode failed. Trying outward code: ${outwardCode}`);
-        geoData = await tryGeocode(outwardCode);
+      async function tryGeocode(query) {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)},GB&limit=1&appid=${apiKey}`);
+        return await geoRes.json();
       }
 
-      if (!geoData.length) {
-        console.warn(`Outward code failed. Falling back to: ${fallback}`);
-        geoData = await tryGeocode(fallback);
+      try {
+        let geoData = await tryGeocode(postcode);
+
+        if (!geoData.length) {
+          const outwardCode = postcode.split(" ")[0];
+          console.warn(`Full postcode failed. Trying outward code: ${outwardCode}`);
+          geoData = await tryGeocode(outwardCode);
+        }
+
+        if (!geoData.length) {
+          console.warn(`Outward code failed. Falling back to: ${fallback}`);
+          geoData = await tryGeocode(fallback);
+        }
+
+        if (!geoData.length) throw new Error("Could not resolve any location");
+
+        const { lat, lon } = geoData[0];
+        const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
+        const data = await weatherRes.json();
+
+        const desc = data.weather[0].description;
+        const temp = data.main.temp;
+        const icon = data.weather[0].icon;
+        const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+
+        forecastEl.textContent = `${desc}, ${temp.toFixed(1)}°C`;
+        iconImg.src = iconUrl;
+        iconImg.alt = desc;
+        iconImg.style.display = "inline-block";
+
+      } catch (err) {
+        forecastEl.textContent = "⚠️ Could not load weather.";
+        iconImg.style.display = "none";
+        console.error("Weather error:", err);
       }
-
-      if (!geoData.length) throw new Error("Could not resolve any location");
-
-      const { lat, lon } = geoData[0];
-      const weatherRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
-      const data = await weatherRes.json();
-
-      const desc = data.weather[0].description;
-      const temp = data.main.temp;
-      const icon = data.weather[0].icon;
-      const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
-
-      forecastEl.textContent = `${desc}, ${temp.toFixed(1)}°C`;
-      iconImg.src = iconUrl;
-      iconImg.alt = desc;
-      iconImg.style.display = "inline-block";
-
-    } catch (err) {
-      forecastEl.textContent = "⚠️ Could not load weather.";
-      iconImg.style.display = "none";
-      console.error("Weather error:", err);
     }
-  }
 
-  window.onload = () => fetchTodayWeather(userPostcode || "SW6");
-</script>
+    window.onload = () => fetchTodayWeather(userPostcode || "SW6");
+  </script>
 
+  <script>
+    setTimeout(() => {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        if (typeof bootstrap !== 'undefined') {
+          new bootstrap.Alert(alert).close();
+        }
+      });
+    }, 4000);
+  </script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Show mobile-friendly prompt for adding to home screen
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        
+        // Show the add to home screen banner if not already installed
+        // This is handled in the installation section
+      });
+      
+      // Handle active menu highlighting
+      const currentPath = window.location.pathname;
+      const navItems = document.querySelectorAll('.nav-item');
+      
+      navItems.forEach(item => {
+        const link = item.querySelector('.nav-link');
+        if (link && link.getAttribute('href') === currentPath) {
+          item.classList.add('active');
+        }
+      });
+      
+      // Optional: Close the offcanvas when clicking a link on mobile
+      const offcanvasLinks = document.querySelectorAll('.offcanvas .nav-link, .logout-btn');
+      
+      // Make sure Bootstrap is available before creating the Offcanvas instance
+      if (typeof bootstrap !== 'undefined') {
+        const sideNavElement = document.getElementById('sideNav');
+        if (sideNavElement) {
+          const bsOffcanvas = new bootstrap.Offcanvas(sideNavElement);
+          
+          offcanvasLinks.forEach(link => {
+            link.addEventListener('click', function() {
+              // Only auto-close on mobile screens
+              if (window.innerWidth < 992) {
+                bsOffcanvas.hide();
+              }
+            });
+          });
+        }
+      }
+      
+      // Add animation to toggle button
+      const navToggleBtn = document.getElementById('navToggleBtn');
+      if (navToggleBtn) {
+        const toggleIcon = navToggleBtn.querySelector('.toggle-icon');
+        if (toggleIcon) {
+          navToggleBtn.addEventListener('click', function() {
+            toggleIcon.classList.toggle('open');
+          });
+        }
+      }
+    });
+  </script>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  setTimeout(() => {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => new bootstrap.Alert(alert).close());
-  }, 4000);
-</script>
-
 </html>
