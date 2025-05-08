@@ -1,91 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
-  </script>
-  <meta charset="UTF-8">
-  <title>📝 My Notes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/colours.css" rel="stylesheet">
-  <link href="/static/typography.css" rel="stylesheet">
-</head>
-<body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
+{% extends "base.html" %}
 
-    <div class="page-title-container">
-      <h1 class="page-title">📝 My Coaching Notes</h1>
-      <div class="title-nav-buttons">
-        <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-      </div>
-    </div>
+{% block title %}📝 My Notes{% endblock %}
 
-  <div class="container pb-5">
-    <div class="notes-container tennis-card">
-      <!-- New note input area -->
-      <div class="new-note-section mb-4">
-        <h4 class="section-title mb-3">✏️ Create New Note</h4>
-        <div class="mb-3">
-          <textarea id="newNote" class="form-control" rows="3" placeholder="Write a new note..."></textarea>
-        </div>
-        <button id="addNoteBtn" class="btn btn-primary w-100">➕ Add Note</button>
-      </div>
-
-      <hr class="my-4">
-      
-      <!-- Saved notes section -->
-      <div class="saved-notes-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4 class="section-title mb-0"> Your Saved Notes</h4>
-          <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              Sort By
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-              <li><a class="dropdown-item" href="#" onclick="sortNotes('newest')">Newest First</a></li>
-              <li><a class="dropdown-item" href="#" onclick="sortNotes('oldest')">Oldest First</a></li>
-            </ul>
-          </div>
-        </div>
-
-        {% if notes and notes|length > 0 %}
-          <div id="notesList" class="notes-list">
-            {% for line in notes %}
-              <div class="note-item">
-                <div class="note-text">{{ line }}</div>
-                <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('{{ line }}')">🗑️</button>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div id="notesList" class="notes-list">
-            <div class="empty-notes">
-              <p class="text-muted text-center">
-                You don't have any notes yet.<br>
-                Write your first note above.
-              </p>
-            </div>
-          </div>
-        {% endif %}
-      </div>
-    </div>
+{% block content %}
+  <div class="page-title-container">
+    <h1 class="page-title">📝 My Coaching Notes</h1>
   </div>
 
+  <div class="notes-container tennis-card">
+    <!-- New note input area -->
+    <div class="new-note-section mb-4">
+      <h4 class="section-title mb-3">✏️ Create New Note</h4>
+      <div class="mb-3">
+        <textarea id="newNote" class="form-control" rows="3" placeholder="Write a new note..."></textarea>
+      </div>
+      <button id="addNoteBtn" class="btn btn-primary w-100">➕ Add Note</button>
+    </div>
+
+    <hr class="my-4">
+    
+    <!-- Saved notes section -->
+    <div class="saved-notes-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title mb-0"> Your Saved Notes</h4>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort By
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+            <li><a class="dropdown-item" href="#" onclick="sortNotes('newest')">Newest First</a></li>
+            <li><a class="dropdown-item" href="#" onclick="sortNotes('oldest')">Oldest First</a></li>
+          </ul>
+        </div>
+      </div>
+
+      {% if notes and notes|length > 0 %}
+        <div id="notesList" class="notes-list">
+          {% for line in notes %}
+            <div class="note-item">
+              <div class="note-text">{{ line }}</div>
+              <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('{{ line }}')">🗑️</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div id="notesList" class="notes-list">
+          <div class="empty-notes">
+            <p class="text-muted text-center">
+              You don't have any notes yet.<br>
+              Write your first note above.
+            </p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
   <!-- Delete Confirmation Modal -->
   <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -105,8 +77,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
   <script>
     // Variables
     let currentSort = 'newest';
@@ -254,5 +224,60 @@
       notes.forEach(note => notesList.appendChild(note));
     }
   </script>
-</body>
-</html>
+
+  <style>
+    /* Additional styles specific to notes */
+    .note-item {
+      position: relative;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      background-color: #f3f6f9;
+      border-left: 4px solid var(--teal);
+      border-radius: 10px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .note-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .note-text {
+      white-space: pre-line;
+      flex: 1;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: #dc3545;
+      cursor: pointer;
+      padding: 0;
+      font-size: 1.1rem;
+      opacity: 0.5;
+      transition: opacity 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      opacity: 1;
+    }
+
+    .new-note {
+      animation: highlight 1.5s ease;
+    }
+
+    .empty-notes {
+      color: #6c757d;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    @keyframes highlight {
+      from { background-color: rgba(0, 160, 126, 0.2); }
+      to { background-color: #f3f6f9; }
+    }
+  </style>
+{% endblock %}

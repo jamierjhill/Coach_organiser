@@ -4,7 +4,7 @@ load_dotenv()
 
 import os
 from datetime import timedelta
-from flask import Flask, send_from_directory, session
+from flask import Flask, send_from_directory, session, render_template
 from flask_login import LoginManager
 from flask_mail import Mail
 from blueprints import all_blueprints
@@ -79,7 +79,8 @@ def create_app():
     # Ensure required directories exist
     required_dirs = [
         "sessions", "notes", "data", "data/events", 
-        "data/users", "data/bulletins", "data/emails", "static"
+        "data/users", "data/bulletins", "data/emails", "static",
+        "templates/partials"  # Add this directory for navigation partial
     ]
     for directory in required_dirs:
         os.makedirs(directory, exist_ok=True)
@@ -101,6 +102,19 @@ def create_app():
     @app.route('/static/<path:filename>')
     def serve_static(filename):
         return send_from_directory('static', filename)
+        
+    # Add error handlers with proper navigation
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('error.html', 
+                              error_code=404, 
+                              error_message="Page not found"), 404
+                              
+    @app.errorhandler(500)
+    def server_error(e):
+        return render_template('error.html', 
+                              error_code=500, 
+                              error_message="Internal server error"), 500
 
     return app
 

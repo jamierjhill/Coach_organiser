@@ -1,35 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>☀️ Weather Forecast</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="/static/colours.css" rel="stylesheet">
-  <link href="/static/typography.css" rel="stylesheet">
-</head>
-<body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
-  
-<div class="container py-4">
+{% extends "base.html" %}
+
+{% block title %}☀️ Weather Forecast{% endblock %}
+
+{% block content %}
   <div class="page-title-container">
     <h1 class="page-title">☀️ Weather Forecast</h1>
     <div class="title-nav-buttons">
-      <a href="{% if current_user.is_authenticated %}/home{% else %}/login{% endif %}" class="btn btn-outline-success me-2">🏠 Home</a>
       <a href="/settings" class="btn btn-outline-success">⚙️ Change Location</a>
     </div>
   </div>
-
-
 
   <!-- Location Display -->
   <div class="card-section">
@@ -209,8 +188,4 @@
       </div>
     </div>
   </div>
-</div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

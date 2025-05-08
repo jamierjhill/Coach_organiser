@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code }} - Error{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+  <div class="error-container">
+    <div class="error-code">{{ error_code }}</div>
+    <h1 class="error-title">{{ error_message }}</h1>
+    
+    <div class="error-image my-5">
+      {% if error_code == 404 %}
+        <span style="font-size: 120px;">🔍</span>
+      {% else %}
+        <span style="font-size: 120px;">⚠️</span>
+      {% endif %}
+    </div>
+    
+    <p class="error-description mb-4">
+      {% if error_code == 404 %}
+        Sorry, we couldn't find the page you were looking for.
+      {% else %}
+        Something went wrong on our end. Our team has been notified.
+      {% endif %}
+    </p>
+    
+    <div class="error-actions">
+      <a href="/home" class="btn btn-primary me-3">Go to Home</a>
+      <a href="javascript:history.back()" class="btn btn-outline-secondary">Go Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .error-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: var(--white);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
+  }
+  
+  .error-code {
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+  }
+  
+  .error-title {
+    font-size: 24px;
+    color: var(--navy);
+    margin-bottom: 2rem;
+  }
+  
+  .error-description {
+    font-size: 18px;
+    color: var(--text-secondary);
+  }
+  
+  .error-actions {
+    margin-top: 2rem;
+  }
+</style>
+{% endblock %}

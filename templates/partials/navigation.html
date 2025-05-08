@@ -1,0 +1,175 @@
+<!-- Navigation Sidebar Template -->
+<!-- Button to toggle sidebar -->
+<button id="navToggleBtn" class="nav-toggle-btn" data-bs-toggle="offcanvas" data-bs-target="#sideNav" aria-controls="sideNav">
+    <span class="toggle-icon"></span>
+  </button>
+  
+  <!-- Side Navigation (Offcanvas) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel">
+    <div class="offcanvas-header">
+      <div class="nav-brand">
+        <div class="logo-container">🎾</div>
+        <h5 class="offcanvas-title" id="sideNavLabel">Coaches Hub</h5>
+      </div>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    
+    <div class="offcanvas-body">
+      <div class="user-info">
+        {% if current_user.is_authenticated %}
+          <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
+          <div class="user-details">
+            <span class="username">{{ current_user.username }}</span>
+            <span class="user-role">{% if current_user.is_admin %}Admin{% else %}Coach{% endif %}</span>
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Quick Links</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="/home">
+              <i class="nav-icon">🏠</i>
+              <span>Home</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/whats-new">
+              <i class="nav-icon">🆕</i>
+              <span>What's New</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/index">
+              <i class="nav-icon">📋</i>
+              <span>Match Organizer</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/ai-toolbox">
+              <i class="nav-icon">🤖</i>
+              <span>AI Toolbox</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Planning Tools</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="/calendar">
+              <i class="nav-icon">📅</i>
+              <span>Calendar</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/weather">
+              <i class="nav-icon">🌤️</i>
+              <span>Weather</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/coachbot">
+              <i class="nav-icon">🧠</i>
+              <span>CoachBot</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Communication</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="/bulletin">
+              <i class="nav-icon">📌</i>
+              <span>Bulletin</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/notes">
+              <i class="nav-icon">📝</i>
+              <span>Notes</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/access-codes">
+              <i class="nav-icon">🎟️</i>
+              <span>Access Codes</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Extras</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="/guide">
+              <i class="nav-icon">📖</i>
+              <span>Coach Guide</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/settings">
+              <i class="nav-icon">⚙️</i>
+              <span>Settings</span>
+            </a>
+          </li>
+          {% if current_user.is_admin %}
+          <li class="nav-item">
+            <a class="nav-link admin-link" href="/admin">
+              <i class="nav-icon">👑</i>
+              <span>Admin Dashboard</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+      
+      <div class="nav-footer">
+        <a class="logout-btn" href="/logout">
+          <i class="nav-icon">🚪</i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JavaScript for navigation toggle -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Toggle button animation
+      const navToggleBtn = document.getElementById('navToggleBtn');
+      const toggleIcon = navToggleBtn?.querySelector('.toggle-icon');
+      
+      if (navToggleBtn) {
+        navToggleBtn.addEventListener('click', function() {
+          toggleIcon.classList.toggle('open');
+        });
+      }
+      
+      // Close sidebar when clicking outside
+      const sideNav = document.getElementById('sideNav');
+      if (sideNav) {
+        document.addEventListener('click', function(event) {
+          if (!sideNav.contains(event.target) && 
+              !navToggleBtn.contains(event.target) && 
+              sideNav.classList.contains('show')) {
+            const bsOffcanvas = bootstrap.Offcanvas.getInstance(sideNav);
+            if (bsOffcanvas) bsOffcanvas.hide();
+          }
+        });
+      }
+      
+      // Highlight the current page in navigation
+      const currentPath = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          link.parentElement.classList.add('active');
+        }
+      });
+    });
+  </script>
