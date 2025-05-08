@@ -9,79 +9,20 @@ ai_tools_bp = Blueprint("ai_tools", __name__)
 # === OpenAI Config ===
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 COACHBOT_PASSWORD = os.getenv("COACHBOT_PASSWORD")
-DRILL_PASSWORD = os.getenv("DRILL_PASSWORD")
-SESSION_PASSWORD = os.getenv("SESSION_PASSWORD")
 
 # === AI TOOLBOX ===
-@ai_tools_bp.route("/ai-toolbox", methods=["GET", "POST"])
+@ai_tools_bp.route("/ai-toolbox", methods=["GET"])
 def ai_toolbox():
-    drill = None
-    session_plan = None
-    chat_response = None
-    error = None
+    """
+    Render the simplified CoachBot interface.
+    No longer processes session or drill generation.
+    """
     session["last_form_page"] = "/ai-toolbox"
     
-    # No longer checking for password - direct access
+    # Direct access without password
     session["ai_toolbox_access_granted"] = True
-
-    if request.method == "POST" and "tool" in request.form:
-        tool = request.form["tool"]
-
-        try:
-            if tool == "drill":
-                prompt = request.form.get("drill_prompt", "").strip()
-                if prompt:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    drill = response.choices[0].message.content.strip()
-
-            elif tool == "session":
-                players = request.form.get("players", "").strip()
-                focus = request.form.get("focus", "").strip()
-                duration = request.form.get("duration", "").strip()
-                if players and focus and duration:
-                    prompt = (
-                        f"Create a tennis coaching session for {players} players. "
-                        f"The focus is on {focus}. Duration: {duration} minutes. "
-                        f"Include warm-up, main drills, and cool-down."
-                    )
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient session plans."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.7
-                    )
-                    session_plan = response.choices[0].message.content.strip()
-
-            elif tool == "chat":
-                prompt = request.form.get("chat_prompt", "").strip()
-                if prompt:
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a helpful tennis coaching assistant."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.6
-                    )
-                    chat_response = response.choices[0].message.content.strip()
-
-        except Exception as e:
-            error = f"⚠️ Error: {str(e)}"
-
-        if "go_home" in request.form:
-            return redirect("/home")
-
-    return render_template("ai_toolbox.html", drill=drill, session_plan=session_plan, chat_response=chat_response, error=error)
-
+    
+    return render_template("ai_toolbox.html")
 
 # === COACHBOT AJAX ===
 @ai_tools_bp.route("/chatbot", methods=["POST"])
@@ -138,87 +79,8 @@ def chatbot():
     except Exception as e:
         return jsonify({"success": False, "error": f"⚠️ An error occurred: {str(e)}"})
 
-# === DRILL GENERATOR PAGE ===
-@ai_tools_bp.route("/drill-generator", methods=["GET", "POST"])
-def drill_generator():
-    drill = None
-
-    if not session.get("drill_access_granted"):
-        if request.method == "POST":
-            if request.form.get("password") == DRILL_PASSWORD:
-                session["drill_access_granted"] = True
-                return redirect("/drill-generator")
-            return render_template("drill_generator.html", error="Incorrect password.")
-        return render_template("drill_generator.html")
-
-    if request.method == "POST" and "prompt" in request.form:
-        prompt = request.form["prompt"]
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a tennis coach assistant that generates short, practical drills."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
-            drill = response.choices[0].message.content.strip()
-        except Exception as e:
-            drill = f"⚠️ Error generating drill: {str(e)}"
-
-    return render_template("drill_generator.html", drill=drill)
-
-@ai_tools_bp.route("/logout-drill-generator")
-def logout_drill_generator():
-    session.pop("drill_access_granted", None)
-    return redirect("/drill-generator")
-
-# === SESSION GENERATOR PAGE ===
-@ai_tools_bp.route("/session-generator", methods=["GET", "POST"])
-def session_generator():
-    session_plan = None
-
-    if not session.get("session_access_granted"):
-        if request.method == "POST":
-            if request.form.get("password") == SESSION_PASSWORD:
-                session["session_access_granted"] = True
-                return redirect("/session-generator")
-            return render_template("session_generator.html", error="Incorrect password")
-        return render_template("session_generator.html")
-
-    if request.method == "POST" and "players" in request.form:
-        players = request.form.get("players")
-        focus = request.form.get("focus")
-        duration = request.form.get("duration")
-
-        prompt = (
-            f"Create a tennis coaching session plan for {players} players. "
-            f"The focus should be on {focus}, and the session should last {duration} minutes. "
-            f"Include a warm-up, main drills, and a cool-down."
-        )
-
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a tennis coach assistant that creates practical and efficient training sessions."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
-            session_plan = response.choices[0].message.content.strip()
-        except Exception as e:
-            session_plan = f"⚠️ Error generating session: {str(e)}"
-
-    return render_template("session_generator.html", session_plan=session_plan)
-
-@ai_tools_bp.route("/logout-session-generator")
-def logout_session_generator():
-    session.pop("session_access_granted", None)
-    return redirect("/session-generator")
-
 # === INLINE COACHBOT PAGE ===
-@ai_tools_bp.route("/coachbot", methods=["GET", "POST"])
+@ai_tools_bp.route("/coachbot", methods=["GET"])
 def coachbot():
     # No longer checking for password - direct access
     session["coachbot_access_granted"] = True
