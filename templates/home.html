@@ -13,17 +13,14 @@
   <title>🎾 Welcome to Coach Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/colours.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
     body {
-      background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
     }
 
     .tennis-card {
-      background-color: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       padding: 25px;
       margin-bottom: 30px;
       transition: transform 0.3s ease;
@@ -31,7 +28,6 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border-left: 5px solid #1b5e20;
     }
 
     .tennis-card:hover {
@@ -39,46 +35,25 @@
     }
 
     .card-title {
-      color: #1b5e20;
       font-weight: 600;
       margin-bottom: 15px;
-    }
-
-    .sleek-btn {
-      background-color: #43a047;
-      color: white;
-      font-weight: 600;
-      padding: 10px 0;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      text-decoration: none;
-      display: block;
-      text-align: center;
-      width: 100%;
-    }
-
-    .sleek-btn:hover {
-      background-color: #2e7d32;
-      color: white;
     }
 
     footer {
       text-align: center;
       margin-top: 60px;
       padding-bottom: 30px;
-      color: #555;
+      color: var(--text-secondary);
     }
 
     footer a {
       text-decoration: none;
       font-weight: bold;
-      color: #1b5e20;
+      color: var(--teal);
     }
 
     footer a:hover {
-      color: #43a047;
+      color: var(--teal-dark);
     }
     
     .weather-icon {
@@ -99,7 +74,7 @@
       top: 15px;
       left: 15px;
       z-index: 1050;
-      background-color: #1b5e20;
+      background-color: var(--navy);
       color: white;
       border: none;
       border-radius: 50%;
@@ -114,7 +89,7 @@
     }
     
     .nav-toggle-btn:hover {
-      background-color: #2e7d32;
+      background-color: var(--navy-light);
       transform: scale(1.05);
     }
     
@@ -166,10 +141,12 @@
       border-right: none;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
       max-width: 280px;
+      background-color: var(--white);
     }
     
+    /* FIX: Improved navbar header with solid color instead of gradient */
     .offcanvas-header {
-      background: linear-gradient(to right, #1b5e20, #43a047);
+      background-color: var(--navy);
       padding: 20px;
     }
     
@@ -179,6 +156,7 @@
       height: calc(100% - 76px); /* Adjust based on header height */
       padding: 20px;
       overflow-y: auto;
+      background-color: var(--white);
     }
     
     .nav-brand {
@@ -216,7 +194,7 @@
       align-items: center;
       padding: 15px;
       margin-bottom: 15px;
-      background-color: #f9f9f9;
+      background-color: var(--light);
       border-radius: 12px;
     }
     
@@ -224,8 +202,8 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background-color: #e8f5e9;
-      color: #1b5e20;
+      background-color: var(--light);
+      color: var(--navy);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -241,13 +219,13 @@
     
     .username {
       font-weight: 600;
-      color: #333;
+      color: var(--text-primary);
       font-size: 14px;
     }
     
     .user-role {
       font-size: 12px;
-      color: #666;
+      color: var(--text-secondary);
     }
     
     /* Navigation Sections */
@@ -257,7 +235,7 @@
     
     .nav-section-title {
       text-transform: uppercase;
-      color: #888;
+      color: var(--text-secondary);
       font-size: 12px;
       margin-bottom: 12px;
       padding-left: 15px;
@@ -277,11 +255,11 @@
     }
     
     .nav-item:hover {
-      background-color: #f0f0f0;
+      background-color: var(--light);
     }
     
     .nav-item.active {
-      background-color: #e8f5e9;
+      background-color: var(--light);
     }
     
     .nav-item.active:before {
@@ -291,7 +269,7 @@
       top: 0;
       height: 100%;
       width: 4px;
-      background-color: #1b5e20;
+      background-color: var(--navy);
       border-radius: 4px 0 0 4px;
     }
     
@@ -299,13 +277,13 @@
       display: flex;
       align-items: center;
       padding: 12px 15px;
-      color: #444;
+      color: var(--text-primary);
       text-decoration: none;
       transition: all 0.2s ease;
     }
     
     .nav-item.active .nav-link {
-      color: #1b5e20;
+      color: var(--navy);
       font-weight: 500;
     }
     
@@ -319,7 +297,7 @@
     
     /* Admin Link Styling */
     .admin-link {
-      color: #1b5e20;
+      color: var(--navy);
       font-weight: 500;
     }
     
@@ -327,7 +305,7 @@
     .nav-footer {
       margin-top: auto;
       padding-top: 20px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid var(--light-border);
     }
     
     .logout-btn {
@@ -343,6 +321,31 @@
     .logout-btn:hover {
       background-color: #ffebee;
       color: #c62828;
+    }
+    
+    /* Fix for bulletin preview */
+    .bulletin-preview {
+      background-color: var(--light);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    /* Fix for any nested elements */
+    .tennis-card * {
+      background-color: transparent !important;
+    }
+    
+    /* FIX: Ensure button text is visible */
+    .btn-primary {
+      background-color: var(--teal) !important;
+      border-color: var(--teal) !important;
+      color: white !important;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--teal-dark) !important;
+      border-color: var(--teal-dark) !important;
+      color: white !important;
     }
     
     /* Mobile Optimizations */
@@ -362,10 +365,42 @@
         width: 20px;
       }
     }
+    /* Improved navbar header styling for text legibility */
+.offcanvas-header {
+  background-color: var(--navy);
+  padding: 20px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.logo-container {
+  width: 36px;
+  height: 36px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-size: 18px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.offcanvas-title {
+  color: #ffffff; /* Pure white for best contrast */
+  font-weight: 600;
+  font-size: 18px; /* Slightly larger */
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Text shadow for better readability */
+  letter-spacing: 0.5px; /* Increased letter spacing for better readability */
+}
   </style>
 </head>
 
-<body>
+<body class="home-page">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -511,7 +546,7 @@
   </div>
 
   <div class="container py-5" style="padding-top: 100px;">
-    <h1 class="text-success text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
+    <h1 class="heading-text text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
 
     <div class="row g-4">
       <!-- Match Organizer -->
@@ -521,7 +556,7 @@
             <h3 class="card-title">🏟️ Match Organizer</h3>
             <p>Create fair and balanced singles or doubles matchups in seconds.</p>
           </div>
-          <a href="/index" class="sleek-btn">Open Match Organizer</a>
+          <a href="/index" class="btn btn-primary w-100">Open Match Organizer</a>
         </div>
       </div>
       
@@ -535,7 +570,7 @@
               <p id="weatherText">Loading weather...</p>
             </div>
           </div>
-          <a href="/weather" class="sleek-btn">View 5-Day Forecast</a>
+          <a href="/weather" class="btn btn-primary w-100">View 5-Day Forecast</a>
         </div>
       </div>
 
@@ -546,7 +581,7 @@
             <h3 class="card-title">📌 Coach Bulletin</h3>
             {% if bulletin_messages %}
               {% set latest = bulletin_messages[-1] %}
-              <div style="background-color: #f1f8e9; padding: 10px; border-radius: 8px;">
+              <div class="bulletin-preview">
                 <p class="mb-1">{{ latest.text }}</p>
                 <p class="text-muted small mb-0">{{ latest.timestamp }}</p>
               </div>
@@ -554,7 +589,7 @@
               <p>No messages yet.</p>
             {% endif %}
           </div>
-          <a href="/bulletin" class="sleek-btn">View All Bulletins</a>
+          <a href="/bulletin" class="btn btn-primary w-100">View All Bulletins</a>
         </div>
       </div>
     
@@ -565,7 +600,7 @@
             <h3 class="card-title">📝 Notes</h3>
             <p>Keep private notes from your coaching sessions.</p>
           </div>
-          <a href="/notes" class="sleek-btn">Launch Notes</a>
+          <a href="/notes" class="btn btn-primary w-100">Launch Notes</a>
         </div>
       </div>
       
@@ -576,7 +611,7 @@
             <h3 class="card-title">📅 Calendar</h3>
             <p>Plan and view your weekly tennis events.</p>
           </div>
-          <a href="/calendar" class="sleek-btn">Open Calendar</a>
+          <a href="/calendar" class="btn btn-primary w-100">Open Calendar</a>
         </div>
       </div>
       
@@ -587,7 +622,7 @@
             <h3 class="card-title">🤖 AI Coaching Tools</h3>
             <p>Generate smart drills and full session plans with just a few prompts.</p>
           </div>
-          <a href="/ai-toolbox" class="sleek-btn">Launch AI Toolbox</a>
+          <a href="/ai-toolbox" class="btn btn-primary w-100">Launch AI Toolbox</a>
         </div>
       </div>
 
@@ -598,7 +633,7 @@
             <h3 class="card-title">🆕 What's New</h3>
             <p>Stay updated on the latest features and improvements to Coaches Hub.</p>
           </div>
-          <a href="/whats-new" class="sleek-btn">View Updates</a>
+          <a href="/whats-new" class="btn btn-primary w-100">View Updates</a>
         </div>
       </div>
     </div>
@@ -608,19 +643,17 @@
     <p>Built by Jamie • v2.1 • <a href="/contact">Contact Us</a></p>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Scripts remain unchanged -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script>
     AOS.init({ duration: 800, once: true });
   </script>
 
-  <!-- Inject postcode from Flask -->
+  <!-- Weather script remains unchanged -->
   <script>
     const userPostcode = "{{ default_postcode }}";
-  </script>
-
-  <script>
+    
     async function fetchTodayWeather(postcode) {
       const apiKey = "fd94c86864c1809c326f7f0b6add6acc";
       const fallback = "Fulham";
@@ -672,6 +705,7 @@
     window.onload = () => fetchTodayWeather(userPostcode || "SW6");
   </script>
 
+  <!-- Other scripts remain unchanged -->
   <script>
     setTimeout(() => {
       const alerts = document.querySelectorAll('.alert');
@@ -685,20 +719,14 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Show mobile-friendly prompt for adding to home screen
+      // Rest of the script unchanged
       let deferredPrompt;
       
       window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
-        // Stash the event so it can be triggered later
         deferredPrompt = e;
-        
-        // Show the add to home screen banner if not already installed
-        // This is handled in the installation section
       });
       
-      // Handle active menu highlighting
       const currentPath = window.location.pathname;
       const navItems = document.querySelectorAll('.nav-item');
       
@@ -709,10 +737,8 @@
         }
       });
       
-      // Optional: Close the offcanvas when clicking a link on mobile
       const offcanvasLinks = document.querySelectorAll('.offcanvas .nav-link, .logout-btn');
       
-      // Make sure Bootstrap is available before creating the Offcanvas instance
       if (typeof bootstrap !== 'undefined') {
         const sideNavElement = document.getElementById('sideNav');
         if (sideNavElement) {
@@ -720,7 +746,6 @@
           
           offcanvasLinks.forEach(link => {
             link.addEventListener('click', function() {
-              // Only auto-close on mobile screens
               if (window.innerWidth < 992) {
                 bsOffcanvas.hide();
               }
@@ -729,7 +754,6 @@
         }
       }
       
-      // Add animation to toggle button
       const navToggleBtn = document.getElementById('navToggleBtn');
       if (navToggleBtn) {
         const toggleIcon = navToggleBtn.querySelector('.toggle-icon');
