@@ -441,19 +441,19 @@
       <div class="nav-section">
         <h6 class="nav-section-title">Quick Links</h6>
         <ul class="nav-menu">
-          <li class="nav-item {% if request.path == '/whats-new' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/whats-new">
               <i class="nav-icon">🆕</i>
               <span>What's New</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/index' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/index">
               <i class="nav-icon">📋</i>
               <span>Match Organizer</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/ai-toolbox' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/ai-toolbox">
               <i class="nav-icon">🤖</i>
               <span>AI Toolbox</span>
@@ -465,19 +465,19 @@
       <div class="nav-section">
         <h6 class="nav-section-title">Planning Tools</h6>
         <ul class="nav-menu">
-          <li class="nav-item {% if request.path == '/calendar' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/calendar">
               <i class="nav-icon">📅</i>
               <span>Calendar</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/weather' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/weather">
               <i class="nav-icon">🌤️</i>
               <span>Weather</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/coachbot' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/coachbot">
               <i class="nav-icon">🧠</i>
               <span>CoachBot</span>
@@ -489,19 +489,19 @@
       <div class="nav-section">
         <h6 class="nav-section-title">Communication</h6>
         <ul class="nav-menu">
-          <li class="nav-item {% if request.path == '/bulletin' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/bulletin">
               <i class="nav-icon">📌</i>
               <span>Bulletin</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/notes' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/notes">
               <i class="nav-icon">📝</i>
               <span>Notes</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/access-codes' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/access-codes">
               <i class="nav-icon">🎟️</i>
               <span>Access Codes</span>
@@ -513,20 +513,20 @@
       <div class="nav-section">
         <h6 class="nav-section-title">Extras</h6>
         <ul class="nav-menu">
-          <li class="nav-item {% if request.path == '/guide' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/guide">
               <i class="nav-icon">📖</i>
               <span>Coach Guide</span>
             </a>
           </li>
-          <li class="nav-item {% if request.path == '/settings' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link" href="/settings">
               <i class="nav-icon">⚙️</i>
               <span>Settings</span>
             </a>
           </li>
           {% if current_user.is_admin %}
-          <li class="nav-item {% if request.path == '/admin' %}active{% endif %}">
+          <li class="nav-item">
             <a class="nav-link admin-link" href="/admin">
               <i class="nav-icon">👑</i>
               <span>Admin Dashboard</span>
@@ -717,53 +717,5 @@
     }, 4000);
   </script>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Rest of the script unchanged
-      let deferredPrompt;
-      
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-      });
-      
-      const currentPath = window.location.pathname;
-      const navItems = document.querySelectorAll('.nav-item');
-      
-      navItems.forEach(item => {
-        const link = item.querySelector('.nav-link');
-        if (link && link.getAttribute('href') === currentPath) {
-          item.classList.add('active');
-        }
-      });
-      
-      const offcanvasLinks = document.querySelectorAll('.offcanvas .nav-link, .logout-btn');
-      
-      if (typeof bootstrap !== 'undefined') {
-        const sideNavElement = document.getElementById('sideNav');
-        if (sideNavElement) {
-          const bsOffcanvas = new bootstrap.Offcanvas(sideNavElement);
-          
-          offcanvasLinks.forEach(link => {
-            link.addEventListener('click', function() {
-              if (window.innerWidth < 992) {
-                bsOffcanvas.hide();
-              }
-            });
-          });
-        }
-      }
-      
-      const navToggleBtn = document.getElementById('navToggleBtn');
-      if (navToggleBtn) {
-        const toggleIcon = navToggleBtn.querySelector('.toggle-icon');
-        if (toggleIcon) {
-          navToggleBtn.addEventListener('click', function() {
-            toggleIcon.classList.toggle('open');
-          });
-        }
-      }
-    });
-  </script>
 </body>
 </html>
