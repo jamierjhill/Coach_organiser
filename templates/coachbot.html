@@ -1,322 +1,294 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
-  </script>
-  <meta charset="UTF-8" />
-  <title>🧠 CoachBot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/colours.css" rel="stylesheet">
-  <link href="/static/typography.css" rel="stylesheet">  
-</head>
-<body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
+{% extends "base.html" %}
 
+{% block title %}🧠 CoachBot{% endblock %}
+
+{% block content %}
   <div class="page-title-container">
     <h1 class="page-title">🧠 CoachBot Assistant</h1>
-    <div class="title-nav-buttons">
-      <a href="/home" class="btn btn-outline-success">🏠 Home</a>
-    </div>
+
   </div>
 
-  <div class="container pb-5">
-    <div class="tennis-card">
-      <!-- Chat header with CoachBot info -->
-      <div class="chat-header d-flex align-items-center mb-4">
-        <div class="chat-avatar-container me-3">
-          <div class="chat-avatar">🧠</div>
-        </div>
-        <div class="chat-info">
-          <h4 class="mb-1">Tennis Coaching Assistant</h4>
-          <p class="text-muted mb-0">Ask me any tennis-related questions!</p>
-        </div>
-        <div class="dropdown ms-auto">
-          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="chatOptions" data-bs-toggle="dropdown" aria-expanded="false">
-            Options
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chatOptions">
-            <li><a class="dropdown-item" href="#" onclick="clearChat()">🧹 Clear Chat</a></li>
-            <li><a class="dropdown-item" href="/guide">📘 Coach's Guide</a></li>
-          </ul>
-        </div>
+  <div class="tennis-card">
+    <!-- Chat header with CoachBot info -->
+    <div class="chat-header d-flex align-items-center mb-4">
+      <div class="chat-avatar-container me-3">
+        <div class="chat-avatar">🧠</div>
+      </div>
+      <div class="chat-info">
+        <h4 class="mb-1">Tennis Coaching Assistant</h4>
+        <p class="text-muted mb-0">Ask me any tennis-related questions!</p>
+      </div>
+      <div class="dropdown ms-auto">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="chatOptions" data-bs-toggle="dropdown" aria-expanded="false">
+          Options
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chatOptions">
+          <li><a class="dropdown-item" href="#" onclick="clearChat()">🧹 Clear Chat</a></li>
+          <li><a class="dropdown-item" href="/guide">📘 Coach's Guide</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Chat conversation area -->
+    <div id="chatbox" class="chatbox mb-3">
+      <!-- Messages will appear here -->
+    </div>
+    
+    <!-- Chat input area -->
+    <div class="chat-input-container">
+      <div class="input-group mb-3">
+        <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis coaching question..." autofocus>
+        <button class="btn tennis-btn" onclick="sendChat()">
+          <span class="send-icon">📤</span>
+          <span class="d-none d-md-inline">Send</span>
+        </button>
       </div>
       
-      <!-- Chat conversation area -->
-      <div id="chatbox" class="chatbox mb-3">
-        <!-- Messages will appear here -->
+      <div class="suggestion-chips d-flex flex-wrap gap-2 mb-2">
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique 🎯</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Beginner drills 🔰</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics 🏆</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips 🚀</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Footwork drills 👟</span>
       </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Handle Enter key press
+  document.getElementById("chatInput")?.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+
+  // Add welcome message when page loads
+  window.onload = function() {
+    const chatbox = document.getElementById("chatbox");
+    chatbox.innerHTML = `
+      <div class="welcome-card">
+        <h4>👋 Welcome to CoachBot!</h4>
+        <p>I'm your AI tennis coaching assistant. I can help with:</p>
+        <ul>
+          <li>Tennis drills and practice ideas</li>
+          <li>Technical advice for all strokes</li>
+          <li>Match tactics and strategies</li>
+          <li>Coaching tips for different age groups</li>
+        </ul>
+        <p>Ask me anything tennis-related to get started!</p>
+      </div>
+    `;
+  };
+
+  // Process and send chat message
+  function sendChat() {
+    const input = document.getElementById("chatInput");
+    const chatbox = document.getElementById("chatbox");
+    const userMsg = input.value.trim();
+    if (!userMsg) return;
+
+    // Add user message
+    chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
+    input.value = "";
+    
+    // Scroll to bottom
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    // Show typing indicator
+    chatbox.innerHTML += `
+      <div class="chat-msg chat-bot" id="typingMsg">
+        <strong>CoachBot:</strong> 
+        <span class="typing-indicator">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </span>
+      </div>
+    `;
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    // Send to backend
+    fetch("/chatbot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userMsg })
+    })
+    .then(res => res.json())
+    .then(data => {
+      // Remove typing indicator
+      document.getElementById("typingMsg")?.remove();
       
-      <!-- Chat input area -->
-      <div class="chat-input-container">
-        <div class="input-group mb-3">
-          <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis coaching question..." autofocus>
-          <button class="btn tennis-btn" onclick="sendChat()">
-            <span class="send-icon">📤</span>
-            <span class="d-none d-md-inline">Send</span>
-          </button>
-        </div>
+      // Format response
+      const botResponse = data.success
+        ? `<strong>CoachBot:</strong> ${data.reply}`
+        : `<strong>Error:</strong> ${data.error}`;
         
-        <div class="suggestion-chips d-flex flex-wrap gap-2 mb-2">
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique 🎯</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Beginner drills 🔰</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics 🏆</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips 🚀</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Footwork drills 👟</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <script>
-    // Handle Enter key press
-    document.getElementById("chatInput")?.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendChat();
-      }
+      // Add bot response  
+      chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    })
+    .catch(err => {
+      document.getElementById("typingMsg")?.remove();
+      chatbox.innerHTML += `<div class="chat-msg chat-bot"><strong>Error:</strong> ${err}</div>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
     });
+  }
 
-    // Add welcome message when page loads
-    window.onload = function() {
-      const chatbox = document.getElementById("chatbox");
+  // Clear chat history
+  function clearChat() {
+    const chatbox = document.getElementById("chatbox");
+    
+    // Add fade-out animation
+    chatbox.style.opacity = '0';
+    chatbox.style.transition = 'opacity 0.3s ease';
+    
+    // Reset after animation
+    setTimeout(() => {
       chatbox.innerHTML = `
         <div class="welcome-card">
-          <h4>👋 Welcome to CoachBot!</h4>
-          <p>I'm your AI tennis coaching assistant. I can help with:</p>
-          <ul>
-            <li>Tennis drills and practice ideas</li>
-            <li>Technical advice for all strokes</li>
-            <li>Match tactics and strategies</li>
-            <li>Coaching tips for different age groups</li>
-          </ul>
-          <p>Ask me anything tennis-related to get started!</p>
+          <h4>👋 Chat cleared!</h4>
+          <p>What tennis topic would you like to discuss now?</p>
         </div>
       `;
-    };
-
-    // Process and send chat message
-    function sendChat() {
-      const input = document.getElementById("chatInput");
-      const chatbox = document.getElementById("chatbox");
-      const userMsg = input.value.trim();
-      if (!userMsg) return;
-
-      // Add user message
-      chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
-      input.value = "";
-      
-      // Scroll to bottom
-      chatbox.scrollTop = chatbox.scrollHeight;
-
-      // Show typing indicator
-      chatbox.innerHTML += `
-        <div class="chat-msg chat-bot" id="typingMsg">
-          <strong>CoachBot:</strong> 
-          <span class="typing-indicator">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-          </span>
-        </div>
-      `;
-      chatbox.scrollTop = chatbox.scrollHeight;
-
-      // Send to backend
-      fetch("/chatbot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
-      })
-      .then(res => res.json())
-      .then(data => {
-        // Remove typing indicator
-        document.getElementById("typingMsg")?.remove();
-        
-        // Format response
-        const botResponse = data.success
-          ? `<strong>CoachBot:</strong> ${data.reply}`
-          : `<strong>Error:</strong> ${data.error}`;
-          
-        // Add bot response  
-        chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
-        chatbox.scrollTop = chatbox.scrollHeight;
-      })
-      .catch(err => {
-        document.getElementById("typingMsg")?.remove();
-        chatbox.innerHTML += `<div class="chat-msg chat-bot"><strong>Error:</strong> ${err}</div>`;
-        chatbox.scrollTop = chatbox.scrollHeight;
-      });
-    }
-
-    // Clear chat history
-    function clearChat() {
-      const chatbox = document.getElementById("chatbox");
-      
-      // Add fade-out animation
-      chatbox.style.opacity = '0';
-      chatbox.style.transition = 'opacity 0.3s ease';
-      
-      // Reset after animation
-      setTimeout(() => {
-        chatbox.innerHTML = `
-          <div class="welcome-card">
-            <h4>👋 Chat cleared!</h4>
-            <p>What tennis topic would you like to discuss now?</p>
-          </div>
-        `;
-        chatbox.style.opacity = '1';
-      }, 300);
-    }
-    
-    // Handle suggestion chips
-    function suggestQuery(element) {
-      const input = document.getElementById("chatInput");
-      input.value = element.textContent.replace(/\s[\p{Emoji}]/u, ''); // Remove trailing emoji if present
-      input.focus();
-    }
-  </script>
+      chatbox.style.opacity = '1';
+    }, 300);
+  }
   
-  <style>
-    /* CoachBot specific styling */
-    .chat-header {
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--light-border);
-      margin-bottom: 1.5rem;
-    }
-    
-    .chat-avatar-container {
-      background-color: var(--teal-light);
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 10px rgba(0, 160, 126, 0.2);
-    }
-    
-    .chat-avatar {
-      font-size: 1.8rem;
-    }
-    
-    #chatbox {
-      height: 400px;
-      overflow-y: auto;
-      background-color: var(--light);
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin-bottom: 1.25rem;
-      border: 1px solid var(--light-border);
-    }
-    
-    .chat-msg {
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      max-width: 85%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      animation: fadeIn 0.3s ease;
-    }
-    
-    .chat-user {
-      background-color: var(--teal-light);
-      color: var(--white);
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-      margin-left: auto;
-    }
-    
-    .chat-bot {
-      background-color: var(--white);
-      border: 1px solid var(--light-border);
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-      color: var(--text-primary);
-    }
-    
-    .welcome-card {
-      background-color: var(--white);
-      border-radius: 12px;
-      padding: 1.25rem;
-      border-left: 4px solid var(--teal);
-      margin-bottom: 1.25rem;
-    }
-    
-    .suggestion-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    
-    .suggestion-chip {
-      background-color: var(--light);
-      color: var(--navy);
-      font-size: 0.85rem;
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-block;
-      border: 1px solid var(--light-border);
-    }
-    
-    .suggestion-chip:hover {
-      background-color: var(--teal-light);
-      color: var(--white);
-      transform: translateY(-2px);
-    }
+  // Handle suggestion chips
+  function suggestQuery(element) {
+    const input = document.getElementById("chatInput");
+    input.value = element.textContent.replace(/\s[\p{Emoji}]/u, ''); // Remove trailing emoji if present
+    input.focus();
+  }
+</script>
+{% endblock %}
 
-    /* Typing indicator */
-    .typing-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      background-color: var(--text-secondary);
-      border-radius: 50%;
-      opacity: 0.7;
-      animation: typing 1s infinite;
-    }
-    
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
-      50% { transform: translateY(-4px); opacity: 1; }
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</body>
-</html>
+{% block extra_css %}
+<style>
+  /* CoachBot specific styling */
+  .chat-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--light-border);
+    margin-bottom: 1.5rem;
+  }
+  
+  .chat-avatar-container {
+    background-color: var(--teal-light);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0, 160, 126, 0.2);
+  }
+  
+  .chat-avatar {
+    font-size: 1.8rem;
+  }
+  
+  #chatbox {
+    height: 400px;
+    overflow-y: auto;
+    background-color: var(--light);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--light-border);
+  }
+  
+  .chat-msg {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    max-width: 85%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .chat-user {
+    background-color: var(--teal-light);
+    color: var(--white);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+  }
+  
+  .chat-bot {
+    background-color: var(--white);
+    border: 1px solid var(--light-border);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    color: var(--text-primary);
+  }
+  
+  .welcome-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border-left: 4px solid var(--teal);
+    margin-bottom: 1.25rem;
+  }
+  
+  .suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .suggestion-chip {
+    background-color: var(--light);
+    color: var(--navy);
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    border: 1px solid var(--light-border);
+  }
+  
+  .suggestion-chip:hover {
+    background-color: var(--teal-light);
+    color: var(--white);
+    transform: translateY(-2px);
+  }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--text-secondary);
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: typing 1s infinite;
+  }
+  
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes typing {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %} typing {

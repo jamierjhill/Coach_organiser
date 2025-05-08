@@ -1,454 +1,399 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<title>👑 Admin Dashboard</title>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<link href="/static/typography.css" rel="stylesheet"/>
+{% block title %}👑 Admin Dashboard{% endblock %}
+
+{% block body_class %}admin-page{% endblock %}
+
+{% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/>
 <style>
-    body {
-      background-color: #e8f5e9;
-      font-family: 'Segoe UI', sans-serif;
-    }
+  .dashboard-container {
+    max-width: 1200px;
+    margin: auto;
+    padding-bottom: 4rem;
+  }
 
-    .top-bar {
-      padding: 3rem 2rem 2rem;
-      text-align: center;
-      background-color: #e8f5e9;
-    }
+  .admin-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    margin-bottom: 30px;
+    border-left: 6px solid var(--navy);
+  }
 
-    .dashboard-container {
-      max-width: 1200px;
-      margin: auto;
-      padding-bottom: 4rem;
-    }
+  .stats-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--navy);
+    transition: transform 0.3s ease;
+  }
 
-    .admin-card {
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-      padding: 25px;
-      margin-bottom: 30px;
-      border-left: 6px solid #1b5e20;
-    }
+  .stats-card:hover {
+    transform: translateY(-5px);
+  }
 
-    .stats-card {
-      background-color: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-left: 4px solid #1b5e20;
-      transition: transform 0.3s ease;
-    }
+  .stats-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--navy);
+  }
 
-    .stats-card:hover {
-      transform: translateY(-5px);
-    }
+  .stats-label {
+    color: #666;
+    font-size: 0.9rem;
+  }
 
-    .stats-value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #1b5e20;
-    }
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
 
-    .stats-label {
-      color: #666;
-      font-size: 0.9rem;
-    }
+  .table thead th {
+    background-color: var(--light);
+    border: none;
+    color: var(--navy);
+    font-weight: 600;
+  }
 
-    .table {
-      border-collapse: separate;
-      border-spacing: 0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+  .table tbody tr:hover {
+    background-color: #f5f5f5;
+  }
 
-    .table thead th {
-      background-color: #e8f5e9;
-      border: none;
-      color: #1b5e20;
-      font-weight: 600;
-    }
+  .table td {
+    vertical-align: middle;
+  }
 
-    .table tbody tr:hover {
-      background-color: #f5f5f5;
-    }
+  .btn-admin {
+    background-color: var(--navy);
+    color: white;
+    font-weight: bold;
+  }
 
-    .table td {
-      vertical-align: middle;
-    }
+  .btn-admin:hover {
+    background-color: var(--navy-dark);
+    color: white;
+  }
 
-    .btn-admin {
-      background-color: #43a047;
-      color: white;
-      font-weight: bold;
-    }
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--light);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 10px;
+  }
 
-    .btn-admin:hover {
-      background-color: #2e7d32;
-      color: white;
-    }
+  .search-bar {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .status-badge {
+    padding: 5px 10px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .status-badge-admin {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+  }
+  
+  .status-badge-coach {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+  }
+  
+  .status-badge-active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .status-badge-inactive {
+    background-color: #f5f5f5;
+    color: #757575;
+  }
 
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: #e8f5e9;
-      color: #1b5e20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 10px;
-    }
+  .modal-content {
+    border-radius: 12px;
+    border: none;
+  }
 
-    .search-bar {
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-    
-    .status-badge {
-      padding: 5px 10px;
-      border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-    
-    .status-badge-admin {
-      background-color: #e8f5e9;
-      color: #1b5e20;
-    }
-    
-    .status-badge-coach {
-      background-color: #e3f2fd;
-      color: #0d47a1;
-    }
-    
-    .status-badge-active {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-    
-    .status-badge-inactive {
-      background-color: #f5f5f5;
-      color: #757575;
-    }
+  .modal-header {
+    background-color: var(--light);
+    border-bottom: none;
+  }
 
-    .modal-content {
-      border-radius: 12px;
-      border: none;
-    }
+  .modal-footer {
+    border-top: none;
+  }
+</style>
+{% endblock %}
 
-    .modal-header {
-      background-color: #e8f5e9;
-      border-bottom: none;
-    }
-
-    .modal-footer {
-      border-top: none;
-    }
-  </style>
-</head>
-<body>
-<!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="container mt-3">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
-</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <div class="page-title-container">
-    <h1 class="page-title">👑 Admin Dashboard</h1>
-    <div class="title-nav-buttons">
-      <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
-      <a href="/admin/analytics" class="btn btn-outline-success">📊 Analytics</a>
-    </div>
+{% block content %}
+<div class="page-title-container">
+  <h1 class="page-title">👑 Admin Dashboard</h1>
+  <div class="title-nav-buttons">
+    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
+    <a href="/admin/analytics" class="btn btn-outline-success">📊 Analytics</a>
   </div>
-<div class="dashboard-container container">
+</div>
+
 <!-- System Metrics Overview -->
 <div class="admin-card mb-4">
-<h3 class="mb-4 text-success h3">📊 System Overview</h3>
-<div class="row g-3">
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-people-fill text-success" style="font-size: 2.5rem;"></i>
+  <h3 class="mb-4 text-success h3">📊 System Overview</h3>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="stats-card d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <i class="bi bi-people-fill text-success" style="font-size: 2.5rem;"></i>
+        </div>
+        <div>
+          <div class="stats-value">{{ metrics.total_coaches }}</div>
+          <div class="stats-label">Total Coaches</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stats-card d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
+        </div>
+        <div>
+          <div class="stats-value">{{ metrics.active_coaches }}</div>
+          <div class="stats-label">Active Coaches (30 days)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stats-card d-flex align-items-center">
+        <div class="flex-shrink-0 me-3">
+          <i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
+        </div>
+        <div>
+          <div class="stats-value">{{ metrics.active_coaches_week }}</div>
+          <div class="stats-label">Active Coaches (7 days)</div>
+        </div>
+      </div>
+    </div>
+    <!-- More stat cards -->
+  </div>
 </div>
-<div>
-<div class="stats-value">{{ metrics.total_coaches }}</div>
-<div class="stats-label">Total Coaches</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
-</div>
-<div>
-<div class="stats-value">{{ metrics.active_coaches }}</div>
-<div class="stats-label">Active Coaches (30 days)</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
-</div>
-<div>
-<div class="stats-value">{{ metrics.active_coaches_week }}</div>
-<div class="stats-label">Active Coaches (7 days)</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-key-fill text-success" style="font-size: 2.5rem;"></i>
-</div>
-<div>
-<div class="stats-value">{{ metrics.total_access_codes }}</div>
-<div class="stats-label">Access Codes Created</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-calendar-event-fill text-success" style="font-size: 2.5rem;"></i>
-</div>
-<div>
-<div class="stats-value">{{ metrics.total_events }}</div>
-<div class="stats-label">Total Calendar Events</div>
-</div>
-</div>
-</div>
-<div class="col-md-4">
-<div class="stats-card d-flex align-items-center">
-<div class="flex-shrink-0 me-3">
-<i class="bi bi-megaphone-fill text-success" style="font-size: 2.5rem;"></i>
-</div>
-<div>
-<div class="stats-value">{{ metrics.total_bulletins }}</div>
-<div class="stats-label">Total Bulletins</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+
 <!-- User Management Section -->
 <div class="admin-card">
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h3 class="mb-0 text-success h3">👥 User Management</h3>
-<div class="d-flex">
-<input class="form-control search-bar me-2" id="userSearch" placeholder="Search coaches..." type="text"/>
-<select class="form-select me-2" id="filterActivity" style="width: auto;">
-<option value="all">All Users</option>
-<option value="active">Active (30 days)</option>
-<option value="inactive">Inactive (30+ days)</option>
-</select>
-</div>
-</div>
-<div class="table-responsive">
-<table class="table" id="usersTable">
-<thead>
-<tr>
-<th>Coach</th>
-<th>Location</th>
-<th>Registered</th>
-<th>Last Login</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody>
-            {% for user in users %}
-            <tr data-activity="{{ 'active' if user.last_login_formatted and user.last_login_formatted != 'Never' and not user.last_login_formatted.endswith('months ago') and not user.last_login_formatted.endswith('month ago') and not user.last_login_formatted.endswith('ago') else 'inactive' }}">
-<td>
-<div class="d-flex align-items-center">
-<div class="user-avatar">{{ user.username[0] | upper }}</div>
-<div>{{ user.username }}</div>
-</div>
-</td>
-<td>{{ user.default_postcode if user.default_postcode else "Not set" }}</td>
-<td>{{ user.registration_date if user.registration_date else "Unknown" }}</td>
-<td>{{ user.last_login_formatted }}</td>
-<td>
-                {% if user.is_admin %}
-                <span class="status-badge status-badge-admin">Admin</span>
-                {% else %}
-                <span class="status-badge status-badge-coach">Coach</span>
-                {% endif %}
-                
-                {% if user.last_login_formatted and user.last_login_formatted != 'Never' and not user.last_login_formatted.endswith('months ago') and not user.last_login_formatted.endswith('month ago') %}
-                <span class="status-badge status-badge-active">Active</span>
-                {% else %}
-                <span class="status-badge status-badge-inactive">Inactive</span>
-                {% endif %}
-              </td>
-<td>
-<div class="btn-group">
-<form action="/admin/toggle-admin/{{ user.username }}" class="me-2" method="POST">
-<button class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}" type="submit">
-                      {% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
-                    </button>
-</form>
-<button class="btn btn-sm btn-info me-2" data-bs-target="#loginHistoryModal" data-bs-toggle="modal" data-username="{{ user.username }}" onclick="showLoginHistory('{{ user.username }}', {{ user.login_history|tojson if user.login_history else '[]' }})" type="button">
-                    History
-                  </button>
-<button class="btn btn-sm btn-danger" data-bs-target="#deleteUserModal" data-bs-toggle="modal" data-username="{{ user.username }}" type="button">
-                    Delete
-                  </button>
-</div>
-</td>
-</tr>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-success h3">👥 User Management</h3>
+    <div class="d-flex">
+      <input class="form-control search-bar me-2" id="userSearch" placeholder="Search coaches..." type="text"/>
+      <select class="form-select me-2" id="filterActivity" style="width: auto;">
+        <option value="all">All Users</option>
+        <option value="active">Active (30 days)</option>
+        <option value="inactive">Inactive (30+ days)</option>
+      </select>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table" id="usersTable">
+      <thead>
+        <tr>
+          <th>Coach</th>
+          <th>Location</th>
+          <th>Registered</th>
+          <th>Last Login</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr data-activity="{{ 'active' if user.last_login_formatted and user.last_login_formatted != 'Never' and not user.last_login_formatted.endswith('months ago') and not user.last_login_formatted.endswith('month ago') and not user.last_login_formatted.endswith('ago') else 'inactive' }}">
+          <td>
+            <div class="d-flex align-items-center">
+              <div class="user-avatar">{{ user.username[0] | upper }}</div>
+              <div>{{ user.username }}</div>
+            </div>
+          </td>
+          <td>{{ user.default_postcode if user.default_postcode else "Not set" }}</td>
+          <td>{{ user.registration_date if user.registration_date else "Unknown" }}</td>
+          <td>{{ user.last_login_formatted }}</td>
+          <td>
+            {% if user.is_admin %}
+            <span class="status-badge status-badge-admin">Admin</span>
             {% else %}
-            <tr>
-<td class="text-center" colspan="6">No users found</td>
-</tr>
-            {% endfor %}
-          </tbody>
-</table>
+            <span class="status-badge status-badge-coach">Coach</span>
+            {% endif %}
+            
+            {% if user.last_login_formatted and user.last_login_formatted != 'Never' and not user.last_login_formatted.endswith('months ago') and not user.last_login_formatted.endswith('month ago') %}
+            <span class="status-badge status-badge-active">Active</span>
+            {% else %}
+            <span class="status-badge status-badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <form action="/admin/toggle-admin/{{ user.username }}" class="me-2" method="POST">
+                <button class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}" type="submit">
+                  {% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
+                </button>
+              </form>
+              <button class="btn btn-sm btn-info me-2" data-bs-target="#loginHistoryModal" data-bs-toggle="modal" data-username="{{ user.username }}" onclick="showLoginHistory('{{ user.username }}', {{ user.login_history|tojson if user.login_history else '[]' }})" type="button">
+                History
+              </button>
+              <button class="btn btn-sm btn-danger" data-bs-target="#deleteUserModal" data-bs-toggle="modal" data-username="{{ user.username }}" type="button">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="text-center" colspan="6">No users found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
-</div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
 <!-- Delete User Modal -->
 <div aria-hidden="true" class="modal fade" id="deleteUserModal" tabindex="-1">
-<div class="modal-dialog">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title text-danger h5">⚠️ Confirm Deletion</h5>
-<button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
-</div>
-<div class="modal-body">
-<p class="text-sm">Are you sure you want to delete the user <strong id="deleteUsername"></strong>?</p>
-<p class="text-danger">This action cannot be undone. All user data including notes, bulletins, 
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger h5">⚠️ Confirm Deletion</h5>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm">Are you sure you want to delete the user <strong id="deleteUsername"></strong>?</p>
+        <p class="text-danger">This action cannot be undone. All user data including notes, bulletins, 
           access codes, and calendar events will be permanently deleted.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+        <form action="" id="deleteUserForm" method="POST">
+          <button class="btn btn-danger" type="submit">Delete User</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="modal-footer">
-<button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
-<form action="" id="deleteUserForm" method="POST">
-<button class="btn btn-danger" type="submit">Delete User</button>
-</form>
-</div>
-</div>
-</div>
-</div>
+
 <!-- Login History Modal -->
 <div aria-hidden="true" class="modal fade" id="loginHistoryModal" tabindex="-1">
-<div class="modal-dialog">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title h5">Login History - <span id="historyUsername"></span></h5>
-<button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title h5">Login History - <span id="historyUsername"></span></h5>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning" id="noLoginHistory" style="display: none;">
+          No login history available for this user.
+        </div>
+        <ul class="list-group" id="loginHistoryList">
+          <!-- Login history will be inserted here via JavaScript -->
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="modal-body">
-<div class="alert alert-warning" id="noLoginHistory" style="display: none;">
-            No login history available for this user.
-          </div>
-<ul class="list-group" id="loginHistoryList">
-<!-- Login history will be inserted here via JavaScript -->
-</ul>
-</div>
-<div class="modal-footer">
-<button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
-</div>
-</div>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // Setup delete user modal
-    const deleteUserModal = document.getElementById('deleteUserModal');
-    if (deleteUserModal) {
-      deleteUserModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const username = button.getAttribute('data-username');
-        const usernameElement = document.getElementById('deleteUsername');
-        const form = document.getElementById('deleteUserForm');
-        
-        usernameElement.textContent = username;
-        form.action = `/admin/delete-user/${username}`;
-      });
+  // Setup delete user modal
+  const deleteUserModal = document.getElementById('deleteUserModal');
+  if (deleteUserModal) {
+    deleteUserModal.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const username = button.getAttribute('data-username');
+      const usernameElement = document.getElementById('deleteUsername');
+      const form = document.getElementById('deleteUserForm');
+      
+      usernameElement.textContent = username;
+      form.action = `/admin/delete-user/${username}`;
+    });
+  }
+  
+  // User search functionality
+  const userSearch = document.getElementById('userSearch');
+  const filterActivity = document.getElementById('filterActivity');
+  
+  function filterTable() {
+    const searchTerm = userSearch.value.toLowerCase();
+    const activityFilter = filterActivity.value;
+    const table = document.getElementById('usersTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {  // Start from 1 to skip header
+      const usernameCell = rows[i].cells[0];
+      const locationCell = rows[i].cells[1];
+      const activityStatus = rows[i].getAttribute('data-activity');
+      
+      if (!usernameCell) continue;
+      
+      const username = usernameCell.textContent.toLowerCase();
+      const location = locationCell ? locationCell.textContent.toLowerCase() : '';
+      const matchesSearch = username.includes(searchTerm) || location.includes(searchTerm);
+      const matchesActivity = activityFilter === 'all' || activityStatus === activityFilter;
+      
+      rows[i].style.display = (matchesSearch && matchesActivity) ? '' : 'none';
+    }
+  }
+  
+  if (userSearch) {
+    userSearch.addEventListener('input', filterTable);
+  }
+  
+  if (filterActivity) {
+    filterActivity.addEventListener('change', filterTable);
+  }
+  
+  // Login history display
+  function showLoginHistory(username, loginHistory) {
+    const historyUsername = document.getElementById('historyUsername');
+    const historyList = document.getElementById('loginHistoryList');
+    const noHistory = document.getElementById('noLoginHistory');
+    
+    historyUsername.textContent = username;
+    historyList.innerHTML = '';
+    
+    if (!loginHistory || loginHistory.length === 0) {
+      noHistory.style.display = 'block';
+      historyList.style.display = 'none';
+      return;
     }
     
-    // User search functionality
-    const userSearch = document.getElementById('userSearch');
-    const filterActivity = document.getElementById('filterActivity');
+    noHistory.style.display = 'none';
+    historyList.style.display = 'block';
     
-    function filterTable() {
-      const searchTerm = userSearch.value.toLowerCase();
-      const activityFilter = filterActivity.value;
-      const table = document.getElementById('usersTable');
-      const rows = table.getElementsByTagName('tr');
+    loginHistory.forEach((timestamp, index) => {
+      const listItem = document.createElement('li');
+      listItem.className = 'list-group-item';
       
-      for (let i = 1; i < rows.length; i++) {  // Start from 1 to skip header
-        const usernameCell = rows[i].cells[0];
-        const locationCell = rows[i].cells[1];
-        const activityStatus = rows[i].getAttribute('data-activity');
-        
-        if (!usernameCell) continue;
-        
-        const username = usernameCell.textContent.toLowerCase();
-        const location = locationCell ? locationCell.textContent.toLowerCase() : '';
-        const matchesSearch = username.includes(searchTerm) || location.includes(searchTerm);
-        const matchesActivity = activityFilter === 'all' || activityStatus === activityFilter;
-        
-        rows[i].style.display = (matchesSearch && matchesActivity) ? '' : 'none';
+      if (index === 0) {
+        listItem.classList.add('list-group-item-success');
+        listItem.innerHTML = `<strong>Most recent:</strong> ${timestamp}`;
+      } else {
+        listItem.textContent = timestamp;
       }
-    }
-    
-    if (userSearch) {
-      userSearch.addEventListener('input', filterTable);
-    }
-    
-    if (filterActivity) {
-      filterActivity.addEventListener('change', filterTable);
-    }
-    
-    // Login history display
-    function showLoginHistory(username, loginHistory) {
-      const historyUsername = document.getElementById('historyUsername');
-      const historyList = document.getElementById('loginHistoryList');
-      const noHistory = document.getElementById('noLoginHistory');
       
-      historyUsername.textContent = username;
-      historyList.innerHTML = '';
-      
-      if (!loginHistory || loginHistory.length === 0) {
-        noHistory.style.display = 'block';
-        historyList.style.display = 'none';
-        return;
-      }
-      
-      noHistory.style.display = 'none';
-      historyList.style.display = 'block';
-      
-      loginHistory.forEach((timestamp, index) => {
-        const listItem = document.createElement('li');
-        listItem.className = 'list-group-item';
-        
-        if (index === 0) {
-          listItem.classList.add('list-group-item-success');
-          listItem.innerHTML = `<strong>Most recent:</strong> ${timestamp}`;
-        } else {
-          listItem.textContent = timestamp;
-        }
-        
-        historyList.appendChild(listItem);
-      });
-    }
-  </script>
-</body>
-</html>
+      historyList.appendChild(listItem);
+    });
+  }
+</script>
+{% endblock %}
