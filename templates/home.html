@@ -365,6 +365,7 @@
         width: 20px;
       }
     }
+    
     /* Improved navbar header styling for text legibility */
 .offcanvas-header {
   background-color: var(--navy);
@@ -397,6 +398,35 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Text shadow for better readability */
   letter-spacing: 0.5px; /* Increased letter spacing for better readability */
 }
+  /* Immediate override of navigation item styling */
+  .nav-item, 
+  .nav-item.active, 
+  .nav-link, 
+  .nav-link.active,
+  div[id="sideNav"] .nav-item,
+  div[id="sideNav"] .nav-link,
+  .offcanvas-body .nav-item,
+  .offcanvas-body .nav-link,
+  .nav-menu li,
+  .nav-menu li.active {
+    background-color: transparent !important;
+    border-left: none !important;
+  }
+  
+  /* Remove the left border indicator */
+  .nav-item.active:before,
+  .nav-link.active:before,
+  .nav-menu li.active:before {
+    display: none !important;
+  }
+  
+
+  
+  /* Override hover styles */
+  .nav-item:hover,
+  .nav-link:hover {
+    background-color: transparent !important;
+  }
   </style>
 </head>
 
@@ -417,133 +447,135 @@
     <span class="toggle-icon"></span>
   </button>
 
-  <!-- Side Navigation (Offcanvas) -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel">
-    <div class="offcanvas-header">
-      <div class="nav-brand">
-        <div class="logo-container">🎾</div>
-        <h5 class="offcanvas-title" id="sideNavLabel">Coaches Hub</h5>
-      </div>
-      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+ <!-- Replace the navigation section in home.html with this code -->
+
+<!-- Side Navigation (Offcanvas) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sideNav" aria-labelledby="sideNavLabel">
+  <div class="offcanvas-header">
+    <div class="nav-brand">
+      <div class="logo-container">🎾</div>
+      <h5 class="offcanvas-title" id="sideNavLabel">Coaches Hub</h5>
+    </div>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  
+  <div class="offcanvas-body">
+    <div class="user-info">
+      {% if current_user.is_authenticated %}
+        <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
+        <div class="user-details">
+          <span class="username">{{ current_user.username }}</span>
+          <span class="user-role">{% if current_user.is_admin %}Admin{% else %}Coach{% endif %}</span>
+        </div>
+      {% endif %}
     </div>
     
-    <div class="offcanvas-body">
-      <div class="user-info">
-        {% if current_user.is_authenticated %}
-          <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
-          <div class="user-details">
-            <span class="username">{{ current_user.username }}</span>
-            <span class="user-role">{% if current_user.is_admin %}Admin{% else %}Coach{% endif %}</span>
-          </div>
+    <div class="nav-section">
+      <h6 class="nav-section-title">Quick Links</h6>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link" href="/whats-new">
+            <i class="nav-icon">🆕</i>
+            <span>What's New</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/index">
+            <i class="nav-icon">📋</i>
+            <span>Match Organizer</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/ai-toolbox">
+            <i class="nav-icon">🤖</i>
+            <span>AI Toolbox</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <div class="nav-section">
+      <h6 class="nav-section-title">Planning Tools</h6>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link" href="/calendar">
+            <i class="nav-icon">📅</i>
+            <span>Calendar</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/weather">
+            <i class="nav-icon">🌤️</i>
+            <span>Weather</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/coachbot">
+            <i class="nav-icon">🧠</i>
+            <span>CoachBot</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <div class="nav-section">
+      <h6 class="nav-section-title">Communication</h6>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link" href="/bulletin">
+            <i class="nav-icon">📌</i>
+            <span>Bulletin</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/notes">
+            <i class="nav-icon">📝</i>
+            <span>Notes</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/access-codes">
+            <i class="nav-icon">🎟️</i>
+            <span>Access Codes</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <div class="nav-section">
+      <h6 class="nav-section-title">Extras</h6>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a class="nav-link" href="/guide">
+            <i class="nav-icon">📖</i>
+            <span>Coach Guide</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">
+            <i class="nav-icon">⚙️</i>
+            <span>Settings</span>
+          </a>
+        </li>
+        {% if current_user.is_admin %}
+        <li class="nav-item">
+          <a class="nav-link admin-link" href="/admin">
+            <i class="nav-icon">👑</i>
+            <span>Admin Dashboard</span>
+          </a>
+        </li>
         {% endif %}
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Quick Links</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="/whats-new">
-              <i class="nav-icon">🆕</i>
-              <span>What's New</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/index">
-              <i class="nav-icon">📋</i>
-              <span>Match Organizer</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/ai-toolbox">
-              <i class="nav-icon">🤖</i>
-              <span>AI Toolbox</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Planning Tools</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="/calendar">
-              <i class="nav-icon">📅</i>
-              <span>Calendar</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/weather">
-              <i class="nav-icon">🌤️</i>
-              <span>Weather</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/coachbot">
-              <i class="nav-icon">🧠</i>
-              <span>CoachBot</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Communication</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="/bulletin">
-              <i class="nav-icon">📌</i>
-              <span>Bulletin</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/notes">
-              <i class="nav-icon">📝</i>
-              <span>Notes</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/access-codes">
-              <i class="nav-icon">🎟️</i>
-              <span>Access Codes</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Extras</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="/guide">
-              <i class="nav-icon">📖</i>
-              <span>Coach Guide</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/settings">
-              <i class="nav-icon">⚙️</i>
-              <span>Settings</span>
-            </a>
-          </li>
-          {% if current_user.is_admin %}
-          <li class="nav-item">
-            <a class="nav-link admin-link" href="/admin">
-              <i class="nav-icon">👑</i>
-              <span>Admin Dashboard</span>
-            </a>
-          </li>
-          {% endif %}
-        </ul>
-      </div>
-      
-      <div class="nav-footer">
-        <a class="logout-btn" href="/logout">
-          <i class="nav-icon">🚪</i>
-          <span>Logout</span>
-        </a>
-      </div>
+      </ul>
+    </div>
+    
+    <div class="nav-footer">
+      <a class="logout-btn" href="/logout">
+        <i class="nav-icon">🚪</i>
+        <span>Logout</span>
+      </a>
     </div>
   </div>
+</div>
 
   <div class="container py-5" style="padding-top: 100px;">
     <h1 class="heading-text text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
@@ -717,5 +749,30 @@
     }, 4000);
   </script>
 
+<script>
+  // Script to remove navigation item highlighting
+  document.addEventListener('DOMContentLoaded', function() {
+    // Remove highlighted background from all nav items
+    const navItems = document.querySelectorAll('.nav-item, .nav-link');
+    navItems.forEach(item => {
+      // Remove background color and active classes
+      item.style.backgroundColor = 'transparent';
+      item.classList.remove('active');
+      
+      // Also prevent hover effects by adding event listeners
+      item.addEventListener('mouseenter', function(e) {
+        this.style.backgroundColor = 'transparent';
+      });
+      
+      // Remove any active indicators (like border)
+      const beforeElements = window.getComputedStyle(item, ':before');
+      if (beforeElements) {
+        item.style.setProperty('--before-display', 'none', 'important');
+      }
+    });
+    
+
+
+</script>
 </body>
 </html>

@@ -13,54 +13,221 @@
   <title>🧠 CoachBot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/colours.css" rel="stylesheet">
   <style>
     body {
-      background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
       padding: 2rem;
     }
     .chat-container {
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
-      background: #fff;
+      background: var(--white);
       padding: 25px;
       border-radius: 15px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-left: 6px solid var(--navy);
     }
     #chatbox {
-      height: 300px;
+      height: 400px;
       overflow-y: auto;
-      background: #f1f8e9;
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      background: var(--light);
+      border: 1px solid var(--light-border);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
       display: flex;
       flex-direction: column;
     }
     .chat-msg {
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      max-width: 80%;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      max-width: 85%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
     }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
     .chat-user {
-      background: #c8e6c9;
+      background: var(--teal-light);
+      color: var(--text-primary);
       align-self: flex-end;
+      border-bottom-right-radius: 4px;
     }
     .chat-bot {
-      background: #fffde7;
-      border: 1px solid #cddc39;
+      background: var(--white);
+      border: 1px solid var(--light-border);
       align-self: flex-start;
+      border-bottom-left-radius: 4px;
     }
     .top-buttons {
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
       margin-bottom: 20px;
       text-align: center;
     }
     .top-buttons a {
       margin: 0 10px;
+    }
+    
+    .input-group {
+      position: relative;
+    }
+    
+    #chatInput {
+      border-radius: 50px 0 0 50px;
+      padding-left: 16px;
+      height: 48px;
+      border: 1px solid var(--light-border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    #chatInput:focus {
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-color: var(--teal);
+    }
+    
+    .input-group button {
+      border-radius: 0 50px 50px 0;
+      height: 48px;
+      min-width: 100px;
+      font-weight: 600;
+      background-color: var(--teal);
+      border-color: var(--teal);
+    }
+    
+    .input-group button:hover {
+      background-color: var(--teal-dark);
+      border-color: var(--teal-dark);
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    
+    .action-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .action-btn i {
+      margin-right: 6px;
+      font-style: normal;
+    }
+    
+    .clear-btn {
+      color: var(--danger);
+      background-color: #ffebee;
+      border: none;
+    }
+    
+    .clear-btn:hover {
+      background-color: #ffcdd2;
+      transform: translateY(-2px);
+    }
+    
+    .chat-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: var(--light);
+      padding: 15px;
+      border-radius: 12px;
+    }
+    
+    .chatbot-avatar {
+      width: 50px;
+      height: 50px;
+      background-color: var(--navy);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-right: 15px;
+    }
+    
+    .chatbot-info h3 {
+      margin: 0;
+      color: var(--navy);
+    }
+    
+    .chatbot-info p {
+      margin: 5px 0 0 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--text-secondary);
+      margin: 0 2px;
+      animation: typing 1.4s infinite both;
+    }
+    
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-5px); }
+    }
+    
+    /* Welcome message styling */
+    .welcome-card {
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: var(--light);
+      border-left: 4px solid var(--navy);
+    }
+    
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .suggestion-chip {
+      background-color: var(--white);
+      border: 1px solid var(--light-border);
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .suggestion-chip:hover {
+      background-color: var(--light);
+      border-color: var(--teal);
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -76,37 +243,42 @@
   {% endif %}
 {% endwith %}
   <div class="top-buttons">
-    <h1 class="text-center text-success mb-4">🧠 CoachBot</h1>
+    <h1 class="text-center mb-4">🧠 CoachBot</h1>
     <a href="/home" class="btn btn-outline-success">🏠 Home</a>
   </div>
 
-  {% if not session.get('coachbot_access_granted') %}
-    <div class="chat-container">
-      <h2 class="text-success text-center mb-3">🔒 Enter Password to Access CoachBot</h2>
-      <form method="POST" class="mt-4" style="max-width: 400px; margin: auto;">
-        <div class="mb-3">
-          <input type="password" class="form-control" name="password" placeholder="Enter CoachBot password">
-        </div>
-        <button type="submit" class="btn btn-success w-100">Unlock</button>
-        {% if error %}
-          <p class="text-danger text-center mt-2">{{ error }}</p>
-        {% endif %}
-      </form>
-    </div>
-  {% else %}
-    <div class="chat-container">
-      <div id="chatbox"></div>
-      <div class="input-group mb-2">
-        <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
-        <button class="btn btn-success" onclick="sendChat()">Send</button>
-      </div>
-      <div class="d-flex justify-content-between">
-        <button class="btn btn-danger" onclick="clearChat()">🧹 Clear Chat</button>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chatbot-avatar">🧠</div>
+      <div class="chatbot-info">
+        <h3>CoachBot Assistant</h3>
+        <p>Ask me any tennis coaching questions!</p>
       </div>
     </div>
-  {% endif %}
+    
+    <div id="chatbox">
+      <!-- Welcome message will be added here on page load -->
+    </div>
+    
+    <div class="input-group">
+      <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis coaching question...">
+      <button class="btn btn-success" onclick="sendChat()">Send</button>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="action-btn clear-btn" onclick="clearChat()">
+        <i>🧹</i> Clear Chat
+      </button>
+      <div class="suggestion-chips">
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Drill ideas</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique</span>
+        <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics</span>
+      </div>
+    </div>
+  </div>
 
   <script>
+    // Handle Enter key press
     document.getElementById("chatInput")?.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -114,18 +286,52 @@
       }
     });
 
+    // Add welcome message when page loads
+    window.onload = function() {
+      const chatbox = document.getElementById("chatbox");
+      chatbox.innerHTML = `
+        <div class="welcome-card">
+          <h4>👋 Welcome to CoachBot!</h4>
+          <p>I'm your AI tennis coaching assistant. I can help with:</p>
+          <ul>
+            <li>Tennis drills and practice ideas</li>
+            <li>Technical advice for all strokes</li>
+            <li>Match tactics and strategies</li>
+            <li>Coaching tips for different age groups</li>
+          </ul>
+          <p>Ask me anything tennis-related to get started!</p>
+        </div>
+      `;
+    };
+
+    // Process and send chat message
     function sendChat() {
       const input = document.getElementById("chatInput");
       const chatbox = document.getElementById("chatbox");
       const userMsg = input.value.trim();
       if (!userMsg) return;
 
+      // Add user message
       chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
       input.value = "";
-
-      chatbox.innerHTML += `<div class="chat-msg chat-bot" id="typingMsg">CoachBot is thinking...</div>`;
+      
+      // Scroll to bottom
       chatbox.scrollTop = chatbox.scrollHeight;
 
+      // Show typing indicator
+      chatbox.innerHTML += `
+        <div class="chat-msg chat-bot" id="typingMsg">
+          <strong>CoachBot:</strong> 
+          <span class="typing-indicator">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </span>
+        </div>
+      `;
+      chatbox.scrollTop = chatbox.scrollHeight;
+
+      // Send to backend
       fetch("/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,10 +339,15 @@
       })
       .then(res => res.json())
       .then(data => {
+        // Remove typing indicator
         document.getElementById("typingMsg")?.remove();
+        
+        // Format response
         const botResponse = data.success
           ? `<strong>CoachBot:</strong> ${data.reply}`
           : `<strong>Error:</strong> ${data.error}`;
+          
+        // Add bot response  
         chatbox.innerHTML += `<div class="chat-msg chat-bot">${botResponse}</div>`;
         chatbox.scrollTop = chatbox.scrollHeight;
       })
@@ -147,8 +358,33 @@
       });
     }
 
+    // Clear chat history
     function clearChat() {
-      document.getElementById("chatbox").innerHTML = "";
+      const chatbox = document.getElementById("chatbox");
+      
+      // Add fade-out animation
+      chatbox.style.opacity = '0';
+      chatbox.style.transform = 'translateY(10px)';
+      chatbox.style.transition = 'all 0.3s ease';
+      
+      // Reset after animation
+      setTimeout(() => {
+        chatbox.innerHTML = `
+          <div class="welcome-card">
+            <h4>👋 Chat cleared!</h4>
+            <p>What tennis topic would you like to discuss now?</p>
+          </div>
+        `;
+        chatbox.style.opacity = '1';
+        chatbox.style.transform = 'translateY(0)';
+      }, 300);
+    }
+    
+    // Handle suggestion chips
+    function suggestQuery(element) {
+      const input = document.getElementById("chatInput");
+      input.value = element.textContent;
+      input.focus();
     }
   </script>
 </body>

@@ -18,44 +18,56 @@
   
   <style>
     body {
-      background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
     }
 
     .top-bar {
       padding: 4rem 2rem 2rem;
       text-align: center;
-      background-color: #e8f5e9;
+      background-color: var(--light);
     }
 
     .calendar-container {
       max-width: 1200px;
       margin: auto;
-      background-color: white;
-      border-radius: 1rem;
+      background-color: var(--white);
+      border-radius: 15px;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      border-left: 6px solid var(--navy);
       padding: 30px;
       margin-bottom: 30px;
     }
 
     .section-card {
-      background-color: #ffffff;
+      background-color: var(--white);
       border-radius: 12px;
       padding: 25px;
       margin-bottom: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid var(--teal);
+      transition: transform 0.3s ease;
+    }
+    
+    .section-card:hover {
+      transform: translateY(-4px);
     }
     
     .section-title {
-      color: #1b5e20;
+      color: var(--navy);
       font-weight: 600;
       margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title::before {
+      content: "📋";
+      margin-right: 10px;
+      font-size: 1.2em;
     }
 
-   
-
     .modal-header {
-      background-color: #e8f5e9;
+      background-color: var(--light);
       border-bottom: none;
     }
     
@@ -67,31 +79,116 @@
       border: none;
       border-radius: 8px;
       margin-bottom: 8px;
-      background-color: #f1f8e9;
-      transition: transform 0.2s;
+      background-color: var(--light);
+      transition: transform 0.2s ease;
     }
     
     .list-group-item:hover {
       transform: translateY(-2px);
-      background-color: #e8f5e9;
+      background-color: var(--light);
     }
-    
-
     
     #calendar {
       padding: 15px;
-      background-color: #fff;
+      background-color: var(--white);
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
     
-    
     .fc-col-header-cell {
-      background-color: #e8f5e9;
+      background-color: var(--light);
     }
     
     .fc-day-today {
-      background-color: #f1f8e9 !important;
+      background-color: rgba(0, 160, 126, 0.1) !important;
+    }
+    
+    .fc-event {
+      background-color: var(--teal) !important;
+      border-color: var(--teal) !important;
+      color: white !important;
+    }
+    
+    .fc-button-primary {
+      background-color: var(--teal) !important;
+      border-color: var(--teal) !important;
+    }
+    
+    .fc-button-primary:hover {
+      background-color: var(--teal-dark) !important;
+      border-color: var(--teal-dark) !important;
+    }
+    
+    .fc-toolbar-title {
+      color: var(--navy) !important;
+      font-weight: bold !important;
+    }
+    
+    /* Action buttons styling */
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .calendar-btn {
+      position: relative;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .calendar-btn i {
+      margin-right: 8px;
+      font-style: normal;
+    }
+    
+    .calendar-btn::after {
+      content: '';
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      transition: all 0.5s ease;
+    }
+    
+    .calendar-btn:active::after {
+      transform: translate(-50%, -50%) scale(2);
+      opacity: 0;
+    }
+    
+    /* Event badge in upcoming events */
+    .event-badge {
+      background-color: var(--teal);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    /* Empty state styling */
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--light-border);
+      margin-bottom: 15px;
+      display: block;
     }
   </style>
 </head>
@@ -122,13 +219,11 @@
 <!-- Main calendar content container -->
 <div class="container pb-5">
   <div class="calendar-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <a href="/calendar/export" class="btn btn-success me-2" style="background-color: #00a07e !important; color: white !important; border-color: #00a07e !important;">📤 Export to Calendar</a>
-        <button type="button" class="btn btn-success" onclick="openNewEventModal()" style="background-color: #00a07e !important; color: white !important; border-color: #00a07e !important;">
-          ➕ Add Event
-        </button>
-      </div>
+    <div class="action-buttons">
+      <a href="/calendar/export" class="calendar-btn btn btn-success"><i>📤</i> Export to Calendar</a>
+      <button type="button" class="calendar-btn btn btn-success" onclick="openNewEventModal()">
+        <i>➕</i> Add Event
+      </button>
     </div>
 
     <!-- Calendar Display -->
@@ -136,7 +231,7 @@
 
     <!-- Upcoming Events Panel -->
     <div class="section-card mt-4">
-      <h4 class="section-title">📋 Upcoming Events</h4>
+      <h4 class="section-title">Upcoming Events</h4>
       <ul class="list-group" id="upcomingEventsList">
         <li class="list-group-item text-muted">Loading...</li>
       </ul>
@@ -224,23 +319,67 @@
     list.innerHTML = "";
 
     if (futureEvents.length === 0) {
-      list.innerHTML = '<li class="list-group-item text-muted">No upcoming events</li>';
+      list.innerHTML = `
+        <div class="empty-state">
+          <i>📅</i>
+          <p>No upcoming events scheduled</p>
+          <button class="btn btn-outline-success btn-sm" onclick="openNewEventModal()">
+            Add Your First Event
+          </button>
+        </div>
+      `;
       return;
     }
 
     futureEvents.forEach(event => {
-      const timeStr = event.allDay
-        ? "All Day"
-        : new Date(event.start).toLocaleString("en-GB", {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit"
-          });
+      const eventDate = new Date(event.start);
+      
+      // Format the date and time
+      const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      
+      const dateStr = eventDate.toLocaleDateString('en-GB', dateOptions);
+      const timeStr = event.allDay ? 'All Day' : eventDate.toLocaleTimeString('en-GB', timeOptions);
+      
+      // Calculate days from now
+      const daysFromNow = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
+      let timeFromNow;
+      
+      if (daysFromNow === 0) {
+        timeFromNow = 'Today';
+      } else if (daysFromNow === 1) {
+        timeFromNow = 'Tomorrow';
+      } else if (daysFromNow < 7) {
+        timeFromNow = `In ${daysFromNow} days`;
+      } else {
+        timeFromNow = dateStr;
+      }
+      
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.innerHTML = `<span>${event.title}</span><span class="badge bg-success rounded-pill">${timeStr}</span>`;
+      li.innerHTML = `
+        <div>
+          <strong>${event.title}</strong>
+          <div class="text-muted small">${dateStr}, ${timeStr}</div>
+        </div>
+        <span class="event-badge">${timeFromNow}</span>
+      `;
+      li.addEventListener('click', function() {
+        // Navigate to that date in the calendar
+        calendar.gotoDate(event.start);
+        // Highlight the event
+        setTimeout(() => {
+          const eventEl = calendar.getEventById(event.id).el;
+          if (eventEl) {
+            eventEl.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+            eventEl.style.transform = 'scale(1.1)';
+            eventEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            setTimeout(() => {
+              eventEl.style.transform = 'scale(1)';
+            }, 500);
+          }
+        }, 100);
+      });
       list.appendChild(li);
     });
   }
@@ -259,7 +398,19 @@
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
       },
       eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-      height: 600,
+      height: 650,
+      eventDidMount: function(info) {
+        // Add hover effect to events
+        info.el.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+        info.el.addEventListener('mouseover', function() {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        });
+        info.el.addEventListener('mouseout', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = 'none';
+        });
+      },
       dateClick: function (info) {
         resetForm();
         selectedDate = info.dateStr;
@@ -293,18 +444,19 @@
       });
 
       calendar.on("eventAdd", function() {
-  updateUpcomingEventsList();
-  saveEvents(); // ✅ auto-save to backend
-});
-calendar.on("eventChange", function() {
-  updateUpcomingEventsList();
-  saveEvents();
-});
-calendar.on("eventRemove", function() {
-  updateUpcomingEventsList();
-  saveEvents();
-});
-
+        updateUpcomingEventsList();
+        saveEvents(); // ✅ auto-save to backend
+      });
+      
+      calendar.on("eventChange", function() {
+        updateUpcomingEventsList();
+        saveEvents();
+      });
+      
+      calendar.on("eventRemove", function() {
+        updateUpcomingEventsList();
+        saveEvents();
+      });
 
     document.getElementById('eventForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -348,6 +500,23 @@ calendar.on("eventRemove", function() {
 
       saveEvents();
       bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+      
+      // Show success feedback
+      const alertHtml = `
+        <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-4" style="z-index: 1050;" role="alert">
+          ${editingEvent ? 'Event updated' : 'Event created'} successfully!
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', alertHtml);
+      
+      // Remove alert after 3 seconds
+      setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert.alert-success');
+        alerts.forEach(alert => {
+          bootstrap.Alert.getInstance(alert)?.close();
+        });
+      }, 3000);
     });
 
     document.getElementById("deleteEvent").addEventListener("click", function () {
@@ -355,10 +524,39 @@ calendar.on("eventRemove", function() {
         editingEvent.remove();
         saveEvents();
         bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+        
+        // Show deletion feedback
+        const alertHtml = `
+          <div class="alert alert-info alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-4" style="z-index: 1050;" role="alert">
+            Event deleted.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+          const alerts = document.querySelectorAll('.alert.alert-info');
+          alerts.forEach(alert => {
+            bootstrap.Alert.getInstance(alert)?.close();
+          });
+        }, 3000);
       }
     });
 
     calendar.render();
+    
+    // Add responsive handling for mobile
+    function handleResponsiveCalendar() {
+      if (window.innerWidth < 768) {
+        calendar.changeView('listWeek');
+      } else {
+        calendar.changeView('dayGridMonth');
+      }
+    }
+    
+    // Initial check and event listener for resize
+    window.addEventListener('resize', handleResponsiveCalendar);
   });
 
   function saveEvents() {

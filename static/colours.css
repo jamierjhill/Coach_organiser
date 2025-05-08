@@ -70,7 +70,7 @@ body {
 .tennis-card, .login-card, .register-card, .admin-card, 
 .whats-new-container, .card-section, .bulletin-container, 
 .calendar-container, .forecast-container, .compose-area, 
-.section-card, .player-box, .notes-container, .weather-card,
+.section-card, .player-box,  .weather-card,
 .install-prompt, .offcanvas-header {
   background-color: var(--white) !important;
   border-radius: 15px;
@@ -101,10 +101,9 @@ body {
 ============================================*/
 .btn-primary, .sleek-btn, .tennis-btn, .login-btn, 
 .register-btn, .btn-success, .btn-admin,
-.fc-button-primary, #addNoteBtn, .notes-btn,
-[id*="note"] .btn, [class*="note"] .btn, 
-a[href*="note"], button[onclick*="openNewEventModal"],
-a[href="/calendar/export"], .calendar-container .btn,
+.fc-button-primary, #addNoteBtn, 
+ [class*="note"] .btn, 
+ button[onclick*="openNewEventModal"],
 .fc-toolbar button, [id*="Event"] .btn {
   background-color: var(--teal) !important;
   border-color: var(--teal) !important;
@@ -311,7 +310,7 @@ a[href="/calendar/export"], .calendar-container .btn,
   CALENDAR
 ============================================*/
 .fc-button-primary, .fc button, .fc-button,
-button[onclick*="calendar"], a[href*="calendar"],
+button[onclick*="calendar"],
 [id*="calendar"] .btn, [class*="calendar"] .btn,
 a[href="/calendar/export"], button[onclick*="Event"],
 a[href*="event"], button[onclick*="event"] {
@@ -434,16 +433,17 @@ button.btn.btn-success[onclick*="openNewEventModal"]:hover,
   background-color: var(--white) !important;
 }
 
+/* Remove highlighted navigation items */
 .nav-item.active {
-  background-color: var(--light) !important;
+  background-color: transparent !important;
 }
 
 .nav-item.active:before {
-  background-color: var(--navy) !important;
+  display: none !important;
 }
 
 .nav-item:hover {
-  background-color: var(--light) !important;
+  background-color: transparent !important;
 }
 
 /* Footer links and text */
@@ -477,6 +477,5 @@ li, tr, tbody, thead {
 .nav-section-title {
   color: var(--text-secondary) !important;
 }
-
 
 

@@ -13,13 +13,9 @@
   <title>🆕 What's New - Coaches Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/colours.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #e8f5e9;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
     .whats-new-container {
       max-width: 800px;
       margin: auto;
@@ -153,6 +149,39 @@
       border-left-color: #43a047;
       border-left-width: 5px;
     }
+    
+    /* Color Theme Demo Box */
+    .color-demo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .color-box {
+      width: 100px;
+      height: 70px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .color-box:hover {
+      transform: scale(1.05);
+      cursor: default;
+    }
+    
+    .color-name {
+      font-size: 0.7rem;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -187,8 +216,46 @@
       <!-- Latest Updates -->
       <h3 class="heading-with-line">Latest Updates</h3>
       
-      <!-- Update Item - Most recent -->
+      <!-- New Update - Color Theme Update -->
       <div class="update-item new-item" data-aos="fade-up">
+        <div class="update-date">May 8, 2025</div>
+        <h4 class="update-title">Fresh New Color Theme Introduced</h4>
+        <div>
+          <span class="feature-tag enhancement">Enhancement</span>
+          <span class="feature-tag new">New Feature</span>
+        </div>
+        <div class="update-details">
+          <p>We've refreshed the entire platform with a new color theme featuring navy and teal as primary colors!</p>
+          <ul>
+            <li>Consistent color scheme across all pages with our new <code>colours.css</code> stylesheet</li>
+            <li>Improved readability and visual hierarchy</li>
+            <li>Better contrast for accessibility</li>
+            <li>Modern, professional look that better represents our tennis brand</li>
+          </ul>
+          
+          <div class="color-demo">
+            <div class="color-box" style="background-color: #00223e;">
+              Navy
+              <div class="color-name">Primary</div>
+            </div>
+            <div class="color-box" style="background-color: #00a07e;">
+              Teal
+              <div class="color-name">Accent</div>
+            </div>
+            <div class="color-box" style="background-color: #f3f6f9; color: #00223e;">
+              Light
+              <div class="color-name" style="color: #00223e;">Background</div>
+            </div>
+            <div class="color-box" style="background-color: #fafaf8; color: #00223e;">
+              White
+              <div class="color-name" style="color: #00223e;">Cards</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Update Item - Most recent -->
+      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
         <div class="update-date">May 5, 2025</div>
         <h4 class="update-title">What's New Section Added</h4>
         <div>
@@ -205,7 +272,7 @@
       </div>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
+      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
         <div class="update-date">April 28, 2025</div>
         <h4 class="update-title">Enhanced Player Portal & AI Toolbox</h4>
         <div>
@@ -223,7 +290,7 @@
       </div>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
+      <div class="update-item" data-aos="fade-up" data-aos-delay="300">
         <div class="update-date">April 15, 2025</div>
         <h4 class="update-title">Security Enhancements</h4>
         <div>
@@ -239,9 +306,14 @@
           </ul>
         </div>
       </div>
+
+      <div class="section-divider"></div>
+      
+      <!-- Previous Updates -->
+      <h3 class="heading-with-line">Previous Updates</h3>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up" data-aos-delay="300">
+      <div class="update-item" data-aos="fade-up">
         <div class="update-date">April 8, 2025</div>
         <h4 class="update-title">Calendar Integration & Bulletin Board</h4>
         <div>
@@ -256,14 +328,9 @@
           </ul>
         </div>
       </div>
-
-      <div class="section-divider"></div>
-      
-      <!-- Previous Updates -->
-      <h3 class="heading-with-line">Previous Updates</h3>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up">
+      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
         <div class="update-date">March 22, 2025</div>
         <h4 class="update-title">Match Organizer Improvements</h4>
         <div>
@@ -281,7 +348,7 @@
       </div>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up" data-aos-delay="100">
+      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
         <div class="update-date">March 10, 2025</div>
         <h4 class="update-title">Progressive Web App Support</h4>
         <div>
@@ -298,7 +365,7 @@
       </div>
       
       <!-- Update Item -->
-      <div class="update-item" data-aos="fade-up" data-aos-delay="200">
+      <div class="update-item" data-aos="fade-up" data-aos-delay="300">
         <div class="update-date">February 25, 2025</div>
         <h4 class="update-title">Initial Release</h4>
         <div>

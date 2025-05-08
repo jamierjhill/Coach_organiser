@@ -5,24 +5,28 @@
   <title>📘 Coach's Guide - Tennis Toolbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/colours.css" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <style>
     body {
-      background-color: #e8f5e9;
       font-family: 'Segoe UI', sans-serif;
     }
+
     .card-guide {
-      border-left: 6px solid #1b5e20;
       border-radius: 15px;
-      background-color: white;
       padding: 30px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+      border-left: 6px solid var(--navy);
+      background-color: var(--white);
     }
+
     h1, h2, h4 {
-      color: #1b5e20;
+      color: var(--navy);
     }
+
     .btn-back {
-      background-color: #43a047;
+      background-color: var(--teal);
       color: white;
       font-weight: bold;
       padding: 10px 20px;
@@ -30,41 +34,69 @@
       text-decoration: none;
       margin-right: 10px;
     }
+
     .btn-back:hover {
-      background-color: #2e7d32;
+      background-color: var(--teal-dark);
       transform: scale(1.05);
     }
+
     .tip {
-      background-color: #e8f8f5;
-      border-left: 4px solid #1abc9c;
+      background-color: var(--light);
+      border-left: 4px solid var(--teal);
       padding: 1em;
       border-radius: 8px;
       margin-top: 2em;
     }
+
     code {
-      background: #f1f1f1;
+      background: var(--light);
       padding: 0.2em 0.4em;
       border-radius: 4px;
       font-family: monospace;
     }
+
     ul {
       padding-left: 1.2em;
+    }
+    
+    .feature-section {
+      background-color: var(--light);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: transform 0.3s ease;
+    }
+    
+    .feature-section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+      color: var(--navy);
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .match-example {
+      background-color: var(--teal);
+      color: var(--white);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: none;
     }
   </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
   <div class="container py-5">
-    <h1 class="text-center text-success mb-4">🎾 App Guide</h1>
+    <h1 class="text-center mb-4">🎾 App Guide</h1>
     <div class="text-center mb-4">
       <a href="/home" class="btn btn-outline-success">🏠 Home</a>
       <a href="/index" class="btn btn-outline-success">📋 Match Organiser</a>
@@ -78,66 +110,157 @@
 
       <h2 class="mt-4">📋 Step-by-Step Guide</h2>
 
-      <h4 class="mt-4">1. Access the App</h4>
-      <p>Open the app in your browser or on your iPad.</p>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">🔑</span>
+          <h4 class="mb-0">1. Access the App</h4>
+        </div>
+        <p>Open the app in your browser or install it on your iPad as a Progressive Web App for quick access.</p>
+      </div>
 
-      <h4 class="mt-4">2. Set Up the Session</h4>
-      <ul>
-        <li><strong>Number of Courts</strong>: Set how many courts are available.</li>
-        <li><strong>Matches per Player</strong>: Set how many matches each player should play.</li>
-        <li><strong>Match Format</strong>: Choose Singles or Doubles.</li>
-        <li><strong>View Schedule By</strong>: Switch between viewing matches by court or by round.</li>
-      </ul>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">⚙️</span>
+          <h4 class="mb-0">2. Set Up the Session</h4>
+        </div>
+        <ul>
+          <li><strong>Number of Courts</strong>: Set how many courts are available.</li>
+          <li><strong>Matches per Player</strong>: Set how many matches each player should play.</li>
+          <li><strong>Match Format</strong>: Choose Singles or Doubles.</li>
+          <li><strong>View Schedule By</strong>: Switch between viewing matches by court or by round.</li>
+        </ul>
+      </div>
 
-      <h4 class="mt-4">3. Add Players</h4>
-      <p>Enter each player’s <strong>Name</strong> and <strong>Grade</strong> (1 = strongest, 4 = weakest), then click “Add Player.”</p>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">👤</span>
+          <h4 class="mb-0">3. Add Players</h4>
+        </div>
+        <p>Enter each player's <strong>Name</strong> and <strong>Grade</strong> (1 = strongest, 4 = weakest), then click "Add Player."</p>
+        <p>You can also limit how many rounds a player participates in by clicking the "Rounds" button next to their name.</p>
+      </div>
 
-      <h4 class="mt-4">4. Upload a CSV (Optional)</h4>
-      <p>Click “Upload CSV” to load players from a spreadsheet with <code>name</code> and <code>grade</code> columns.</p>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">📤</span>
+          <h4 class="mb-0">4. Upload a CSV (Optional)</h4>
+        </div>
+        <p>Click "Upload CSV" to load players from a spreadsheet with <code>name</code> and <code>grade</code> columns.</p>
+      </div>
 
-      <h4 class="mt-4">5. Organize Matches</h4>
-      <p>Click “Organize Matches” to generate matchups.</p>
-      <code>Jamie (g1) vs. Jake (g3) - Court 3</code><br>
-      <code>Jamie & Jake (avg g1.5) vs. Sam & Alex (avg g2) - Court 1</code>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">🎯</span>
+          <h4 class="mb-0">5. Organize Matches</h4>
+        </div>
+        <p>Click "Organize Matches" to generate matchups based on player grades.</p>
+        <div class="match-example">
+          <strong>Singles Example:</strong> Jamie (g1) vs. Jake (g3) - Court 3
+        </div>
+        <div class="match-example">
+          <strong>Doubles Example:</strong> Jamie & Jake (avg g1.5) vs. Sam & Alex (avg g2) - Court 1
+        </div>
+      </div>
 
-      <h4 class="mt-4">6. Review Player Stats</h4>
-      <ul>
-        <li>Matches Played</li>
-        <li>Average Opponent Grade</li>
-        <li>Grade Difference Summary</li>
-      </ul>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">📊</span>
+          <h4 class="mb-0">6. Review Player Stats</h4>
+        </div>
+        <ul>
+          <li>Matches Played</li>
+          <li>Average Opponent Grade</li>
+          <li>Grade Difference Summary</li>
+        </ul>
+      </div>
 
-      <h4 class="mt-4">7. Reshuffle</h4>
-      <p>Click “Reshuffle” to mix up the matchups without changing settings.</p>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">🔀</span>
+          <h4 class="mb-0">7. Reshuffle Options</h4>
+        </div>
+        <p>Use various reshuffle options to fine-tune matchups:</p>
+        <ul>
+          <li><strong>Reshuffle All:</strong> Mix up all matchups without changing settings.</li>
+          <li><strong>Reshuffle Round:</strong> Reorganize just a specific round while keeping others intact.</li>
+        </ul>
+      </div>
 
-      <h4 class="mt-4">8. Save/Load Sessions <span class="text-muted">(coming soon)</span></h4>
-      <ul>
-        <li>Save with a name</li>
-        <li>Load previous sessions</li>
-      </ul>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">⏱️</span>
+          <h4 class="mb-0">8. Match Timer</h4>
+        </div>
+        <p>Use the built-in timer to keep track of match rounds.</p>
+        <ul>
+          <li>Set custom duration in minutes</li>
+          <li>Start, pause, and reset timer functions</li>
+        </ul>
+      </div>
 
-      <h4 class="mt-4">9. Reset All</h4>
-      <p>Click “Reset All” to clear players and matchups.</p>
+      <div class="feature-section">
+        <div class="section-header">
+          <span class="feature-icon">🔄</span>
+          <h4 class="mb-0">9. Reset All</h4>
+        </div>
+        <p>Click "Reset All" to clear players and matchups when you want to start fresh.</p>
+      </div>
 
       <div class="tip">
-        <strong>💡 Tips:</strong>
+        <strong>💡 Pro Tips:</strong>
         <ul>
           <li>Best experienced on iPad in landscape or desktop.</li>
-          <li>Use the match timer to track session rounds.</li>
+          <li>You can limit certain players to fewer rounds if they need to leave early.</li>
+          <li>Organize by player grade to create balanced, competitive matches.</li>
         </ul>
       </div>
 
       <h2 class="mt-5">🧠 Full Feature Summary</h2>
-      <ul>
-        <li><strong>CoachBot</strong> – Ask tennis-related questions and get quick coaching advice.</li>
-        <li><strong>AI Toolbox</strong> – Generate session plans and drills tailored to player count, focus, and duration.</li>
-        <li><strong>Notes</strong> – Store and manage personal session notes.</li>
-        <li><strong>Calendar</strong> – Plan, view, and repeat coaching events (players only see their coach’s events).</li>
-        <li><strong>Weather Forecast</strong> – 5-day hourly breakdown with tennis suitability for your default postcode.</li>
-        <li><strong>Bulletin Board</strong> – Share messages and updates with your group (each coach sees only their own).</li>
-        <li><strong>Player Portal</strong> – Give access via codes to view calendar, bulletins, weather, and ask CoachBot.</li>
-        <li><strong>Settings</strong> – Configure your postcode for weather forecasting.</li>
-      </ul>
+      <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="col">
+          <div class="feature-section">
+            <h5><span class="feature-icon">🤖</span>AI Coaching Tools</h5>
+            <ul>
+              <li><strong>CoachBot</strong> – Ask tennis-related questions</li>
+              <li><strong>Drill Generator</strong> – Create custom tennis drills</li>
+              <li><strong>Session Planner</strong> – Build complete session plans</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="col">
+          <div class="feature-section">
+            <h5><span class="feature-icon">📅</span>Calendar & Planning</h5>
+            <ul>
+              <li><strong>Calendar</strong> – Schedule and track events</li>
+              <li><strong>Weather Forecast</strong> – 5-day weather with tennis playability</li>
+              <li><strong>Shared Calendar</strong> – Players can view your events</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="col">
+          <div class="feature-section">
+            <h5><span class="feature-icon">📢</span>Communication</h5>
+            <ul>
+              <li><strong>Bulletin Board</strong> – Post announcements for players</li>
+              <li><strong>Notes</strong> – Store private coaching notes</li>
+              <li><strong>Email Updates</strong> – Send bulletins via email</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="col">
+          <div class="feature-section">
+            <h5><span class="feature-icon">🎟️</span>Player Access</h5>
+            <ul>
+              <li><strong>Access Codes</strong> – Generate codes for player portal</li>
+              <li><strong>Player Portal</strong> – Limited access for your players</li>
+              <li><strong>Email Subscriptions</strong> – Players can subscribe to updates</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
