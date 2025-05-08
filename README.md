@@ -2,5 +2,5 @@ Suggested by Wardle after a stunning round at the Silvermere. This app solves th
 
 I also want to build this out to be a virtual assistant for the coach, not only an assistant tennis coach with features such as AI drill generator but also a scheduling assistant with features such as calendar integration and bulletin boards.
 
-I am currently hosting this on pythonanywhere: https://coacheshub-jamierjhill.pythonanywhere.com/
+I am currently hosting this on pythonanywhere: www.coaches-hub.app
 
