@@ -1,5 +1,6 @@
 # auth.py
 import os, json
+import secrets  # Add missing import
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, session, current_app, flash
 from flask_login import login_user, logout_user, login_required, current_user
@@ -19,21 +20,33 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        # Add error checking for empty fields
+        if not username or not password:
+            return render_template("login.html", error="Username and password are required.")
+
+        # Add debugging for user loading
+        print(f"Attempting to load user: {username}")
         user_data = load_user(username)
         if not user_data:
+            print(f"User not found: {username}")
             return render_template("login.html", error="Invalid credentials.")
             
         # Check if password uses the new hashing method
-        if "password_hash" in user_data:
-            # Verify using hashed password
-            is_valid = verify_password(
-                user_data["password_hash"], 
-                user_data["password_salt"], 
-                password
-            )
-        else:
-            # Legacy plaintext password check with constant-time comparison
-            is_valid = secrets.compare_digest(user_data.get("password", ""), password)
+        is_valid = False
+        try:
+            if "password_hash" in user_data:
+                # Verify using hashed password
+                is_valid = verify_password(
+                    user_data["password_hash"], 
+                    user_data["password_salt"], 
+                    password
+                )
+            else:
+                # Legacy plaintext password check with constant-time comparison
+                is_valid = secrets.compare_digest(user_data.get("password", ""), password)
+        except Exception as e:
+            print(f"Error during password verification: {e}")
+            return render_template("login.html", error="An error occurred during login. Please try again.")
             
         if is_valid:
             # Add login timestamp when user successfully logs in
@@ -50,18 +63,30 @@ def login():
             
             # If using legacy password, migrate to hashed
             if "password_hash" not in user_data:
-                hashed, salt = hash_password(password)
-                user_data["password_hash"] = hashed
-                user_data["password_salt"] = salt
-                # Keep the old password field for backward compatibility
+                try:
+                    hashed, salt = hash_password(password)
+                    user_data["password_hash"] = hashed
+                    user_data["password_salt"] = salt
+                    # Keep the old password field for backward compatibility
+                    print(f"Migrated user {username} to hashed password")
+                except Exception as e:
+                    print(f"Failed to migrate password: {e}")
             
             # Save updated user data
-            save_user(user_data)
+            if not save_user(user_data):
+                print(f"Failed to save user data for {username}")
+                return render_template("login.html", error="An error occurred during login. Please try again.")
             
             is_admin = user_data.get("is_admin", False)
             user = User(id=username, username=username, is_admin=is_admin)
-            login_user(user)
-            return redirect("/home")
+            
+            try:
+                login_user(user)
+                print(f"User {username} logged in successfully")
+                return redirect("/home")
+            except Exception as e:
+                print(f"Login_user failed: {e}")
+                return render_template("login.html", error="An error occurred during login. Please try again.")
 
         return render_template("login.html", error="Invalid credentials.")
     
@@ -81,54 +106,72 @@ def register():
     session["last_form_page"] = "/register"
 
     if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email")
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
         postcode = request.form.get("postcode", "").strip()
-        password = request.form.get("password")
+        password = request.form.get("password", "").strip()
+
+        # Add validation for required fields
+        if not username or not email or not password:
+            return render_template("register.html", error="Username, email, and password are required.")
+
+        # Ensure data directory exists
+        os.makedirs("data/users", exist_ok=True)
 
         # Prevent duplicate users
         if load_user(username):
             return render_template("register.html", error="Username already exists.")
 
-        # Hash the password
-        hashed_password, salt = hash_password(password)
-        
-        # Create user file with hashed password
-        user_data = {
-            "username": username,
-            "email": email,  # Now storing email too for admin features
-            "password": password,  # Keep for backward compatibility
-            "password_hash": hashed_password,
-            "password_salt": salt,
-            "default_postcode": postcode,
-            "is_admin": False,  # Default not admin
-            "registration_date": datetime.now().strftime("%Y-%m-%d")
-        }
-        save_user(user_data)
-
-        # Create User object for login
-        user = User(id=username, username=username, is_admin=False)
-        login_user(user)
-
-        # Send welcome email
         try:
-            mail = current_app.extensions["mail"]
-            msg = Message(
-                subject="🎾 Welcome to Coaches Hub!",
-                recipients=[email],
-                body=(
-                    f"Hi {username},\n\n"
-                    "Welcome to Coaches Hub! 🏆\n"
-                    "You can now organize matches, plan sessions, check forecasts, and more.\n\n"
-                    "Explore your dashboard and start coaching smarter today!\n\n"
-                    "– The Coaches Hub Team"
-                )
-            )
-            mail.send(msg)
-        except Exception as e:
-            print("⚠️ Email sending failed:", e)
+            # Hash the password
+            hashed_password, salt = hash_password(password)
+            
+            # Create user file with hashed password
+            user_data = {
+                "username": username,
+                "email": email,  # Now storing email too for admin features
+                "password": password,  # Keep for backward compatibility
+                "password_hash": hashed_password,
+                "password_salt": salt,
+                "default_postcode": postcode,
+                "is_admin": False,  # Default not admin
+                "registration_date": datetime.now().strftime("%Y-%m-%d")
+            }
+            
+            if not save_user(user_data):
+                return render_template("register.html", error="Failed to create user account. Please try again.")
 
-        return redirect("/home" if "go_home" in request.form else "/home")
+            # Create User object for login
+            user = User(id=username, username=username, is_admin=False)
+            login_user(user)
+            
+            print(f"User {username} registered successfully")
+
+            # Send welcome email
+            try:
+                mail = current_app.extensions.get("mail")
+                if mail:
+                    msg = Message(
+                        subject="🎾 Welcome to Coaches Hub!",
+                        recipients=[email],
+                        body=(
+                            f"Hi {username},\n\n"
+                            "Welcome to Coaches Hub! 🏆\n"
+                            "You can now organize matches, plan sessions, check forecasts, and more.\n\n"
+                            "Explore your dashboard and start coaching smarter today!\n\n"
+                            "– The Coaches Hub Team"
+                        )
+                    )
+                    mail.send(msg)
+            except Exception as e:
+                print(f"⚠️ Email sending failed: {e}")
+                # Continue even if email fails
+
+            return redirect("/home")
+            
+        except Exception as e:
+            print(f"Registration error: {e}")
+            return render_template("register.html", error=f"Registration failed: {str(e)}")
 
     return render_template("register.html")
 

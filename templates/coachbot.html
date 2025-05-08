@@ -14,222 +14,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/static/colours.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 2rem;
-    }
-    .chat-container {
-      max-width: 800px;
-      margin: auto;
-      background: var(--white);
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      border-left: 6px solid var(--navy);
-    }
-    #chatbox {
-      height: 400px;
-      overflow-y: auto;
-      background: var(--light);
-      border: 1px solid var(--light-border);
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-msg {
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      max-width: 85%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .chat-user {
-      background: var(--teal-light);
-      color: var(--text-primary);
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-    }
-    .chat-bot {
-      background: var(--white);
-      border: 1px solid var(--light-border);
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-    }
-    .top-buttons {
-      max-width: 800px;
-      margin: auto;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .top-buttons a {
-      margin: 0 10px;
-    }
-    
-    .input-group {
-      position: relative;
-    }
-    
-    #chatInput {
-      border-radius: 50px 0 0 50px;
-      padding-left: 16px;
-      height: 48px;
-      border: 1px solid var(--light-border);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
-    }
-    
-    #chatInput:focus {
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-color: var(--teal);
-    }
-    
-    .input-group button {
-      border-radius: 0 50px 50px 0;
-      height: 48px;
-      min-width: 100px;
-      font-weight: 600;
-      background-color: var(--teal);
-      border-color: var(--teal);
-    }
-    
-    .input-group button:hover {
-      background-color: var(--teal-dark);
-      border-color: var(--teal-dark);
-    }
-    
-    .action-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 16px;
-    }
-    
-    .action-btn {
-      padding: 10px 16px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    
-    .action-btn i {
-      margin-right: 6px;
-      font-style: normal;
-    }
-    
-    .clear-btn {
-      color: var(--danger);
-      background-color: #ffebee;
-      border: none;
-    }
-    
-    .clear-btn:hover {
-      background-color: #ffcdd2;
-      transform: translateY(-2px);
-    }
-    
-    .chat-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      background-color: var(--light);
-      padding: 15px;
-      border-radius: 12px;
-    }
-    
-    .chatbot-avatar {
-      width: 50px;
-      height: 50px;
-      background-color: var(--navy);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin-right: 15px;
-    }
-    
-    .chatbot-info h3 {
-      margin: 0;
-      color: var(--navy);
-    }
-    
-    .chatbot-info p {
-      margin: 5px 0 0 0;
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-    
-    .typing-indicator {
-      display: inline-flex;
-      align-items: center;
-    }
-    
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: var(--text-secondary);
-      margin: 0 2px;
-      animation: typing 1.4s infinite both;
-    }
-    
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-      0%, 100% { opacity: 0.3; transform: translateY(0); }
-      50% { opacity: 1; transform: translateY(-5px); }
-    }
-    
-    /* Welcome message styling */
-    .welcome-card {
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      background-color: var(--light);
-      border-left: 4px solid var(--navy);
-    }
-    
-    .suggestion-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    
-    .suggestion-chip {
-      background-color: var(--white);
-      border: 1px solid var(--light-border);
-      border-radius: 50px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .suggestion-chip:hover {
-      background-color: var(--light);
-      border-color: var(--teal);
-      transform: translateY(-2px);
-    }
-  </style>
 </head>
 <body>
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -241,42 +25,66 @@
       </div>
     {% endfor %}
   {% endif %}
-{% endwith %}
-  <div class="top-buttons">
-    <h1 class="text-center mb-4">🧠 CoachBot</h1>
+  {% endwith %}
+
+  <div class="text-center py-5">
+    <h2 class="text-success mb-3">🧠 CoachBot Assistant</h2>
     <a href="/home" class="btn btn-outline-success">🏠 Home</a>
   </div>
 
-  <div class="chat-container">
-    <div class="chat-header">
-      <div class="chatbot-avatar">🧠</div>
-      <div class="chatbot-info">
-        <h3>CoachBot Assistant</h3>
-        <p>Ask me any tennis coaching questions!</p>
+  <div class="container pb-5">
+    <div class="chat-container tennis-card">
+      <!-- Chat header with info -->
+      <div class="chat-header">
+        <div class="chatbot-avatar">🧠</div>
+        <div class="chatbot-info">
+          <h4>Tennis Coaching Assistant</h4>
+          <p>Ask me any tennis coaching questions!</p>
+        </div>
+        <div class="actions-dropdown dropdown">
+          <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item" href="#" onclick="clearChat()">🧹 Clear Conversation</a></li>
+            <li><a class="dropdown-item" href="/guide">📘 Coach's Guide</a></li>
+          </ul>
+        </div>
       </div>
-    </div>
-    
-    <div id="chatbox">
-      <!-- Welcome message will be added here on page load -->
-    </div>
-    
-    <div class="input-group">
-      <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis coaching question...">
-      <button class="btn btn-success" onclick="sendChat()">Send</button>
-    </div>
-    
-    <div class="action-buttons">
-      <button class="action-btn clear-btn" onclick="clearChat()">
-        <i>🧹</i> Clear Chat
-      </button>
-      <div class="suggestion-chips">
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Drill ideas</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics</span>
+      
+      <!-- Chat conversation area -->
+      <div id="chatbox">
+        <!-- Messages will appear here -->
+      </div>
+      
+      <!-- Chat input area -->
+      <div class="chat-input-container">
+        <div class="input-group mb-2">
+          <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis coaching question...">
+          <button class="btn btn-primary send-button" onclick="sendChat()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="suggestion-chips">
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique 🎯</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Beginner drills 🔰</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics 🏆</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips 🚀</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Footwork drills 👟</span>
+        </div>
       </div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
   <script>
     // Handle Enter key press
     document.getElementById("chatInput")?.addEventListener("keydown", function (e) {
@@ -364,8 +172,7 @@
       
       // Add fade-out animation
       chatbox.style.opacity = '0';
-      chatbox.style.transform = 'translateY(10px)';
-      chatbox.style.transition = 'all 0.3s ease';
+      chatbox.style.transition = 'opacity 0.3s ease';
       
       // Reset after animation
       setTimeout(() => {
@@ -376,14 +183,13 @@
           </div>
         `;
         chatbox.style.opacity = '1';
-        chatbox.style.transform = 'translateY(0)';
       }, 300);
     }
     
     // Handle suggestion chips
     function suggestQuery(element) {
       const input = document.getElementById("chatInput");
-      input.value = element.textContent;
+      input.value = element.textContent.replace(/\s[\p{Emoji}]/u, ''); // Remove trailing emoji if present
       input.focus();
     }
   </script>

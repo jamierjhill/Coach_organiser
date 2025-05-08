@@ -1,481 +1,904 @@
-/* Color Scheme Variables */
-:root {
-  /* Primary Colors */
-  --navy: #00223e;
-  --teal: #00a07e;
-  --white: #fafaf8;
-  --light: #f3f6f9;
-
-  /* Secondary/Accent Colors (derived from primary) */
-  --navy-light: #003a66; /* Lighter navy for hover states */
-  --navy-dark: #001527; /* Darker navy for borders */
-  --teal-light: #33b597; /* Lighter teal for hover states */
-  --teal-dark: #007a5f; /* Darker teal for borders */
-  --light-border: #dce4ef; /* For borders and dividers */
-  --text-primary: #00223e; /* Navy for primary text */
-  --text-secondary: #5a6987; /* Muted text */
-
-  /* Status Colors (keep for alerts and notifications) */
-  --success: #00a07e; /* Using teal as success */
-  --warning: #f7c948;
-  --danger: #e74c3c;
-  --info: #3498db;
-}
-
-/*===========================================
-  CRITICAL BACKGROUND FIXES
-  These must be at the top to take precedence
-============================================*/
-html, body {
-  background-color: var(--light) !important;
-}
-
-/* Login/Register specific fixes */
-body.login-body, body.register-body, 
-.login-page body, .register-page body,
-body.login-page, body.register-page {
-  background-color: var(--light) !important;
-}
-
-/* Override any green background no matter where it comes from */
-[style*="background-color: #e8f5e9"],
-[style*="background-color:#e8f5e9"],
-[style*="background: #e8f5e9"],
-[style*="background:#e8f5e9"] {
-  background-color: var(--light) !important;
-}
-
-/* Override Bootstrap's typical green class */
-.bg-success, .bg-light-green, .bg-green-light {
-  background-color: var(--teal) !important;
-}
-
-/*===========================================
-  BASE STYLES
-============================================*/
-body {
-  background-color: var(--light);
-  font-family: 'Segoe UI', sans-serif;
-  color: var(--text-primary);
-}
-
-/* Container backgrounds */
-.container, .container-fluid {
-  background-color: transparent !important;
-}
-
-/*===========================================
-  CARD STYLES
-============================================*/
-.tennis-card, .login-card, .register-card, .admin-card, 
-.whats-new-container, .card-section, .bulletin-container, 
-.calendar-container, .forecast-container, .compose-area, 
-.section-card, .player-box,  .weather-card,
-.install-prompt, .offcanvas-header {
-  background-color: var(--white) !important;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
-  border-left: 5px solid var(--navy);
-}
-
-.tennis-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 34, 62, 0.12);
-}
-
-/* Fix for match organizer */
-.match {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-  border-left: none !important;
-}
-
-/* Timer controls */
-.timer-controls {
-  background-color: var(--white) !important;
-  border-left: 5px solid var(--navy) !important;
-}
-
-/*===========================================
-  BUTTON STYLES
-============================================*/
-.btn-primary, .sleek-btn, .tennis-btn, .login-btn, 
-.register-btn, .btn-success, .btn-admin,
-.fc-button-primary, #addNoteBtn, 
- [class*="note"] .btn, 
- button[onclick*="openNewEventModal"],
-.fc-toolbar button, [id*="Event"] .btn {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-  font-weight: 600;
-  text-shadow: none !important;
-}
-
-.btn-primary:hover, .sleek-btn:hover, .tennis-btn:hover, 
-.login-btn:hover, .register-btn:hover, .btn-success:hover, 
-.btn-admin:hover, .fc-button-primary:hover {
-  background-color: var(--teal-dark) !important;
-  border-color: var(--teal-dark) !important;
-  color: var(--white) !important;
-}
-
-.btn-outline-success, .btn-outline-primary {
-  color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  background-color: transparent !important;
-}
-
-.btn-outline-success:hover, .btn-outline-primary:hover {
-  background-color: var(--teal) !important;
-  color: var(--white) !important;
-}
-
-/* Danger button */
-.btn-danger, .btn-outline-danger {
-  background-color: var(--danger) !important;
-  border-color: var(--danger) !important;
-}
-
-.btn-outline-danger {
-  color: var(--danger) !important;
-  background-color: transparent !important;
-}
-
-.btn-outline-danger:hover {
-  color: white !important;
-  background-color: var(--danger) !important;
-}
-
-/* Secondary buttons */
-.btn-secondary, .btn-outline-secondary {
-  background-color: #6c757d !important;
-  border-color: #6c757d !important;
-}
-
-.btn-outline-secondary {
-  color: #6c757d !important;
-  background-color: transparent !important;
-}
-
-.btn-outline-secondary:hover {
-  color: white !important;
-  background-color: #5a6268 !important;
-}
-
-/*===========================================
-  TEXT COLORS
-============================================*/
-.text-success, .card-title, h1, h2, h3, h4, h5, 
-.section-title, .update-title, .offcanvas-title,
-.heading-text, .modal-title {
-  color: var(--navy) !important;
-}
-
-/* Make offcanvas header title white for contrast */
-.offcanvas-header .offcanvas-title {
-  color: white !important;
-}
-
-/* Link colors */
-.text-link, a.text-link {
-  color: var(--teal) !important;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.text-link:hover, a.text-link:hover {
-  color: var(--teal-dark) !important;
-}
-
-/*===========================================
-  BACKGROUND COLORS
-============================================*/
-.top-bar, .offcanvas {
-  background-color: var(--light) !important;
-}
-
-.offcanvas-header {
-  background-color: var(--navy) !important;
-  color: white !important;
-}
-
-.weather-display, .player-box, .bulletin-preview {
-  background-color: var(--light) !important;
-}
-
-/*===========================================
-  NAVIGATION & UI ELEMENTS
-============================================*/
-#navToggleBtn {
-  background-color: var(--navy) !important;
-  color: var(--white) !important;
-}
-
-#navToggleBtn:hover {
-  background-color: var(--navy-light) !important;
-}
-
-/* Modal styling */
-.modal-header {
-  background-color: var(--light) !important;
-}
-
-.modal-content {
-  border: none !important;
-  border-radius: 12px !important;
-  overflow: hidden;
-}
-
-/*===========================================
-  FORM ELEMENTS
-============================================*/
-.form-control:focus, .form-select:focus {
-  border-color: var(--teal) !important;
-  box-shadow: 0 0 0 0.25rem rgba(0, 160, 126, 0.25) !important;
-}
-
-/*===========================================
-  ALERTS
-============================================*/
-.alert-success {
-  background-color: rgba(0, 160, 126, 0.1) !important;
-  border-color: rgba(0, 160, 126, 0.4) !important;
-  color: var(--teal-dark) !important;
-}
-
-.alert-danger {
-  background-color: rgba(231, 76, 60, 0.1) !important;
-  border-color: rgba(231, 76, 60, 0.4) !important;
-  color: #c0392b !important;
-}
-
-.alert-warning {
-  background-color: rgba(247, 201, 72, 0.1) !important;
-  border-color: rgba(247, 201, 72, 0.4) !important;
-  color: #c7920a !important;
-}
-
-.alert-info {
-  background-color: rgba(52, 152, 219, 0.1) !important;
-  border-color: rgba(52, 152, 219, 0.4) !important;
-  color: #2874a6 !important;
-}
-
-/*===========================================
-  TABLES
-============================================*/
-.table thead th {
-  background-color: var(--light) !important;
-  color: var(--navy) !important;
-}
-
-/*===========================================
-  MISC ELEMENTS
-============================================*/
-.note-card, .update-item {
-  border-left: 4px solid var(--teal) !important;
-  background-color: var(--white) !important;
-}
-
-/* Match Schedule headers */
-.round-header, .court-header {
-  border-bottom-color: var(--light-border) !important;
-}
-
-/*===========================================
-  WEATHER-SPECIFIC ELEMENTS
-============================================*/
-.weather-status.status-good {
-  background-color: rgba(0, 160, 126, 0.1) !important;
-  border: 1px solid rgba(0, 160, 126, 0.3) !important;
-  color: var(--teal-dark) !important;
-}
-
-.weather-status.status-bad {
-  background-color: #fff8e1 !important;
-  border: 1px solid #ffe082 !important;
-  color: #ff8f00 !important;
-}
-
-/*===========================================
-  PLAYER PORTAL ELEMENTS
-============================================*/
-.tennis-badge.good {
-  background-color: rgba(0, 160, 126, 0.1) !important;
-  color: var(--teal-dark) !important;
-}
-
-/*===========================================
-  CALENDAR
-============================================*/
-.fc-button-primary, .fc button, .fc-button,
-button[onclick*="calendar"],
-[id*="calendar"] .btn, [class*="calendar"] .btn,
-a[href="/calendar/export"], button[onclick*="Event"],
-a[href*="event"], button[onclick*="event"] {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: var(--white) !important;
-  text-shadow: none !important;
-}
-
-.fc-button-primary:hover, .fc button:hover,
-button[onclick*="calendar"]:hover, a[href*="calendar"]:hover,
-[id*="calendar"] .btn:hover, [class*="calendar"] .btn:hover,
-a[href="/calendar/export"]:hover, button[onclick*="Event"]:hover,
-a[href*="event"]:hover, button[onclick*="event"]:hover {
-  background-color: var(--teal-dark) !important;
-  border-color: var(--teal-dark) !important;
-}
-
-/* Calendar buttons ultra-specific fix for inline styles */
-.calendar-container a.btn.btn-success,
-.calendar-container button.btn.btn-success,
-div.calendar-container .btn.btn-success,
-a.btn.btn-success[href="/calendar/export"],
-button.btn.btn-success[onclick*="openNewEventModal"],
-.modal .modal-footer .btn-success,
-.modal-footer button[type="submit"],
-#eventForm button[type="submit"] {
-  background-color: var(--teal) !important; /* Teal background */
-  border: 2px solid var(--teal) !important;
-  color: white !important;
-  font-weight: bold !important;
-  font-size: 16px !important;
-  text-shadow: none !important;
-  opacity: 1 !important;
-}
-
-/* Hover state */
-.calendar-container a.btn.btn-success:hover,
-.calendar-container button.btn.btn-success:hover,
-div.calendar-container .btn.btn-success:hover,
-a.btn.btn-success[href="/calendar/export"]:hover,
-button.btn.btn-success[onclick*="openNewEventModal"]:hover,
-.modal .modal-footer .btn-success:hover,
-.modal-footer button[type="submit"]:hover,
-#eventForm button[type="submit"]:hover {
-  background-color: var(--teal-dark) !important; /* Darker teal on hover */
-  border-color: var(--teal-dark) !important;
-  color: white !important;
-}
-
-.fc-col-header-cell {
-  background-color: var(--light) !important;
-}
-
-.fc-day-today {
-  background-color: rgba(0, 160, 126, 0.1) !important;
-}
-
-.fc-event {
-  background-color: var(--teal) !important;
-  border-color: var(--teal) !important;
-  color: white !important;
-}
-
-/*===========================================
-  SPECIFIC COMPONENT FIXES
-============================================*/
-/* Badges (for player rounds limits, etc.) */
-.badge.bg-info {
-  background-color: var(--info) !important;
-}
-
-/* Chat messages in coachbot and player portal */
-.chat-msg.chat-user {
-  background-color: var(--teal-light) !important;
-  color: var(--text-primary) !important;
-}
-
-.chat-msg.chat-bot {
-  background-color: var(--light) !important;
-  border: 1px solid var(--light-border) !important;
-}
-
-/* User info in sidebar */
-.user-info {
-  background-color: var(--light) !important;
-}
-
-.user-avatar {
-  background-color: var(--white) !important;
-  color: var(--navy) !important;
-}
-
-/* Dropdown menus */
-.dropdown-menu {
-  border-radius: 8px !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-.dropdown-item:hover, .dropdown-item:focus {
-  background-color: var(--light) !important;
-  color: var(--navy) !important;
-}
-
-/* Make modal dialog buttons more consistent */
-.modal-footer .btn {
-  border-radius: 8px !important;
-  padding: 8px 16px !important;
-}
-
-/* Make sure chatbox containers have proper colors */
-#chatbox, .chatbox {
-  background-color: var(--light) !important;
-  border-color: var(--light-border) !important;
-}
-
-/* Fix offcanvas elements */
-.offcanvas-body {
-  background-color: var(--white) !important;
-}
-
-/* Remove highlighted navigation items */
-.nav-item.active {
-  background-color: transparent !important;
-}
-
-.nav-item.active:before {
-  display: none !important;
-}
-
-.nav-item:hover {
-  background-color: transparent !important;
-}
-
-/* Footer links and text */
-footer {
-  color: var(--text-secondary) !important;
-}
-
-footer a {
-  color: var(--teal) !important;
-}
-
-footer a:hover {
-  color: var(--teal-dark) !important;
-}
-
-/* Ensure lists and table rows have transparent background */
-li, tr, tbody, thead {
-  background-color: transparent !important;
-}
-
-/* Make sure weather icon containers are visible */
-.weather-icon-container, .weather-icon-wrapper {
-  background-color: var(--white) !important;
-}
-
-/* Fix for nav and menu text */
-.nav-link, .nav-item, .nav-menu {
-  color: var(--text-primary) !important;
-}
-
-.nav-section-title {
-  color: var(--text-secondary) !important;
-}
-
-
+/* ===========================================
+   TENNIS TOOLBOX COLOR SCHEME & STYLING
+   =========================================== */
+
+/* ===========================================
+   CSS VARIABLES - COLOR SYSTEM
+   =========================================== */
+   :root {
+    /* Primary Colors */
+    --navy: #00223e;
+    --teal: #00a07e;
+    --white: #fafaf8;
+    --light: #f3f6f9;
+  
+    /* Secondary/Accent Colors */
+    --navy-light: #003a66;
+    --navy-dark: #001527;
+    --teal-light: #33b597;
+    --teal-dark: #007a5f;
+    --light-border: #dce4ef;
+    --text-primary: #00223e;
+    --text-secondary: #5a6987;
+  
+    /* Status Colors */
+    --success: #00a07e;
+    --warning: #f7c948;
+    --danger: #e74c3c;
+    --info: #3498db;
+  }
+  
+  /* ===========================================
+     GLOBAL RESETS & BASE STYLES
+     =========================================== */
+  html, body, body.login-page, body.register-page, 
+  .login-page body, .register-page body {
+    background-color: var(--light) !important;
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+  }
+  
+  .container, .container-fluid {
+    background-color: transparent !important;
+  }
+  
+  /* ===========================================
+     TYPOGRAPHY
+     =========================================== */
+  .text-success, .card-title, h1, h2, h3, h4, h5, 
+  .section-title, .update-title, .heading-text, .modal-title {
+    color: var(--navy) !important;
+  }
+  
+  .offcanvas-header .offcanvas-title,
+  .offcanvas-header h5 {
+    color: white !important;
+  }
+  
+  /* Links */
+  .text-link, a.text-link, footer a {
+    color: var(--teal) !important;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .text-link:hover, a.text-link:hover, footer a:hover {
+    color: var(--teal-dark) !important;
+  }
+  
+  /* Section headings */
+  .section-title {
+    color: var(--navy) !important;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  
+  .section-title::before {
+    content: "📋";
+    margin-right: 10px;
+    font-size: 1.2em;
+  }
+  
+  .heading-with-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    color: var(--navy);
+  }
+  
+  .heading-with-line::after {
+    content: "";
+    flex: 1;
+    margin-left: 15px;
+    height: 1px;
+    background-color: var(--light-border);
+  }
+  
+  /* ===========================================
+     COMMON COMPONENTS & CONTAINERS
+     =========================================== */
+  .tennis-card, .login-card, .register-card, .admin-card, 
+  .whats-new-container, .card-section, .bulletin-container, 
+  .calendar-container, .forecast-container, .compose-area, 
+  .section-card, .player-box, .weather-card, .card-guide,
+  .chat-container, .install-prompt {
+    background-color: var(--white) !important;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
+    padding: 25px;
+    margin-bottom: 30px;
+    transition: transform 0.3s ease;
+  }
+  
+  .tennis-card:hover,
+  .section-card:hover,
+  .feature-section:hover,
+  .weather-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+  
+  .note-card, .update-item, .feature-section, .tips-card {
+    border-left: 4px solid var(--teal) !important;
+    background-color: var(--light);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+  }
+  
+  .note-card:hover, .update-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .section-divider {
+    margin: 25px 0;
+    border-top: 1px dashed #c8e6c9;
+  }
+  
+  /* ===========================================
+     BUTTONS
+     =========================================== */
+  .btn-primary, .tennis-btn, .login-btn, .calendar-btn,
+  .register-btn, .btn-success, .btn-admin, .action-btn,
+  .fc-button-primary, #addNoteBtn, .copy-btn,
+  [class*="note"] .btn, button[onclick*="openNewEventModal"],
+  .fc-toolbar button, [id*="Event"] .btn {
+    background-color: var(--teal) !important;
+    border-color: var(--teal) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    text-shadow: none !important;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .btn-primary:hover, .tennis-btn:hover, .login-btn:hover, 
+  .register-btn:hover, .btn-success:hover, .calendar-btn:hover,
+  .btn-admin:hover, .fc-button-primary:hover, .action-btn:hover {
+    background-color: var(--teal-dark) !important;
+    border-color: var(--teal-dark) !important;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+  }
+  
+  .btn-outline-success, .btn-outline-primary {
+    color: var(--teal) !important;
+    border-color: var(--teal) !important;
+    background-color: transparent !important;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-success:hover, .btn-outline-primary:hover {
+    background-color: var(--teal) !important;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+  }
+  
+  /* Danger & secondary buttons */
+  .btn-danger, .btn-outline-danger, .clear-btn {
+    background-color: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: white !important;
+  }
+  
+  .btn-outline-danger {
+    color: var(--danger) !important;
+    background-color: transparent !important;
+  }
+  
+  .btn-outline-danger:hover {
+    color: white !important;
+    background-color: var(--danger) !important;
+  }
+  
+  .clear-btn {
+    color: var(--danger) !important;
+    background-color: #ffebee !important;
+    border: none;
+  }
+  
+  .clear-btn:hover {
+    background-color: #ffcdd2 !important;
+    transform: translateY(-2px);
+  }
+  
+  .btn-secondary, .btn-outline-secondary {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+  }
+  
+  .btn-outline-secondary {
+    color: #6c757d !important;
+    background-color: transparent !important;
+  }
+  
+  .btn-outline-secondary:hover {
+    color: white !important;
+    background-color: #5a6268 !important;
+  }
+  
+  /* ===========================================
+     FORMS & INPUTS
+     =========================================== */
+  .form-control, textarea, input[type="text"], 
+  input[type="email"], input[type="password"],
+  input[type="number"], select {
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--light-border);
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus, .form-select:focus,
+  textarea:focus, input:focus, select:focus {
+    border-color: var(--teal) !important;
+    box-shadow: 0 0 0 0.25rem rgba(0, 160, 126, 0.25) !important;
+  }
+  
+  /* ===========================================
+     NAVIGATION & SIDEBAR
+     =========================================== */
+  .top-bar {
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    background-color: var(--light) !important;
+  }
+  
+  /* Navigation Toggle Button */
+  .nav-toggle-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1050;
+    background-color: var(--navy);
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .nav-toggle-btn:hover {
+    background-color: var(--navy-light);
+    transform: scale(1.05);
+  }
+  
+  .toggle-icon {
+    position: relative;
+    width: 22px;
+    height: 2px;
+    background-color: white;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+  
+  .toggle-icon:before,
+  .toggle-icon:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 22px;
+    height: 2px;
+    background-color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .toggle-icon:before {
+    top: -7px;
+  }
+  
+  .toggle-icon:after {
+    bottom: -7px;
+  }
+  
+  /* Toggle button animation */
+  .toggle-icon.open {
+    background-color: transparent;
+  }
+  
+  .toggle-icon.open:before {
+    transform: rotate(45deg);
+    top: 0;
+  }
+  
+  .toggle-icon.open:after {
+    transform: rotate(-45deg);
+    bottom: 0;
+  }
+  
+  /* Sidebar/Offcanvas */
+  .offcanvas {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    max-width: 280px;
+    background-color: var(--white) !important;
+    border-right: none;
+  }
+  
+  .offcanvas-header {
+    background-color: var(--navy) !important;
+    padding: 20px;
+  }
+  
+  .offcanvas-body {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 76px);
+    padding: 20px;
+    overflow-y: auto;
+    background-color: var(--white) !important;
+  }
+  
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    color: white;
+  }
+  
+  .logo-container {
+    width: 36px;
+    height: 36px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 18px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .offcanvas-title {
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
+  }
+  
+  .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+  }
+  
+  /* User Info */
+  .user-info {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: var(--light) !important;
+    border-radius: 12px;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--white) !important;
+    color: var(--navy) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+    font-size: 16px;
+  }
+  
+  .user-details {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .username {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+  
+  .user-role {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  
+  /* Navigation Sections */
+  .nav-section {
+    margin-bottom: 25px;
+  }
+  
+  .nav-section-title {
+    text-transform: uppercase;
+    color: var(--text-secondary) !important;
+    font-size: 12px;
+    margin-bottom: 12px;
+    padding-left: 15px;
+  }
+  
+  .nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .nav-item, 
+  .nav-item.active, 
+  .nav-link, 
+  .nav-link.active,
+  div[id="sideNav"] .nav-item,
+  div[id="sideNav"] .nav-link,
+  .offcanvas-body .nav-item,
+  .offcanvas-body .nav-link,
+  .nav-menu li,
+  .nav-menu li.active {
+    background-color: transparent !important;
+    border-left: none !important;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    position: relative;
+    transition: background-color 0.3s ease;
+    color: var(--text-primary) !important;
+  }
+  
+  .nav-item.active:before,
+  .nav-link.active:before,
+  .nav-menu li.active:before {
+    display: none !important;
+  }
+  
+  .nav-item:hover,
+  .nav-link:hover {
+    background-color: transparent !important;
+  }
+  
+  .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: var(--text-primary) !important;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-item.active .nav-link {
+    color: var(--navy) !important;
+    font-weight: 500;
+  }
+  
+  .nav-icon {
+    margin-right: 12px;
+    font-style: normal;
+    display: inline-block;
+    width: 24px;
+    text-align: center;
+  }
+  
+  /* Admin Link Styling */
+  .admin-link {
+    color: var(--navy) !important;
+    font-weight: 500;
+  }
+  
+  /* Footer/Logout */
+  .nav-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--light-border);
+  }
+  
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: #e53935;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  /* ===========================================
+     ALERTS & NOTIFICATIONS
+     =========================================== */
+  .alert-success {
+    background-color: rgba(0, 160, 126, 0.1) !important;
+    border-color: rgba(0, 160, 126, 0.4) !important;
+    color: var(--teal-dark) !important;
+  }
+  
+  .alert-danger {
+    background-color: rgba(231, 76, 60, 0.1) !important;
+    border-color: rgba(231, 76, 60, 0.4) !important;
+    color: #c0392b !important;
+  }
+  
+  .alert-warning {
+    background-color: rgba(247, 201, 72, 0.1) !important;
+    border-color: rgba(247, 201, 72, 0.4) !important;
+    color: #c7920a !important;
+  }
+  
+  .alert-info {
+    background-color: rgba(52, 152, 219, 0.1) !important;
+    border-color: rgba(52, 152, 219, 0.4) !important;
+    color: #2874a6 !important;
+  }
+  
+  /* ===========================================
+     TABLES
+     =========================================== */
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .table thead th {
+    background-color: var(--light) !important;
+    color: var(--navy) !important;
+    border: none;
+    font-weight: 600;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .table td {
+    vertical-align: middle;
+  }
+  
+  /* ===========================================
+     MODAL STYLING
+     =========================================== */
+  .modal-content {
+    border-radius: 12px !important;
+    border: none !important;
+    overflow: hidden;
+  }
+  
+  .modal-header {
+    background-color: var(--light) !important;
+    border-bottom: none;
+  }
+  
+  .modal-footer {
+    border-top: none;
+  }
+  
+  /* ===========================================
+     CHAT COMPONENTS
+     =========================================== */
+  #chatbox, .chatbox {
+    height: 300px;
+    overflow-y: auto;
+    background: var(--light) !important;
+    border: 1px solid var(--light-border) !important;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .chat-msg {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    max-width: 85%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  
+  .chat-user {
+    background: var(--teal-light) !important;
+    color: var(--text-primary) !important;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .chat-bot {
+    background: var(--white) !important;
+    border: 1px solid var(--light-border) !important;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  
+  /* Chat input styling */
+  #chatInput {
+    border-radius: 50px 0 0 50px;
+    padding-left: 16px;
+    height: 48px;
+    border: 1px solid var(--light-border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  
+  #chatInput:focus {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-color: var(--teal);
+  }
+  
+  .input-group button {
+    border-radius: 0 50px 50px 0;
+    height: 48px;
+    min-width: 100px;
+    font-weight: 600;
+  }
+  
+  /* ===========================================
+     WEATHER COMPONENTS
+     =========================================== */
+  .weather-card {
+    background-color: #f7f7f7;
+    border-radius: 0.8rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #eaeaea;
+  }
+  
+  .temp-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--teal);
+  }
+  
+  .weather-icon-container, .weather-icon-wrapper {
+    background-color: white !important;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .weather-status {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+  
+  .status-good, .weather-status.status-good {
+    background-color: rgba(0, 160, 126, 0.1) !important;
+    border: 1px solid rgba(0, 160, 126, 0.3) !important;
+    color: var(--teal-dark) !important;
+  }
+  
+  .status-bad, .weather-status.status-bad {
+    background-color: #fff8e1 !important;
+    border: 1px solid #ffe082 !important;
+    color: #ff8f00 !important;
+  }
+  
+  .forecast-scroll-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+  
+  .period-block {
+    min-width: 110px;
+    flex: 0 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    border: 1px solid #e0f2f1;
+    transition: transform 0.2s ease;
+  }
+  
+  .period-block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* ===========================================
+     CALENDAR COMPONENTS
+     =========================================== */
+  #calendar {
+    padding: 15px;
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+  
+  .fc-col-header-cell {
+    background-color: var(--light) !important;
+  }
+  
+  .fc-day-today {
+    background-color: rgba(0, 160, 126, 0.1) !important;
+  }
+  
+  .fc-event {
+    background-color: var(--teal) !important;
+    border-color: var(--teal) !important;
+    color: white !important;
+  }
+  
+  .fc-toolbar-title {
+    color: var(--navy) !important;
+    font-weight: bold !important;
+  }
+  
+  /* ===========================================
+     MATCH ORGANIZER COMPONENTS
+     =========================================== */
+  .match {
+    background-color: var(--teal) !important;
+    color: white !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: none !important;
+  }
+  
+  .player-box {
+    background-color: var(--light) !important;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  
+  .round-header, .court-header {
+    margin-bottom: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--light-border) !important;
+  }
+  
+  .timer-controls {
+    background-color: var(--white) !important;
+    border-left: none !important;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* ===========================================
+     FEATURE SECTIONS & TAGS
+     =========================================== */
+  .feature-section {
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .feature-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+    color: var(--navy);
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .feature-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #c8e6c9;
+    color: #1b5e20;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
+  
+  .feature-tag.enhancement {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .feature-tag.new {
+    background-color: #d1f4ff;
+    color: #0277bd;
+  }
+  
+  .feature-tag.fix {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .feature-tag.security {
+    background-color: #e8eaf6;
+    color: #3949ab;
+  }
+  
+  /* ===========================================
+     FOOTER
+     =========================================== */
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-bottom: 30px;
+    color: var(--text-secondary) !important;
+  }
+  
+  /* ===========================================
+     ANIMATIONS
+     =========================================== */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes highlight {
+    from { background-color: #c8e6c9; }
+    to { background-color: #fffde7; }
+  }
+  
+  .new-message {
+    animation: highlight 1.5s ease;
+  }
+  
+  .chat-msg {
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes typing {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-5px); }
+  }
+  
+  /* ===========================================
+     MEDIA QUERIES
+     =========================================== */
+  @media (max-width: 768px) {
+    .offcanvas {
+      max-width: 80%;
+    }
+    
+    .nav-toggle-btn {
+      width: 42px;
+      height: 42px;
+    }
+    
+    .tennis-card, .card-section {
+      padding: 15px;
+    }
+    
+    .forecast-scroll-row {
+      gap: 8px;
+    }
+    
+    .period-block {
+      min-width: 100px;
+    }
+    
+    h1, h2, h3 {
+      font-size: 1.2em;
+    }
+    
+    .chat-msg {
+      max-width: 90%;
+    }
+    
+    #chatInput {
+      height: 44px;
+    }
+  }

@@ -1,91 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC');
+  </script>
   <meta charset="UTF-8">
   <title>📝 My Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Add the new colors.css stylesheet right after Bootstrap -->
-<link href="/static/colours.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #e8f5e9;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    .notes-container {
-      max-width: 750px;
-      margin: auto;
-      background-color: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .notes-btn {
-      background-color: #43a047;
-      color: white;
-      font-weight: bold;
-    }
-
-    .notes-btn:hover {
-      background-color: #2e7d32;
-    }
-
-    .note-item {
-      background-color: #f1f8e9;
-      border-left: 6px solid #81c784;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .note-text {
-      flex-grow: 1;
-      margin-right: 10px;
-    }
-
-    .section-title {
-      color: #2e7d32;
-      font-weight: 600;
-    }
-  </style>
+  <link href="/static/colours.css" rel="stylesheet">
 </head>
 <body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
 
   <div class="text-center py-5">
     <h2 class="text-success mb-3">📝 My Coaching Notes</h2>
     <a href="/home" class="btn btn-outline-success">🏠 Home</a>
   </div>
 
-  <div class="container">
-    <div class="notes-container">
-      <div class="mb-3">
+  <div class="container pb-5">
+    <div class="notes-container tennis-card">
+      <!-- New note input area -->
+      <div class="new-note-section mb-4">
+        <h4 class="section-title mb-3">✏️ Create New Note</h4>
         <div class="mb-3">
           <textarea id="newNote" class="form-control" rows="3" placeholder="Write a new note..."></textarea>
         </div>
-          <button id="addNoteBtn" class="btn notes-btn w-100 mt-3">➕ Add Note</button>
+        <button id="addNoteBtn" class="btn btn-primary w-100">➕ Add Note</button>
       </div>
 
       <hr class="my-4">
-      <h4 class="section-title mb-3">🗂 Your Saved Notes</h4>
-
-      <div id="notesList">
-        {% for line in notes %}
-          <div class="note-item">
-            <div class="note-text">{{ line }}</div>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('{{ line }}')">🗑️</button>
+      
+      <!-- Saved notes section -->
+      <div class="saved-notes-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="section-title mb-0"> Your Saved Notes</h4>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Sort By
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+              <li><a class="dropdown-item" href="#" onclick="sortNotes('newest')">Newest First</a></li>
+              <li><a class="dropdown-item" href="#" onclick="sortNotes('oldest')">Oldest First</a></li>
+            </ul>
           </div>
-        {% endfor %}
+        </div>
+
+        {% if notes and notes|length > 0 %}
+          <div id="notesList" class="notes-list">
+            {% for line in notes %}
+              <div class="note-item">
+                <div class="note-text">{{ line }}</div>
+                <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('{{ line }}')">🗑️</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div id="notesList" class="notes-list">
+            <div class="empty-notes">
+              <p class="text-muted text-center">
+                You don't have any notes yet.<br>
+                Write your first note above.
+              </p>
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
 
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Deletion</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this note?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
   <script>
+    // Variables
+    let currentSort = 'newest';
+    let deleteNoteContent = '';
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const noteInput = document.getElementById('newNote');
+    const notesList = document.getElementById('notesList');
+    
+    // Auto-resize textarea
+    noteInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
   
     // Auto-save on Enter (but allow Shift+Enter for new line)
     noteInput.addEventListener('keydown', function (e) {
@@ -104,41 +135,121 @@
     function addNote() {
       const note = noteInput.value.trim();
       if (!note) return;
+      
+      // Show loading state on button
+      const addBtn = document.getElementById('addNoteBtn');
+      const originalText = addBtn.innerHTML;
+      addBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Adding...';
+      addBtn.disabled = true;
   
       fetch('/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ note })
       }).then(() => {
+        // Remove empty notes placeholder if it exists
+        const emptyNotes = document.querySelector('.empty-notes');
+        if (emptyNotes) {
+          emptyNotes.remove();
+        }
+        
+        // Create new note item with animation
         const noteItem = document.createElement('div');
-        noteItem.className = 'note-item';
+        noteItem.className = 'note-item new-note';
         noteItem.innerHTML = `
           <div class="note-text">${note}</div>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${note}')">🗑️</button>
+          <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('${note}')">🗑️</button>
         `;
-        document.getElementById('notesList').prepend(noteItem);
+        
+        // Apply different insertion logic based on sort order
+        if (currentSort === 'newest') {
+          notesList.insertBefore(noteItem, notesList.firstChild);
+        } else {
+          notesList.appendChild(noteItem);
+        }
+        
+        // Clear the input
         noteInput.value = '';
+        noteInput.style.height = 'auto';
+        
+        // Reset button state
+        addBtn.innerHTML = originalText;
+        addBtn.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error adding note:', error);
+        addBtn.innerHTML = originalText;
+        addBtn.disabled = false;
       });
     }
   
-    // Delete note dynamically
+    // Ask for confirmation before deleting
     function deleteNote(note) {
+      deleteNoteContent = note;
+      deleteModal.show();
+      
+      // Set up confirmation button
+      document.getElementById('confirmDelete').onclick = function() {
+        performDelete(deleteNoteContent);
+        deleteModal.hide();
+      };
+    }
+    
+    // Perform the actual deletion
+    function performDelete(note) {
       fetch('/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ delete_note: note })
       }).then(() => {
         const items = document.querySelectorAll('.note-item');
+        
+        // Apply fade-out animation before removing
         items.forEach(item => {
           if (item.querySelector('.note-text')?.textContent === note) {
-            item.remove();
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(20px)';
+            
+            setTimeout(() => {
+              item.remove();
+              
+              // Show empty state if no notes left
+              if (notesList.children.length === 0) {
+                notesList.innerHTML = `
+                  <div class="empty-notes">
+                    <p class="text-muted text-center">
+                      You don't have any notes yet.<br>
+                      Write your first note above.
+                    </p>
+                  </div>
+                `;
+              }
+            }, 300);
           }
         });
       });
     }
+    
+    // Sort notes function
+    function sortNotes(order) {
+      currentSort = order;
+      const notes = Array.from(notesList.querySelectorAll('.note-item'));
+      
+      // Skip if there are no notes or only one note
+      if (notes.length <= 1) return;
+      
+      // Remove all notes from DOM
+      notes.forEach(note => note.remove());
+      
+      // Sort based on order
+      if (order === 'oldest') {
+        notes.reverse();
+      }
+      
+      // Add back in sorted order
+      notes.forEach(note => notesList.appendChild(note));
+    }
   </script>
-  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
 </body>
 </html>

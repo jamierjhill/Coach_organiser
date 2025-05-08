@@ -12,78 +12,7 @@
 </script>
   <meta charset="UTF-8">
   <title>📋 AI Session Generator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f4f4f4;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 25px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #1b5e20;
-    }
-    label {
-      font-weight: bold;
-      margin-top: 15px;
-      display: block;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      font-size: 15px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      background: #1b5e20;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .output {
-      margin-top: 25px;
-      background: #e8f5e9;
-      padding: 20px;
-      border-radius: 8px;
-      color: #1b5e20;
-      white-space: pre-wrap;
-      line-height: 1.6;
-      font-size: 15px;
-      font-family: 'Courier New', monospace;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      overflow-x: auto;
-    }
-    .error {
-      color: red;
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-    a {
-      display: block;
-      text-align: center;
-      margin-top: 20px;
-      color: #1b5e20;
-      text-decoration: none;
-      font-weight: bold;
-    }
-  </style>
+
 </head>
 <body>
   {% with messages = get_flashed_messages(with_categories=true) %}
