@@ -64,9 +64,14 @@ def home():
             view_mode=view_mode
         )
     except Exception as e:
-        # If there's any error, redirect to login
-        print(f"Error loading home page: {e}")
-        return redirect("/login")
+        # FIXED: Instead of redirecting to login, log the error and return a simpler home page
+        print(f"Error loading home page details: {e}")
+        return render_template(
+            "home.html", 
+            default_postcode="SW6 4UL", 
+            bulletin_messages=[],
+            error=f"Some data couldn't be loaded. Please refresh or contact support if the issue persists."
+        )
 
 @main_bp.route("/bulletin")
 @login_required

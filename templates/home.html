@@ -164,8 +164,16 @@
   </div>
 
   <div class="container py-5" style="padding-top: 100px;">
-    <h1 class="heading-text text-center mb-4" data-aos="fade-down">🎾 Coaches Hub</h1>
-
+    <div class="page-title-container">
+      <h1 class="page-title">🎾 Coaches Hub</h1>
+      <p class="page-subtitle">Your complete tennis coaching assistant</p>
+      {% if current_user.is_admin %}
+      <div class="title-nav-buttons">
+        <a href="/admin" class="btn btn-outline-success me-2">👑 Admin Dashboard</a>
+        <a href="/whats-new" class="btn btn-outline-success">🆕 What's New</a>
+      </div>
+      {% endif %}
+    </div>
     <div class="row g-4">
       <!-- Match Organizer -->
       <div class="col-md-4 d-flex" data-aos="fade-up" data-aos-delay="100">

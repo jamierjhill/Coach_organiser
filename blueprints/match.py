@@ -142,9 +142,30 @@ def index():
                 )
 
         elif "reset" in request.form:
+            # Instead of clearing the entire session, just clear match-related data
+            # Save important session values
+            last_form_page = session.get("last_form_page")
+            
+            # Clear only match organizer data
+            session["players"] = []
+            session["matchups"] = []
+            session["player_match_counts"] = {}
+            session["opponent_averages"] = {}
+            session["opponent_diff"] = {}
+            session["rounds"] = {}
+            session["session_name"] = ""
+            
+            # Reset match variables for the current function
             players = []
             matchups = []
-            session.clear()
+            player_match_counts = {}
+            opponent_averages = {}
+            opponent_diff = {}
+            rounds = {}
+            session_name = ""
+            
+            # Restore important session values
+            session["last_form_page"] = last_form_page
 
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()

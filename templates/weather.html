@@ -21,13 +21,15 @@
   {% endwith %}
   
 <div class="container py-4">
-  <h2 class="text-success text-center mb-4">☀️ Weather Forecast</h2>
-
-  <!-- Navigation Buttons -->
-  <div class="text-center mb-3">
-    <a href="{% if current_user.is_authenticated %}/home{% else %}/login{% endif %}" class="btn btn-outline-success me-2">🏠 Home</a>
-    <a href="/settings" class="btn btn-outline-success">⚙️ Change Location</a>
+  <div class="page-title-container">
+    <h1 class="page-title">☀️ Weather Forecast</h1>
+    <div class="title-nav-buttons">
+      <a href="{% if current_user.is_authenticated %}/home{% else %}/login{% endif %}" class="btn btn-outline-success me-2">🏠 Home</a>
+      <a href="/settings" class="btn btn-outline-success">⚙️ Change Location</a>
+    </div>
   </div>
+
+
 
   <!-- Location Display -->
   <div class="card-section">

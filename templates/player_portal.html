@@ -23,16 +23,13 @@
 {% endwith %}
 
   <div class="container py-5">
-    <div class="container pb-3 mb-3">
-        <h1 class="text-center text-success mb-3">🎾 {{ title }}</h1>
-        <h5 class="text-center text-success mb-3"> Player Portal</53>
-
-        <!-- 🔓 Top Navigation -->
-        <div class="d-flex justify-content-center my-3">
-          <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
-        </div>
-        
+    <div class="page-title-container">
+      <h1 class="page-title">🎾 {{ title }}</h1>
+      <p class="page-subtitle">Player Portal</p>
+      <div class="title-nav-buttons">
+        <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
       </div>
+    </div>
         
     <!-- 📢 Bulletin Section -->
     <div class="section-card">

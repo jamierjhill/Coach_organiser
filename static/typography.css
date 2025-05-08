@@ -200,3 +200,34 @@
   .chat-msg {
     font-size: var(--font-sm) !important;
   }
+
+.page-title-container {
+  text-align: center;
+  padding: 2rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: var(--font-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--navy);
+  margin-bottom: 1rem;
+}
+
+.title-nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Mobile-friendly adjustments */
+@media (max-width: 576px) {
+  .page-title-container {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .page-title {
+    font-size: var(--font-2xl);
+  }
+}

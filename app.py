@@ -4,7 +4,7 @@ load_dotenv()
 
 import os
 from datetime import timedelta
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, session
 from flask_login import LoginManager
 from flask_mail import Mail
 from blueprints import all_blueprints
@@ -45,6 +45,11 @@ def create_app():
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Session lasts 24 hours
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+    
+    # FIXED: Make session permanent by default to extend session lifetime
+    @app.before_request
+    def make_session_permanent():
+        session.permanent = True
     
     # Security headers middleware
     @app.after_request
