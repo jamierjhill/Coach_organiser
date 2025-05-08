@@ -1,0 +1,317 @@
+/* Color Scheme Variables */
+:root {
+  /* Primary Colors */
+  --navy: #00223e;
+  --teal: #00a07e;
+  --white: #fafaf8;
+  --light: #f3f6f9;
+
+  /* Secondary/Accent Colors (derived from primary) */
+  --navy-light: #003a66; /* Lighter navy for hover states */
+  --navy-dark: #001527; /* Darker navy for borders */
+  --teal-light: #33b597; /* Lighter teal for hover states */
+  --teal-dark: #007a5f; /* Darker teal for borders */
+  --light-border: #dce4ef; /* For borders and dividers */
+  --text-primary: #00223e; /* Navy for primary text */
+  --text-secondary: #5a6987; /* Muted text */
+
+  /* Status Colors (keep for alerts and notifications) */
+  --success: #00a07e; /* Using teal as success */
+  --warning: #f7c948;
+  --danger: #e74c3c;
+  --info: #3498db;
+}
+
+/*===========================================
+  CRITICAL BACKGROUND FIXES
+  These must be at the top to take precedence
+============================================*/
+html, body {
+  background-color: var(--light) !important;
+}
+
+/* Login/Register specific fixes */
+body.login-body, body.register-body {
+  background-color: var(--light) !important;
+}
+
+/* Override any green background no matter where it comes from */
+[style*="background-color: #e8f5e9"],
+[style*="background-color:#e8f5e9"],
+[style*="background: #e8f5e9"],
+[style*="background:#e8f5e9"] {
+  background-color: var(--light) !important;
+}
+
+/* Override Bootstrap's typical green class */
+.bg-success, .bg-light-green, .bg-green-light {
+  background-color: var(--teal) !important;
+}
+
+/*===========================================
+  BASE STYLES
+============================================*/
+body {
+  background-color: var(--light);
+  font-family: 'Segoe UI', sans-serif;
+  color: var(--text-primary);
+}
+
+/* Container backgrounds */
+.container, .container-fluid {
+  background-color: transparent !important;
+}
+
+/*===========================================
+  CARD STYLES
+============================================*/
+.tennis-card, .login-card, .register-card, .admin-card, 
+.whats-new-container, .card-section, .bulletin-container, 
+.calendar-container, .forecast-container, .compose-area, 
+.section-card, .player-box {
+  background-color: var(--white) !important;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
+  border-left: 5px solid var(--navy);
+}
+
+.tennis-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 34, 62, 0.12);
+}
+
+/*===========================================
+  BUTTON STYLES
+============================================*/
+.btn-primary, .sleek-btn, .tennis-btn, .login-btn, 
+.register-btn, .btn-success, .btn-admin {
+  background-color: var(--teal) !important;
+  border-color: var(--teal) !important;
+  color: var(--white) !important;
+  font-weight: 600;
+}
+
+.btn-primary:hover, .sleek-btn:hover, .tennis-btn:hover, 
+.login-btn:hover, .register-btn:hover, .btn-success:hover, 
+.btn-admin:hover {
+  background-color: var(--teal-dark) !important;
+  border-color: var(--teal-dark) !important;
+  color: var(--white) !important;
+}
+
+.btn-outline-success, .btn-outline-primary {
+  color: var(--teal) !important;
+  border-color: var(--teal) !important;
+  background-color: transparent !important;
+}
+
+.btn-outline-success:hover, .btn-outline-primary:hover {
+  background-color: var(--teal) !important;
+  color: var(--white) !important;
+}
+
+/*===========================================
+  TEXT COLORS
+============================================*/
+.text-success, .card-title, h1, h2, h3, h4, h5, 
+.section-title, .update-title {
+  color: var(--navy) !important;
+}
+
+/* Link colors */
+.text-link, a.text-link {
+  color: var(--teal) !important;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.text-link:hover, a.text-link:hover {
+  color: var(--teal-dark) !important;
+}
+
+/*===========================================
+  BACKGROUND COLORS
+============================================*/
+.top-bar {
+  background-color: var(--light) !important;
+}
+
+.weather-display, .player-box {
+  background-color: var(--light) !important;
+}
+
+.match {
+  background-color: var(--teal) !important;
+  color: var(--white);
+}
+
+/*===========================================
+  NAVIGATION & UI ELEMENTS
+============================================*/
+.offcanvas, #sideNav {
+  background-color: var(--light) !important;
+}
+
+.modal-header {
+  background-color: var(--light) !important;
+}
+
+#navToggleBtn {
+  background-color: var(--navy) !important;
+  color: var(--white) !important;
+}
+
+#navToggleBtn:hover {
+  background-color: var(--navy-light) !important;
+}
+
+/* Install prompt for PWA */
+.install-prompt {
+  background-color: var(--navy) !important;
+  color: var(--white) !important;
+}
+
+.install-prompt button {
+  background-color: var(--white) !important;
+  color: var(--navy) !important;
+}
+
+/*===========================================
+  FORM ELEMENTS
+============================================*/
+.form-control:focus, .form-select:focus {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 0.25rem rgba(0, 160, 126, 0.25) !important;
+}
+
+/*===========================================
+  ALERTS
+============================================*/
+.alert-success {
+  background-color: rgba(0, 160, 126, 0.1) !important;
+  border-color: rgba(0, 160, 126, 0.4) !important;
+  color: var(--teal-dark) !important;
+}
+
+.alert-danger {
+  background-color: rgba(231, 76, 60, 0.1) !important;
+  border-color: rgba(231, 76, 60, 0.4) !important;
+  color: #c0392b !important;
+}
+
+/*===========================================
+  TABLES
+============================================*/
+.table thead th {
+  background-color: var(--light) !important;
+  color: var(--navy) !important;
+}
+
+/*===========================================
+  MISC ELEMENTS
+============================================*/
+.note-card, .update-item {
+  border-left: 4px solid var(--teal) !important;
+  background-color: var(--white) !important;
+}
+
+/*===========================================
+  WEATHER-SPECIFIC ELEMENTS
+============================================*/
+.weather-status.status-good {
+  background-color: rgba(0, 160, 126, 0.1) !important;
+  border: 1px solid rgba(0, 160, 126, 0.3) !important;
+  color: var(--teal-dark) !important;
+}
+
+.weather-status.status-bad {
+  background-color: #fff8e1 !important;
+  border: 1px solid #ffe082 !important;
+  color: #ff8f00 !important;
+}
+
+/*===========================================
+  PLAYER PORTAL ELEMENTS
+============================================*/
+.tennis-badge.good {
+  background-color: rgba(0, 160, 126, 0.1) !important;
+  color: var(--teal-dark) !important;
+}
+
+/*===========================================
+  CALENDAR
+============================================*/
+.fc-button-primary {
+  background-color: var(--teal) !important;
+  border-color: var(--teal) !important;
+}
+
+.fc-button-primary:hover {
+  background-color: var(--teal-dark) !important;
+  border-color: var(--teal-dark) !important;
+}
+
+.fc-col-header-cell {
+  background-color: var(--light) !important;
+}
+
+.fc-day-today {
+  background-color: rgba(0, 160, 126, 0.1) !important;
+}
+
+.fc-event {
+  background-color: var(--teal) !important;
+  border-color: var(--teal) !important;
+}
+
+/*===========================================
+  FINAL SWEEP FOR MISSED GREEN
+============================================*/
+[class*="green"], 
+[class*="success"], 
+[style*="#1b5e20"], 
+[style*="#43a047"], 
+[style*="#2e7d32"], 
+[style*="#e8f5e9"], 
+[style*="#c8e6c9"] {
+  background-color: var(--light) !important;
+}
+
+/* Special cases for specific pages */
+body.login-page, body.register-page,
+.login-page body, .register-page body {
+  background-color: var(--light) !important;
+}
+
+/* Add these rules to your colors.css file */
+
+/* Fix for heading backgrounds */
+h1, h2, h3, h4, h5, h6, 
+.text-success, 
+.card-title, 
+.section-title, 
+.update-title {
+  color: var(--navy) !important;
+  background-color: transparent !important; /* Explicitly set transparent background */
+}
+
+/* Specific fix for login/register headings */
+.login-card h3, 
+.register-card h3,
+.heading-text {
+  color: var(--navy) !important;
+  background-color: transparent !important;
+}
+
+/* Fix for text within tennis-card */
+.tennis-card h1,
+.tennis-card h2,
+.tennis-card h3,
+.tennis-card h4,
+.tennis-card h5,
+.tennis-card h6,
+.tennis-card p,
+.tennis-card div,
+.tennis-card span {
+  background-color: transparent !important;
+}
