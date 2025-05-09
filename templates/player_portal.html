@@ -5,303 +5,707 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 <style>
-  /* Enhanced Weather Component Styles */
-  .forecast-container {
+  /* Additional inline styles for the player portal */
+  /* These could be moved to your typography.css or colours.css files */
+  
+  /* Bulletin section */
+  .bulletin-messages {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .bulletin-message {
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: var(--light);
+    border-left: 4px solid var(--teal);
+    border-radius: 8px;
+  }
+  
+  .bulletin-content {
+    margin-bottom: 8px;
+    white-space: pre-line;
+  }
+  
+  .bulletin-timestamp {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+  }
+  
+  /* Empty states */
+  .empty-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+  
+  .empty-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  /* Subscription box */
+  .subscription-box {
+    border: 1px solid var(--light-border);
+    border-radius: 8px;
+    padding: 15px;
+    background-color: var(--light);
+  }
+  
+  .nav-tabs .nav-link {
+    color: var(--text-primary);
+    font-weight: var(--weight-medium);
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: var(--teal);
+    font-weight: var(--weight-semibold);
+  }
+  
+  /* Upcoming events */
+  .upcoming-title {
+    font-size: var(--font-md);
+    font-weight: var(--weight-semibold);
+    color: var(--navy);
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--light-border);
+  }
+  
+  .upcoming-event-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--light-border);
+  }
+  
+  .upcoming-event-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .event-date {
+    background-color: var(--teal-light);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: var(--font-xs);
+    font-weight: var(--weight-medium);
+    text-align: center;
+    min-width: 70px;
+    margin-right: 15px;
+  }
+  
+  .event-details {
+    flex: 1;
+  }
+  
+  .event-title {
+    font-weight: var(--weight-semibold);
+    margin-bottom: 4px;
+  }
+  
+  .event-time {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+  }
+  
+  /* Simplified 5-Day Forecast Styles */
+  .five-day-section {
+    margin-top: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .five-day-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+  }
+  
+  /* Day card */
+  .day-card {
+    flex: 0 0 140px;
     background-color: white;
     border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
   }
   
-  .weather-card {
+  .day-card.good-day {
+    border-left: 3px solid var(--teal);
+  }
+  
+  .day-card.caution-day {
+    border-left: 3px solid #ff9800;
+  }
+  
+  /* Card header */
+  .day-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
     background-color: #f9fefc;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    transition: transform 0.2s ease;
+    border-bottom: 1px solid #e0f2f1;
   }
   
-  .weather-card:hover {
-    transform: translateY(-2px);
-  }
-  
-  .weather-header {
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #c8e6c9;
-  }
-  
-  .tennis-badge {
+  .day-name {
     font-weight: 600;
-    font-size: 0.85rem;
-    padding: 6px 12px;
-    border-radius: 20px;
+    color: var(--navy);
   }
   
-  .tennis-badge.good {
+  .day-status {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  
+  .day-status.good {
     background-color: #e8f5e9;
     color: #2e7d32;
   }
   
-  .tennis-badge.bad {
-    background-color: #ffebee;
-    color: #c62828;
+  .day-status.bad {
+    background-color: #fff8e1;
+    color: #ff8f00;
   }
   
-  .weather-icon-container {
-    background-color: white;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .temp-display {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #1b5e20;
-  }
-  
-  .weather-description {
-    font-size: 1rem;
-    color: #555;
-  }
-  
-  .weather-metrics {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.5;
-  }
-  
-  .weather-icon {
-    display: inline-block;
-    margin-right: 4px;
-  }
-  
-  .forecast-scroll-row {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 10px 0;
-    scrollbar-width: thin;
-    -ms-overflow-style: none;
-    scroll-behavior: smooth;
-  }
-  
-  .forecast-scroll-row::-webkit-scrollbar {
-    height: 6px;
-  }
-  
-  .forecast-scroll-row::-webkit-scrollbar-thumb {
-    background-color: #c8e6c9;
-    border-radius: 6px;
-  }
-  
-  .period-block {
-    min-width: 110px;
-    flex: 0 0 auto;
-    background-color: white;
-    border-radius: 10px;
+  /* Card body */
+  .day-card-body {
     padding: 12px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .day-weather {
     text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    border: 1px solid #e0f2f1;
-    transition: transform 0.2s ease;
   }
   
-  .period-block:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  
-  .period-time {
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #1b5e20;
-  }
-  
-  .weather-icon-wrapper {
-    background-color: #f1f8f1;
-    border-radius: 50%;
+  .day-icon {
+    display: block;
+    margin: 0 auto;
     width: 50px;
     height: 50px;
-    margin: 0 auto 8px;
+  }
+  
+  .day-temp {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  
+  .day-metrics {
     display: flex;
-    align-items: center;
     justify-content: center;
+    gap: 12px;
   }
   
-  .weather-icon-small {
-    width: 40px;
-    height: 40px;
+  .metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
   }
   
-  .period-temp {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1b5e20;
+  .metric-icon {
+    font-size: 0.9rem;
   }
   
-  .period-desc {
-    font-size: 0.8rem;
-    color: #555;
-    margin-bottom: 8px;
+  .metric-value {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  
+  /* Card footer */
+  .day-card-footer {
+    padding: 10px;
+    background-color: #f9fefc;
+    border-top: 1px solid #e0f2f1;
+    text-align: center;
+  }
+  
+  .day-tip {
+    font-size: 0.7rem;
+    color: var(--navy);
+    display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  
-  .period-metrics {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    color: #666;
-  }
-  
-  .weather-icon-tiny {
-    font-style: normal;
-  }
-  
-  .tennis-tip {
-    display: flex;
-    background-color: #e8f5e9;
-    border-radius: 10px;
-    padding: 12px;
-    margin-top: 15px;
-  }
-  
-  .tip-icon {
-    font-size: 1.5rem;
-    margin-right: 10px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .tip-content {
-    font-size: 0.9rem;
-    color: #1b5e20;
-    line-height: 1.4;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-  <div class="page-title-container">
-    <h1 class="page-title">🎾 {{ title }}</h1>
-    <p class="page-subtitle">Player Portal</p>
-    <div class="title-nav-buttons">
-      <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
+<div class="page-title-container">
+  <h1 class="page-title">🎾 {{ title }}</h1>
+  <p class="page-subtitle">Player Portal</p>
+  <div class="title-nav-buttons">
+    <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- 📢 Bulletin Section -->
+  <div class="col-lg-7">
+    <div class="section-card">
+      <h3 class="section-title">📢 Bulletin Board</h3>
+      {% if bulletin_messages %}
+        <div class="bulletin-messages">
+          {% for msg in bulletin_messages|reverse %}
+            <div class="bulletin-message">
+              <div class="bulletin-content">{{ msg.text }}</div>
+              <div class="bulletin-timestamp">{{ msg.timestamp }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📌</div>
+          <p>No bulletins posted yet.</p>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- ☀️ Weather Widget -->
+    <div class="forecast-container section-card">
+      <h3 class="section-title">☀️ Weather Forecast</h3>
+      <p class="location-display">{{ weather.location }}</p>
+
+      {% if weather.error %}
+        <div class="alert alert-warning">⚠️ {{ weather.error }}</div>
+      {% elif weather.forecast and weather.forecast|length > 0 %}
+        {% set today = weather.forecast[0] %}
+        
+        <!-- Today's Weather Card -->
+        <div class="weather-card mb-4">
+          <div class="weather-header d-flex justify-content-between align-items-center mb-3">
+            <h4 class="day-heading mb-0">Today</h4>
+            {% if today.good_for_tennis %}
+              <span class="tennis-badge good">✓ Good for Tennis</span>
+            {% else %}
+              <span class="tennis-badge bad">⚠️ Check Conditions</span>
+            {% endif %}
+          </div>
+          
+          <div class="weather-body d-flex align-items-center">
+            {% if today.hourly|length > 0 %}
+              {% set current = today.hourly[0] %}
+              <div class="weather-icon-container me-4">
+                <img src="https://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="{{ current.desc }}">
+              </div>
+              
+              <div class="weather-info">
+                <div class="temp-display">{{ current.temp|round(0) }}°C</div>
+                <div class="weather-description">{{ current.desc|capitalize }}</div>
+                <div class="weather-metrics">
+                  <span><i class="weather-icon">💨</i> Wind: {{ (current.wind * 2.237)|round(0) }} mph</span> | 
+                  <span><i class="weather-icon">💧</i> Rain: {{ (current.rain * 100)|round(0) }}%</span>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+          
+          {% if today.good_for_tennis %}
+            <div class="tennis-tip">
+              <div class="tip-icon">💡</div>
+              <div class="tip-content">
+                Great day for tennis! Consider scheduling longer sessions or focusing on match play.
+              </div>
+            </div>
+          {% else %}
+            <div class="tennis-tip">
+              <div class="tip-icon">💡</div>
+              <div class="tip-content">
+                Weather conditions may affect play. Have indoor options ready or adjust your drills accordingly.
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Hourly Forecast -->
+        <h5 class="forecast-heading">Today's Hourly Forecast</h5>
+        <div class="forecast-scroll-row mb-4">
+          {% for hour in today.hourly %}
+            <div class="period-block">
+              <div class="period-time">{{ hour.time }}</div>
+              <div class="weather-icon-wrapper">
+                <img src="https://openweathermap.org/img/wn/{{ hour.icon }}.png" class="weather-icon-small" alt="{{ hour.desc }}">
+              </div>
+              <div class="period-temp">{{ hour.temp|round(0) }}°C</div>
+              <div class="period-desc">{{ hour.desc|capitalize }}</div>
+              <div class="period-metrics">
+                <span><i class="weather-icon-tiny">💨</i> {{ (hour.wind * 2.237)|round(0) }}mph</span>
+                <span><i class="weather-icon-tiny">🌧️</i> {{ (hour.rain * 100)|round(0) }}%</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Simplified 5-Day Outlook Section -->
+        <div class="five-day-section">
+          <h5 class="forecast-heading">5-Day Tennis Outlook</h5>
+          
+          <div class="five-day-row">
+            {% for day in weather.forecast %}
+              {% if not loop.first %} <!-- Skip today -->
+                <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
+                  <div class="day-card-header">
+                    <span class="day-name">{{ day.day.split(' ')[0] }}</span>
+                    {% if day.good_for_tennis %}
+                      <span class="day-status good">Good</span>
+                    {% else %}
+                      <span class="day-status bad">Check</span>
+                    {% endif %}
+                  </div>
+                  
+                  {% if day.hourly|length > 0 %}
+                    {% set morning = day.hourly[0] %}
+                    {% set afternoon = day.hourly[0] %}
+                    
+                    {% for hour in day.hourly %}
+                      {% if '09:' in hour.time %}
+                        {% set morning = hour %}
+                      {% endif %}
+                      {% if '15:' in hour.time %}
+                        {% set afternoon = hour %}
+                      {% endif %}
+                    {% endfor %}
+
+                    <div class="day-card-body">
+                      <div class="day-weather">
+                        <img src="https://openweathermap.org/img/wn/{{ morning.icon }}.png" class="day-icon" alt="{{ morning.desc }}">
+                        <div class="day-temp">{{ morning.temp|round(0) }}°C</div>
+                      </div>
+                      
+                      <div class="day-metrics">
+                        <div class="metric">
+                          <span class="metric-icon">💨</span>
+                          <span class="metric-value">{{ (morning.wind * 2.237)|round(0) }}mph</span>
+                        </div>
+                        <div class="metric">
+                          <span class="metric-icon">🌧️</span>
+                          <span class="metric-value">{{ (morning.rain * 100)|round(0) }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {% set avg_temp = (morning.temp + afternoon.temp) / 2 %}
+                    {% set max_wind = morning.wind %}
+                    {% if afternoon.wind > morning.wind %}
+                      {% set max_wind = afternoon.wind %}
+                    {% endif %}
+                    {% set max_rain = morning.rain %}
+                    {% if afternoon.rain > morning.rain %}
+                      {% set max_rain = afternoon.rain %}
+                    {% endif %}
+                          
+                    <div class="day-card-footer">
+                      {% if day.good_for_tennis %}
+                        {% if max_wind > 5 %}
+                          <span class="day-tip">Good with wind adjustments</span>
+                        {% else %}
+                          <span class="day-tip">Excellent for tennis</span>
+                        {% endif %}
+                      {% else %}
+                        {% if max_rain > 0.3 %}
+                          <span class="day-tip">Consider indoor courts</span>
+                        {% elif max_wind > 10 %}
+                          <span class="day-tip">Use heavier balls</span>
+                        {% elif avg_temp < 10 %}
+                          <span class="day-tip">Dress in layers</span>
+                        {% elif avg_temp > 25 %}
+                          <span class="day-tip">Stay hydrated</span>
+                        {% else %}
+                          <span class="day-tip">Check conditions</span>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>No forecast data available at the moment.</p>
+        </div>
+      {% endif %}
     </div>
   </div>
   
-  <!-- 📢 Bulletin Section -->
-  <div class="section-card">
-    <h3 class="section-title">📢 Bulletin Board</h3>
-    <ul class="list-group">
-      {% for msg in bulletin_messages %}
-        <li class="list-group-item">
-          <strong>{{ msg.timestamp }}</strong>: {{ msg.text }}
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <!-- 📧 Notification Signup -->
-  <div class="section-card mt-4">
-    <h3 class="section-title">📧 Get Updates from Your Coach</h3>
-
-    <form method="POST" action="/subscribe-email" class="row g-3">
-      <div class="col-md-8">
-        <input type="email" name="email" class="form-control" placeholder="Enter your email to subscribe" required>
+  <div class="col-lg-5">
+    <!-- 📧 Notification Signup -->
+    <div class="section-card">
+      <h3 class="section-title">📧 Get Updates</h3>
+      <p class="mb-3">Subscribe to receive email updates from your coach.</p>
+      
+      <div class="subscription-box">
+        <div class="nav nav-tabs mb-3" id="subscription-tabs" role="tablist">
+          <button class="nav-link active" id="subscribe-tab" data-bs-toggle="tab" data-bs-target="#subscribe-panel" type="button" role="tab" aria-selected="true">Subscribe</button>
+          <button class="nav-link" id="unsubscribe-tab" data-bs-toggle="tab" data-bs-target="#unsubscribe-panel" type="button" role="tab" aria-selected="false">Unsubscribe</button>
+        </div>
+        
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="subscribe-panel" role="tabpanel">
+            <form method="POST" action="/subscribe-email">
+              <div class="input-group mb-2">
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-success">Subscribe</button>
+              </div>
+              <div class="form-text">You'll receive notifications about new bulletins and events.</div>
+            </form>
+          </div>
+          
+          <div class="tab-pane fade" id="unsubscribe-panel" role="tabpanel">
+            <form method="POST" action="/unsubscribe-email">
+              <div class="input-group mb-2">
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-outline-danger">Unsubscribe</button>
+              </div>
+              <div class="form-text">You'll no longer receive email notifications.</div>
+            </form>
+          </div>
+        </div>
       </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-success w-100 mb-3">Subscribe</button>
-      </div>
-    </form>
-    <form method="POST" action="/unsubscribe-email" class="row g-3">
-      <div class="col-md-8">
-        <input type="email" name="email" class="form-control" placeholder="Enter your email to unsubscribe" required>
-      </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-outline-danger w-100 mb-3">❌ Unsubscribe</button>
-      </div>
-    </form>
-  </div>
+    </div>
 
-  <!-- 📅 Calendar Section -->
-  <div class="section-card">
-    <h3 class="section-title">📅 Coaching Calendar</h3>
-    <div id="calendar"></div>
-  </div>
+    <!-- 📅 Calendar Section -->
+    <div class="section-card">
+      <h3 class="section-title">📅 Coaching Calendar</h3>
+      <div id="calendar" class="mb-3"></div>
+      <div id="upcoming-events" class="mt-3">
+        <h5 class="upcoming-title">Upcoming Events</h5>
+        <div id="upcoming-events-list">
+          <div class="placeholder-text text-center">Loading events...</div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Enhanced Weather Component for player_portal.html -->
-  <div class="forecast-container section-card">
-    <h3 class="section-title">☀️ Weather Forecast — <span class="text-muted">{{ weather.location }}</span></h3>
-
-    {% if weather.error %}
-      <div class="alert alert-danger">⚠️ {{ weather.error }}</div>
-    {% elif weather.forecast and weather.forecast|length > 0 %}
-      {% set today = weather.forecast[0] %}
-      <div class="weather-card mb-4">
-        <!-- [Weather content kept same as original] -->
+    <!-- 🧠 CoachBot Section -->
+    <div class="section-card chat-container">
+      <h3 class="section-title">🧠 Ask CoachBot</h3>
+      
+      <!-- Chat Header -->
+      <div class="chat-header d-flex align-items-center mb-3">
+        <div class="chat-avatar me-3">🧠</div>
+        <div>
+          <h5 class="chat-title mb-0">Tennis Assistant</h5>
+          <p class="chat-subtitle">Ask questions about tennis techniques, drills, and more</p>
+        </div>
       </div>
       
-      <!-- [Remainder of weather section kept same as original] -->
-    {% else %}
-      <div class="text-muted">No forecast data available.</div>
-    {% endif %}
-  </div>
-
-  <!-- 🧠 CoachBot Section -->
-  <div class="section-card">
-    <h3 class="section-title">🧠 Ask CoachBot</h3>
-    <div id="chatbox" class="d-flex flex-column mb-3" style="height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px;"></div>
-    <div class="input-group">
-      <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
-      <button class="btn btn-success" onclick="sendChat()">Send</button>
+      <!-- Chat Messages Area -->
+      <div id="chatbox" class="chatbox mb-3">
+        <!-- Welcome message will be added via JavaScript -->
+      </div>
+      
+      <!-- Chat Input Area -->
+      <div class="chat-input-container">
+        <div class="input-group">
+          <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
+          <button class="btn btn-success" onclick="sendChat()">
+            <span class="send-icon">📤</span>
+            <span class="d-none d-md-inline">Send</span>
+          </button>
+        </div>
+        
+        <!-- Quick Question Suggestions -->
+        <div class="suggestion-chips d-flex flex-wrap gap-2 mt-3">
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis tips for beginners</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis drills</span>
+          <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips</span>
+        </div>
+      </div>
     </div>
   </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Calendar
+    initializeCalendar();
+    
+    // Initialize Chat with welcome message
+    initializeChat();
+    
+    // Handle Enter key press for chat
+    document.getElementById('chatInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  });
+  
+  // Calendar Initialization
+  function initializeCalendar() {
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
-      height: 500,
-      events: "/api/events"
+      headerToolbar: {
+        left: 'prev,next',
+        center: 'title',
+        right: 'today'
+      },
+      height: 450,
+      events: "/api/events",
+      eventDidMount: function(info) {
+        // Add hover effect
+        info.el.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+        info.el.addEventListener('mouseover', function() {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        });
+        info.el.addEventListener('mouseout', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = 'none';
+        });
+      },
+      eventClick: function(info) {
+        // Show event details
+        const event = info.event;
+        const start = event.start ? formatDateTime(event.start) : 'All day';
+        const end = event.end ? formatDateTime(event.end) : '';
+        
+        alert(`${event.title}\n${start}${end ? ' - ' + end : ''}`);
+      },
+      datesSet: function(dateInfo) {
+        // Update upcoming events list when calendar view changes
+        updateUpcomingEvents(calendar);
+      }
     });
-    calendar.render();
-  });
-
-  // JavaScript for the expand/collapse toggle button text
-  document.addEventListener('DOMContentLoaded', function() {
-    const collapseToggle = document.querySelector('[data-bs-toggle="collapse"]');
-    const expandText = document.querySelector('.expand-text');
-    const collapseText = document.querySelector('.collapse-text');
     
-    if (collapseToggle) {
-      collapseToggle.addEventListener('click', function() {
-        const isExpanded = this.getAttribute('aria-expanded') === 'true';
-        expandText.style.display = isExpanded ? 'none' : 'inline';
-        collapseText.style.display = isExpanded ? 'inline' : 'none';
-      });
+    calendar.render();
+    updateUpcomingEvents(calendar);
+  }
+  
+  // Format date and time for event display
+  function formatDateTime(date) {
+    return date.toLocaleString('en-GB', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  
+  // Update the upcoming events list
+  function updateUpcomingEvents(calendar) {
+    const now = new Date();
+    const futureEvents = calendar.getEvents()
+      .filter(e => new Date(e.start) >= now)
+      .sort((a, b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 3);
+      
+    const listEl = document.getElementById('upcoming-events-list');
+    
+    if (futureEvents.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <p>No upcoming events scheduled</p>
+        </div>
+      `;
+      return;
     }
-  });
-
+    
+    listEl.innerHTML = '';
+    futureEvents.forEach(event => {
+      const eventDate = new Date(event.start);
+      const timeString = event.allDay ? 'All day' : formatTime(eventDate);
+      const dateString = formatDate(eventDate);
+      
+      const li = document.createElement('div');
+      li.className = 'upcoming-event-item';
+      li.innerHTML = `
+        <div class="event-date">${dateString}</div>
+        <div class="event-details">
+          <div class="event-title">${event.title}</div>
+          <div class="event-time">${timeString}</div>
+        </div>
+      `;
+      listEl.appendChild(li);
+    });
+  }
+  
+  function formatDate(date) {
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+  
+  function formatTime(date) {
+    return date.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  
+  // Initialize chat with welcome message
+  function initializeChat() {
+    const chatbox = document.getElementById('chatbox');
+    
+    // Add welcome message
+    chatbox.innerHTML = `
+      <div class="chat-msg chat-bot welcome-message">
+        <strong>CoachBot:</strong> 👋 Hi there! I'm your tennis assistant. Ask me about tennis techniques, drills, or anything related to the sport. How can I help you today?
+      </div>
+    `;
+  }
+  
+  // Send chat message function
   function sendChat() {
     const input = document.getElementById("chatInput");
     const chatbox = document.getElementById("chatbox");
     const userMsg = input.value.trim();
+    
     if (!userMsg) return;
 
-    chatbox.innerHTML += `<div class="chat-msg chat-user"><strong>You:</strong> ${userMsg}</div>`;
+    // Add user message
+    chatbox.innerHTML += `
+      <div class="chat-msg chat-user">
+        <strong>You:</strong> ${userMsg}
+      </div>
+    `;
+    
+    // Clear input
     input.value = "";
+    
+    // Auto scroll to bottom
+    chatbox.scrollTop = chatbox.scrollHeight;
+    
+    // Add typing indicator
+    chatbox.innerHTML += `
+      <div class="chat-msg chat-bot typing-message" id="typingIndicator">
+        <div class="typing-indicator">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </div>
+    `;
+    chatbox.scrollTop = chatbox.scrollHeight;
 
+    // Make API request
     fetch("/chatbot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -309,12 +713,46 @@
     })
     .then(res => res.json())
     .then(data => {
+      // Remove typing indicator
+      document.getElementById("typingIndicator")?.remove();
+      
+      // Add bot response
       const botReply = data.success
         ? `<strong>CoachBot:</strong> ${data.reply}`
         : `<strong>Error:</strong> ${data.error}`;
-      chatbox.innerHTML += `<div class="chat-msg chat-bot">${botReply}</div>`;
+        
+      chatbox.innerHTML += `
+        <div class="chat-msg chat-bot">
+          ${botReply}
+        </div>
+      `;
+      
+      // Auto scroll to bottom
+      chatbox.scrollTop = chatbox.scrollHeight;
+    })
+    .catch(error => {
+      // Remove typing indicator
+      document.getElementById("typingIndicator")?.remove();
+      
+      // Add error message
+      chatbox.innerHTML += `
+        <div class="chat-msg chat-bot error-message">
+          <strong>Error:</strong> Sorry, I couldn't process your request right now. Please try again later.
+        </div>
+      `;
+      
+      // Auto scroll to bottom
       chatbox.scrollTop = chatbox.scrollHeight;
     });
+  }
+
+  // Suggestion chip function
+  function suggestQuery(element) {
+    const input = document.getElementById("chatInput");
+    if (input) {
+      input.value = element.textContent;
+      input.focus();
+    }
   }
 </script>
 {% endblock %}

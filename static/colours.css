@@ -901,4 +901,532 @@
     #chatInput {
       height: 44px;
     }
+
+    /* === Enhanced Weather Component Styles === */
+.forecast-container {
+  background-color: var(--white);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
+  margin-bottom: 30px;
+}
+
+.weather-card {
+  background-color: #f9fefc;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease;
+  border: 1px solid #eaf7f2;
+}
+
+.weather-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.weather-header {
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #c8e6c9;
+}
+
+.tennis-badge {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.tennis-badge.good {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.tennis-badge.bad {
+  background-color: #fff8e1;
+  color: #ff8f00;
+}
+
+.weather-icon-container {
+  background-color: white;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.forecast-scroll-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 0;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+
+.forecast-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.forecast-scroll-row::-webkit-scrollbar-thumb {
+  background-color: #c8e6c9;
+  border-radius: 6px;
+}
+
+.period-block {
+  min-width: 110px;
+  flex: 0 0 auto;
+  background-color: white;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0f2f1;
+  transition: transform 0.2s ease;
+}
+
+.period-block:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.day-block {
+  min-width: 120px;
+  padding: 15px;
+}
+
+.weather-icon-wrapper {
+  background-color: #f1f8f1;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tennis-indicator.good {
+  color: #2e7d32;
+}
+
+.tennis-indicator.bad {
+  color: #ff8f00;
+}
+
+.tennis-tip {
+  display: flex;
+  background-color: #e8f5e9;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 15px;
+}
+
+.tip-icon {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  color: #2e7d32;
+}
+
+/* === Enhanced Chat Component Styles === */
+.chat-container {
+  background-color: var(--white);
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.chat-header {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--light-border);
+}
+
+.chat-avatar {
+  width: 48px;
+  height: 48px;
+  background-color: var(--teal-light);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 2px 8px rgba(0, 160, 126, 0.2);
+}
+
+.chatbox {
+  height: 300px;
+  overflow-y: auto;
+  background-color: var(--light);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid var(--light-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-msg {
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  max-width: 85%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease;
+}
+
+.chat-user {
+  background-color: var(--teal-light);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-bot {
+  background-color: white;
+  color: var(--text-primary);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--light-border);
+}
+
+.welcome-message {
+  background-color: #e8f5e9;
+  border-color: #c8e6c9;
+}
+
+.error-message {
+  background-color: #ffebee;
+  border-color: #ffcdd2;
+  color: #c62828;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestion-chip {
+  background-color: var(--light);
+  color: var(--navy);
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+  border: 1px solid var(--light-border);
+}
+
+.suggestion-chip:hover {
+  background-color: var(--teal-light);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Typing indicator for chat */
+.typing-message {
+  padding: 8px 16px;
+}
+
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--teal);
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: typing 1s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Player Portal Typography Enhancements */
+
+/* Bulletin board typography */
+.bulletin-content {
+  font-size: var(--font-sm);
+  line-height: var(--line-normal);
+}
+
+.bulletin-timestamp {
+  font-size: var(--font-xxs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.3px;
+}
+
+/* Subscription section */
+.subscription-box .nav-link {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.3px;
+}
+
+.subscription-box .form-text {
+  font-size: var(--font-xxs);
+  line-height: 1.4;
+}
+
+/* Upcoming events typography */
+.upcoming-title {
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  color: var(--navy);
+  letter-spacing: 0.3px;
+}
+
+.event-date {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-title {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  color: var(--navy);
+}
+
+.event-time {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-normal);
+  color: var(--text-secondary);
+}
+
+/* Empty state typography */
+.empty-state p {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Calendar typography */
+.fc .fc-toolbar-title {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  color: var(--navy);
+}
+
+.fc .fc-col-header-cell-cushion {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--navy);
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.fc .fc-event-title {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+}
+
+/* Page subtitle typography */
+.page-subtitle {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  font-weight: var(--weight-normal);
+  margin-bottom: 1rem;
+}
+/* Day forecast components */
+.day-forecast-header {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9fefc;
+  border-bottom: 1px solid var(--light-border);
+}
+
+.day-forecast-content {
+  padding: 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.day-forecast-footer {
+  padding: 15px;
+  background-color: #f9fefc;
+  border-top: 1px solid var(--light-border);
+}
+
+/* Simplified 5-Day Forecast Styles */
+.five-day-section {
+  margin-top: 20px;
+  margin-bottom: 25px;
+}
+
+.five-day-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 10px;
+  scroll-snap-type: x mandatory;
+}
+
+/* Hide scrollbar but keep functionality */
+.five-day-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.five-day-row::-webkit-scrollbar-thumb {
+  background: rgba(0, 160, 126, 0.3);
+  border-radius: 3px;
+}
+
+/* Day card */
+.day-card {
+  flex: 0 0 140px;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-card.good-day {
+  border-left: 3px solid var(--teal);
+}
+
+.day-card.caution-day {
+  border-left: 3px solid #ff9800;
+}
+
+/* Card header */
+.day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f9fefc;
+  border-bottom: 1px solid #e0f2f1;
+}
+
+.day-name {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.day-status {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.day-status.good {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.day-status.bad {
+  background-color: #fff8e1;
+  color: #ff8f00;
+}
+
+/* Card body */
+.day-card-body {
+  padding: 12px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-weather {
+  text-align: center;
+}
+
+.day-icon {
+  display: block;
+  margin: 0 auto;
+  width: 50px;
+  height: 50px;
+}
+
+.day-temp {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.day-metrics {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metric-icon {
+  font-size: 0.9rem;
+}
+
+.metric-value {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Card footer */
+.day-card-footer {
+  padding: 10px;
+  background-color: #f9fefc;
+  border-top: 1px solid #e0f2f1;
+  text-align: center;
+}
+
+.day-tip {
+  font-size: 0.7rem;
+  color: var(--navy);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
   }
