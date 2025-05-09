@@ -17,7 +17,7 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label font-medium">Courts</label>
-          <input type="number" class="input-base" name="courts" min="1" value="{{ courts }}">
+          <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
         </div>
         <div class="col-md-4">
           <label class="form-label">Matches per player</label>
@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Format</label>
-          <select class="form-select" name="match_type">
+          <select class="form-control" name="match_type">
             <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
             <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
           </select>
@@ -44,8 +44,9 @@
           <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
         </div>
         <div class="col-md-2">
-          <button type="submit" name="add_player" class="btn-base btn-accent me-2">➕ Add</button>
+          <button type="submit" name="add_player" class="btn-base btn-accent w-100">➕ Add</button>
         </div>
+
       </div>
 
       <!-- CSV Upload Section -->
@@ -57,7 +58,7 @@
             <input type="file" name="csv_file" accept=".csv" class="form-control">
           </div>
           <div class="col-md-4">
-            <button type="button" onclick="return uploadCSV()" class="btn-base btn-accent me-2">📎 Upload CSV</button>
+            <button type="button" onclick="return uploadCSV()" class="btn-base btn-accent">📎 Upload CSV</button>
           </div>
         </div>
         <small class="text-muted d-block mt-2">CSV format: <code>name,grade</code></small>
@@ -97,7 +98,7 @@
     <div class="text-center my-4">
       <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent me-2">🎯 Organize Matches</button>
       <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent me-2">🔀 Reshuffle</button>
-      <button type="submit" name="reset" class="btn btn-outline-danger">🔁 Reset All</button>
+      <button type="submit" name="reset" class="btn btn-outline-danger me-2">🔁 Reset All</button>
     </div>
     
     {% if error %}
@@ -225,7 +226,7 @@
   <!-- Timer -->
   <div class="timer-controls">
     <h5>⏱️ Match Timer</h5>
-    <div id="main-timer-display" class="fs-4 mb-3">20:00</div>
+    <div id="main-timer-display" class="text-center mb-2">20:00</div>
     <div class="d-flex gap-2 justify-content-center mb-2">
       <button class="btn-base btn-accent me-2" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
       <button class="btn-base btn-accent me-2" onclick="pauseClock()">⏸️ Pause</button>
