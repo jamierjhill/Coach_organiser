@@ -5,24 +5,23 @@
 {% block content %}
 <div class="page-title-container">
   <h1 class="page-title">🎟️ Player Access Codes</h1>
-
 </div>
 
 <!-- Create New Code Section -->
-<div class="card-section">
+<div class="card-base">
   <h4>➕ Generate New Code</h4>
   <div class="row g-3">
     <div class="col-md-8">
-      <input type="text" id="codeTitle" class="form-control" placeholder="Enter portal title (e.g. Summer Camp 2025)">
+      <input type="text" id="codeTitle" class="input-base" placeholder="Enter portal title (e.g. Summer Camp 2025)">
     </div>
     <div class="col-md-4">
-      <button class="btn tennis-btn w-100" onclick="createAccessCode()">🎟️ Generate Code</button>
+      <button class="btn-base btn-accent w-100" onclick="createAccessCode()">🎟️ Generate Code</button>
     </div>
   </div>
 </div>
 
 <!-- Existing Codes Section -->
-<div class="card-section">
+<div class="card-base">
   <h4>🔑 Your Access Codes</h4>
   
   <ul class="list-group mt-3">
@@ -34,11 +33,11 @@
             <span class="access-code">{{ code }}</span>
             <strong>{{ data.title }}</strong>
           </div>
-          <button class="btn btn-sm btn-danger" onclick="deleteCode('{{ code }}')">🗑️</button>
+          <button class="btn-base btn-danger btn-sm" onclick="deleteCode('{{ code }}')">🗑️</button>
         </div>
         <div class="code-actions">
-          <button class="btn btn-sm btn-outline-success copy-btn" onclick="copyCode('{{ code }}')">📋 Copy Code</button>
-          <button class="btn btn-sm btn-outline-success copy-btn" onclick="copyLink('{{ code }}')">🔗 Copy Link</button>
+          <button class="btn-base btn-outline-accent btn-sm" onclick="copyCode('{{ code }}')">📋 Copy Code</button>
+          <button class="btn-base btn-outline-accent btn-sm" onclick="copyLink('{{ code }}')">🔗 Copy Link</button>
         </div>
         <div class="share-link mt-2" id="share-link-{{ code }}">
           {{ request.url_root }}player-access?code={{ code }}
@@ -51,7 +50,7 @@
 </div>
 
 <!-- How to Use Section -->
-<div class="card-section">
+<div class="card-base">
   <h4>ℹ️ How to Use Access Codes</h4>
   <p>Share these codes with your players to give them access to your coaching portal.</p>
   <ol>
@@ -103,7 +102,7 @@
     toast.className = 'position-fixed bottom-0 end-0 p-3';
     toast.style.zIndex = 11;
     toast.innerHTML = `
-      <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast show animate-fade-in" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
           <strong class="me-auto">🎾 Tennis Toolbox</strong>
           <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -129,8 +128,18 @@
     }).then(response => {
       if (response.ok) {
         const item = document.getElementById(`code-${code}`);
-        if (item) item.remove();
-        else location.reload();
+        // If we can find the item directly, remove it, otherwise reload
+        if (item) {
+          // Add fade-out animation
+          item.style.transition = 'opacity 0.3s, transform 0.3s';
+          item.style.opacity = '0';
+          item.style.transform = 'translateY(20px)';
+          
+          // Remove after animation completes
+          setTimeout(() => item.remove(), 300);
+        } else {
+          location.reload();
+        }
       }
     });
   }

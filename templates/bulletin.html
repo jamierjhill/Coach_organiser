@@ -5,24 +5,23 @@
 {% block content %}
 <div class="page-title-container">
   <h1 class="page-title">📋 Coach Bulletin Board</h1>
-
 </div>
 
 <div class="container">
   <!-- Compose area -->
-  <div class="tennis-card mb-4">
+  <div class="card-base mb-4">
     <h4 class="section-title mb-3">✏️ Create Bulletin</h4>
     
-    <textarea id="bulletinMessage" class="form-control mb-3" rows="3" placeholder="Write a new bulletin message for your players..."></textarea>
+    <textarea id="bulletinMessage" class="input-base mb-3" rows="3" placeholder="Write a new bulletin message for your players..."></textarea>
     
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex flex-between align-items-center">
       <div class="form-check">
         <input class="form-check-input" type="checkbox" id="sendEmailCheckbox">
         <label class="form-check-label" for="sendEmailCheckbox">
           Also send this bulletin via email to subscribers
         </label>
       </div>
-      <button class="btn tennis-btn" onclick="submitBulletin()">
+      <button class="btn-base btn-accent" onclick="submitBulletin()">
         <span id="postButtonText">📬 Post Message</span>
         <span id="postingSpinner" class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
       </button>
@@ -30,11 +29,11 @@
   </div>
 
   <!-- Bulletin messages -->
-  <div class="tennis-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="card-base">
+    <div class="flex flex-between align-items-center mb-3">
       <h4 class="section-title mb-0">📌 Your Bulletin Messages</h4>
       <div class="dropdown">
-        <button class="btn btn-outline-success dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn-base btn-outline-accent dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           Sort By
         </button>
         <ul class="dropdown-menu" aria-labelledby="sortDropdown">
@@ -47,8 +46,8 @@
     <div id="bulletinList">
       {% if bulletin_messages %}
         {% for msg in bulletin_messages|reverse %}
-          <div class="note-card" id="note-{{ msg.id }}">
-            <div class="d-flex justify-content-between align-items-start">
+          <div class="card-border-left hover-subtle" id="note-{{ msg.id }}">
+            <div class="flex flex-between align-items-start">
               <div class="note-message">{{ msg.text }}</div>
               <button class="delete-btn" onclick="deleteBulletin('{{ msg.id }}')">🗑️</button>
             </div>
@@ -79,8 +78,8 @@
         Are you sure you want to delete this bulletin message?
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+        <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-base btn-danger" id="confirmDelete">Delete</button>
       </div>
     </div>
   </div>
@@ -137,10 +136,10 @@
         
         // Add new message based on sort order
         const noteCard = document.createElement('div');
-        noteCard.className = 'note-card new-message';
+        noteCard.className = 'card-border-left hover-subtle animate-highlight';
         noteCard.id = `note-${id}`;
         noteCard.innerHTML = `
-          <div class="d-flex justify-content-between align-items-start">
+          <div class="flex flex-between align-items-start">
             <div class="note-message">${message}</div>
             <button class="delete-btn" onclick="deleteBulletin('${id}')">🗑️</button>
           </div>
@@ -225,7 +224,7 @@
   function sortMessages(order) {
     currentSort = order;
     const bulletinList = document.getElementById("bulletinList");
-    const notes = Array.from(bulletinList.querySelectorAll('.note-card'));
+    const notes = Array.from(bulletinList.querySelectorAll('.card-border-left'));
     
     // Don't do anything if there are no messages
     if (notes.length === 0) return;
@@ -256,24 +255,11 @@
     }
   });
 </script>
-
 {% endblock %}
 
 {% block extra_css %}
 <style>
   /* Additional styles specific to bulletin board */
-  .note-card {
-    position: relative;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .note-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  }
-
   .note-message {
     white-space: pre-line;
     flex: 1;
@@ -299,23 +285,10 @@
     opacity: 1;
   }
 
-  .new-message {
-    animation: highlight 1.5s ease;
-  }
-
-  .empty-state {
-    color: #6c757d;
-  }
-
   .empty-icon {
     display: block;
     font-size: 2rem;
     margin-bottom: 0.5rem;
-  }
-
-  @keyframes highlight {
-    from { background-color: rgba(0, 160, 126, 0.2); }
-    to { background-color: transparent; }
   }
 </style>
 {% endblock %}

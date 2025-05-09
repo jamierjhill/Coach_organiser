@@ -13,71 +13,11 @@
     padding-bottom: 4rem;
   }
 
-  .admin-card {
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    padding: 25px;
-    margin-bottom: 30px;
-    border-left: 6px solid var(--navy);
-  }
-
   .stats-card {
-    background-color: #fff;
-    border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
     border-left: 4px solid var(--navy);
-    transition: transform 0.3s ease;
-  }
-
-  .stats-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .stats-value {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--navy);
-  }
-
-  .stats-label {
-    color: #666;
-    font-size: 0.9rem;
-  }
-
-  .chart-container {
-    height: 300px;
-    position: relative;
-  }
-
-  .btn-admin {
-    background-color: var(--navy);
-    color: white;
-    font-weight: bold;
-  }
-
-  .btn-admin:hover {
-    background-color: var(--navy-dark);
-    color: white;
-  }
-
-  .table {
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .table thead th {
-    background-color: var(--light);
-    border: none;
-    color: var(--navy);
-    font-weight: 600;
-  }
-
-  .table tbody tr:hover {
-    background-color: #f5f5f5;
+    transition: transform var(--transition-speed) ease;
   }
 
   .card-header {
@@ -93,37 +33,37 @@
 <div class="page-title-container">
   <h1 class="page-title">📊 Admin Analytics</h1>
   <div class="title-nav-buttons">
-    <a href="/admin" class="btn btn-outline-success me-2">👑 Admin Dashboard</a>
-    <a href="/home" class="btn btn-outline-success">🏠 Home</a>
+    <a href="/admin" class="btn-base btn-outline-accent me-2">👑 Admin Dashboard</a>
+    <a href="/home" class="btn-base btn-outline-accent">🏠 Home</a>
   </div>
 </div>
 
 <!-- System Overview -->
-<div class="admin-card mb-4">
+<div class="card-base admin-card mb-4">
   <div class="card-header">
     <h3 class="mb-0 text-success h3">📈 System Overview</h3>
   </div>
   <div class="row g-4">
     <div class="col-md-3">
-      <div class="stats-card">
+      <div class="card-base stats-card hover-subtle">
         <div class="stats-value">{{ metrics.total_coaches }}</div>
         <div class="stats-label">Total Coaches</div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="stats-card">
+      <div class="card-base stats-card hover-subtle">
         <div class="stats-value">{{ metrics.total_access_codes }}</div>
         <div class="stats-label">Access Codes</div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="stats-card">
+      <div class="card-base stats-card hover-subtle">
         <div class="stats-value">{{ metrics.total_events }}</div>
         <div class="stats-label">Calendar Events</div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="stats-card">
+      <div class="card-base stats-card hover-subtle">
         <div class="stats-value">{{ metrics.total_bulletins }}</div>
         <div class="stats-label">Bulletin Posts</div>
       </div>
@@ -132,7 +72,7 @@
 </div>
 
 <!-- Coach Activity -->
-<div class="admin-card mb-4">
+<div class="card-base admin-card mb-4">
   <h3 class="mb-3 text-success h3">👥 Coach Activity</h3>
   <div class="table-responsive">
     <table class="table">
@@ -169,7 +109,7 @@
 </div>
 
 <!-- Average Metrics -->
-<div class="admin-card">
+<div class="card-base admin-card">
   <h3 class="mb-4 text-success h3">📊 Average Usage Metrics</h3>
   <div class="row">
     <div class="col-md-6 mb-4">

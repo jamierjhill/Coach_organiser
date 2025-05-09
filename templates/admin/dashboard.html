@@ -13,26 +13,11 @@
     padding-bottom: 4rem;
   }
 
-  .admin-card {
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    padding: 25px;
-    margin-bottom: 30px;
-    border-left: 6px solid var(--navy);
-  }
-
   .stats-card {
-    background-color: #fff;
-    border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
     border-left: 4px solid var(--navy);
-    transition: transform 0.3s ease;
-  }
-
-  .stats-card:hover {
-    transform: translateY(-5px);
+    transition: transform var(--transition-speed) ease;
   }
 
   .stats-value {
@@ -44,39 +29,6 @@
   .stats-label {
     color: #666;
     font-size: 0.9rem;
-  }
-
-  .table {
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .table thead th {
-    background-color: var(--light);
-    border: none;
-    color: var(--navy);
-    font-weight: 600;
-  }
-
-  .table tbody tr:hover {
-    background-color: #f5f5f5;
-  }
-
-  .table td {
-    vertical-align: middle;
-  }
-
-  .btn-admin {
-    background-color: var(--navy);
-    color: white;
-    font-weight: bold;
-  }
-
-  .btn-admin:hover {
-    background-color: var(--navy-dark);
-    color: white;
   }
 
   .user-avatar {
@@ -96,47 +48,6 @@
     border-radius: 8px;
     border: 1px solid #ddd;
   }
-  
-  .status-badge {
-    padding: 5px 10px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-  
-  .status-badge-admin {
-    background-color: #e8f5e9;
-    color: #1b5e20;
-  }
-  
-  .status-badge-coach {
-    background-color: #e3f2fd;
-    color: #0d47a1;
-  }
-  
-  .status-badge-active {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .status-badge-inactive {
-    background-color: #f5f5f5;
-    color: #757575;
-  }
-
-  .modal-content {
-    border-radius: 12px;
-    border: none;
-  }
-
-  .modal-header {
-    background-color: var(--light);
-    border-bottom: none;
-  }
-
-  .modal-footer {
-    border-top: none;
-  }
 </style>
 {% endblock %}
 
@@ -144,17 +55,17 @@
 <div class="page-title-container">
   <h1 class="page-title">👑 Admin Dashboard</h1>
   <div class="title-nav-buttons">
-    <a href="/home" class="btn btn-outline-success me-2">🏠 Home</a>
-    <a href="/admin/analytics" class="btn btn-outline-success">📊 Analytics</a>
+    <a href="/home" class="btn-base btn-outline-accent me-2">🏠 Home</a>
+    <a href="/admin/analytics" class="btn-base btn-outline-accent">📊 Analytics</a>
   </div>
 </div>
 
 <!-- System Metrics Overview -->
-<div class="admin-card mb-4">
+<div class="card-base admin-card mb-4">
   <h3 class="mb-4 text-success h3">📊 System Overview</h3>
   <div class="row g-3">
     <div class="col-md-4">
-      <div class="stats-card d-flex align-items-center">
+      <div class="card-base stats-card hover-subtle d-flex align-items-center">
         <div class="flex-shrink-0 me-3">
           <i class="bi bi-people-fill text-success" style="font-size: 2.5rem;"></i>
         </div>
@@ -165,7 +76,7 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="stats-card d-flex align-items-center">
+      <div class="card-base stats-card hover-subtle d-flex align-items-center">
         <div class="flex-shrink-0 me-3">
           <i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
         </div>
@@ -176,7 +87,7 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="stats-card d-flex align-items-center">
+      <div class="card-base stats-card hover-subtle d-flex align-items-center">
         <div class="flex-shrink-0 me-3">
           <i class="bi bi-person-check-fill text-success" style="font-size: 2.5rem;"></i>
         </div>
@@ -191,12 +102,12 @@
 </div>
 
 <!-- User Management Section -->
-<div class="admin-card">
+<div class="card-base admin-card">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="mb-0 text-success h3">👥 User Management</h3>
     <div class="d-flex">
-      <input class="form-control search-bar me-2" id="userSearch" placeholder="Search coaches..." type="text"/>
-      <select class="form-select me-2" id="filterActivity" style="width: auto;">
+      <input class="input-base search-bar me-2" id="userSearch" placeholder="Search coaches..." type="text"/>
+      <select class="input-base me-2" id="filterActivity" style="width: auto;">
         <option value="all">All Users</option>
         <option value="active">Active (30 days)</option>
         <option value="inactive">Inactive (30+ days)</option>
@@ -229,28 +140,28 @@
           <td>{{ user.last_login_formatted }}</td>
           <td>
             {% if user.is_admin %}
-            <span class="status-badge status-badge-admin">Admin</span>
+            <span class="badge-base status-success">Admin</span>
             {% else %}
-            <span class="status-badge status-badge-coach">Coach</span>
+            <span class="badge-base status-info">Coach</span>
             {% endif %}
             
             {% if user.last_login_formatted and user.last_login_formatted != 'Never' and not user.last_login_formatted.endswith('months ago') and not user.last_login_formatted.endswith('month ago') %}
-            <span class="status-badge status-badge-active">Active</span>
+            <span class="badge-base status-success">Active</span>
             {% else %}
-            <span class="status-badge status-badge-inactive">Inactive</span>
+            <span class="badge-base status-danger">Inactive</span>
             {% endif %}
           </td>
           <td>
             <div class="btn-group">
               <form action="/admin/toggle-admin/{{ user.username }}" class="me-2" method="POST">
-                <button class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}" type="submit">
+                <button class="btn-base btn-sm {% if user.is_admin %}btn-warning{% else %}btn-accent{% endif %}" type="submit">
                   {% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}
                 </button>
               </form>
-              <button class="btn btn-sm btn-info me-2" data-bs-target="#loginHistoryModal" data-bs-toggle="modal" data-username="{{ user.username }}" onclick="showLoginHistory('{{ user.username }}', {{ user.login_history|tojson if user.login_history else '[]' }})" type="button">
+              <button class="btn-base btn-info btn-sm me-2" data-bs-target="#loginHistoryModal" data-bs-toggle="modal" data-username="{{ user.username }}" onclick="showLoginHistory('{{ user.username }}', {{ user.login_history|tojson if user.login_history else '[]' }})" type="button">
                 History
               </button>
-              <button class="btn btn-sm btn-danger" data-bs-target="#deleteUserModal" data-bs-toggle="modal" data-username="{{ user.username }}" type="button">
+              <button class="btn-base btn-danger btn-sm" data-bs-target="#deleteUserModal" data-bs-toggle="modal" data-username="{{ user.username }}" type="button">
                 Delete
               </button>
             </div>
@@ -282,9 +193,9 @@
           access codes, and calendar events will be permanently deleted.</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+        <button class="btn-base btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
         <form action="" id="deleteUserForm" method="POST">
-          <button class="btn btn-danger" type="submit">Delete User</button>
+          <button class="btn-base btn-danger" type="submit">Delete User</button>
         </form>
       </div>
     </div>
@@ -308,7 +219,7 @@
         </ul>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+        <button class="btn-base btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
       </div>
     </div>
   </div>

@@ -39,7 +39,7 @@
     {% if messages %}
       <div class="container mt-3">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          <div class="alert alert-{{ category }} alert-dismissible fade show animate-fade-in" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
@@ -61,7 +61,7 @@
   <!-- Footer -->
   {% block footer %}
     <footer class="text-center text-muted py-4">
-      <p>Built by Jamie • v2.2 • <a href="/contact" class="text-success">Contact Us</a></p>
+      <p>Built by Jamie • v2.2 • <a href="/contact" class="text-link">Contact Us</a></p>
     </footer>
   {% endblock %}
 
