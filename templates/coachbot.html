@@ -8,9 +8,9 @@
 
   </div>
 
-  <div class="tennis-card">
+  <div class="card-base">
     <!-- Chat header with CoachBot info -->
-    <div class="chat-header d-flex align-items-center mb-4">
+    <div class="chat-header flex align-items-center mb-4">
       <div class="chat-avatar-container me-3">
         <div class="chat-avatar">🧠</div>
       </div>
@@ -44,7 +44,7 @@
         </button>
       </div>
       
-      <div class="suggestion-chips d-flex flex-wrap gap-2 mb-2">
+      <div class="suggestion-chips flex flex-wrap gap-sm mb-2">
         <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique 🎯</span>
         <span class="suggestion-chip" onclick="suggestQuery(this)">Beginner drills 🔰</span>
         <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics 🏆</span>
@@ -167,128 +167,5 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-  /* CoachBot specific styling */
-  .chat-header {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--light-border);
-    margin-bottom: 1.5rem;
-  }
-  
-  .chat-avatar-container {
-    background-color: var(--teal-light);
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 3px 10px rgba(0, 160, 126, 0.2);
-  }
-  
-  .chat-avatar {
-    font-size: 1.8rem;
-  }
-  
-  #chatbox {
-    height: 400px;
-    overflow-y: auto;
-    background-color: var(--light);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
-    border: 1px solid var(--light-border);
-  }
-  
-  .chat-msg {
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    max-width: 85%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    animation: fadeIn 0.3s ease;
-  }
-  
-  .chat-user {
-    background-color: var(--teal-light);
-    color: var(--white);
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-    margin-left: auto;
-  }
-  
-  .chat-bot {
-    background-color: var(--white);
-    border: 1px solid var(--light-border);
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-    color: var(--text-primary);
-  }
-  
-  .welcome-card {
-    background-color: var(--white);
-    border-radius: 12px;
-    padding: 1.25rem;
-    border-left: 4px solid var(--teal);
-    margin-bottom: 1.25rem;
-  }
-  
-  .suggestion-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .suggestion-chip {
-    background-color: var(--light);
-    color: var(--navy);
-    font-size: 0.85rem;
-    padding: 8px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-block;
-    border: 1px solid var(--light-border);
-  }
-  
-  .suggestion-chip:hover {
-    background-color: var(--teal-light);
-    color: var(--white);
-    transform: translateY(-2px);
-  }
 
-  /* Typing indicator */
-  .typing-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-  .typing-dot {
-    width: 6px;
-    height: 6px;
-    background-color: var(--text-secondary);
-    border-radius: 50%;
-    opacity: 0.7;
-    animation: typing 1s infinite;
-  }
-  
-  .typing-dot:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  
-  .typing-dot:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-  
-  @keyframes typing {
-    0%, 100% { transform: translateY(0); opacity: 0.4; }
-    50% { transform: translateY(-4px); opacity: 1; }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
-{% endblock %} typing {
+{% endblock %}

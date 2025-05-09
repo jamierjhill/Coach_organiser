@@ -4,14 +4,7 @@
 
 {% block extra_css %}
 <style>
-  .event-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    background-color: var(--teal-light);
-    color: white;
-  }
+
 </style>
 {% endblock %}
 
@@ -21,7 +14,7 @@
 </div>
 
 <div class="card-base">
-  <div class="action-buttons">
+  <div class="flex flex-between mb-3">
     <button type="button" class="btn-base btn-accent" onclick="openNewEventModal()">
       <i>➕</i> Add Event
     </button>
@@ -160,7 +153,7 @@
           <strong>${event.title}</strong>
           <div class="text-muted small">${dateStr}, ${timeStr}</div>
         </div>
-        <span class="event-badge">${timeFromNow}</span>
+        <span class="badge-base status-info">{{timeFromNow}}</span>
       `;
       li.addEventListener('click', function() {
         // Navigate to that date in the calendar

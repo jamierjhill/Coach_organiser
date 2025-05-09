@@ -11,8 +11,8 @@
   </div>
 
   <!-- Location Display -->
-  <div class="card-section">
-    <h4>📍 {{ weather.location }}</h4>
+  <div class="card-base">
+    <h4 class="section-title">📍 {{ weather.location }}</h4>
     <div class="row align-items-center">
       {% if weather.forecast|length > 0 %}
       {% set today = weather.forecast[0] %}

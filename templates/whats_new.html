@@ -4,108 +4,7 @@
 
 {% block extra_css %}
 <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-<style>
-  .update-item {
-    position: relative;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    border-left: 4px solid var(--teal);
-    border-radius: 10px;
-    background-color: #f3f6f9;
-    transition: transform 0.2s ease;
-  }
-  
-  .update-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-  }
-  
-  .update-date {
-    display: inline-block;
-    background-color: var(--light);
-    padding: 0.3rem 0.7rem;
-    border-radius: 1rem;
-    font-size: 0.8rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-  }
-  
-  .feature-tag {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-right: 5px;
-    margin-bottom: 5px;
-  }
-  
-  .feature-tag.enhancement {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .feature-tag.new {
-    background-color: #d1f4ff;
-    color: #0277bd;
-  }
-  
-  .feature-tag.fix {
-    background-color: #ffebee;
-    color: #c62828;
-  }
-  
-  .feature-tag.security {
-    background-color: #e8eaf6;
-    color: #3949ab;
-  }
-  
-  .heading-with-line {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    color: var(--navy);
-  }
-  
-  .heading-with-line::after {
-    content: "";
-    flex: 1;
-    margin-left: 15px;
-    height: 1px;
-    background-color: var(--light-border);
-  }
-  
-  .section-divider {
-    margin: 25px 0;
-    border-top: 1px dashed #c8e6c9;
-  }
-  
-  .color-demo {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
-  }
-  
-  .color-box {
-    width: 80px;
-    height: 80px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bold;
-    text-align: center;
-  }
-  
-  .color-name {
-    font-size: 0.8rem;
-    font-weight: normal;
-    margin-top: 5px;
-  }
-</style>
+
 {% endblock %}
 
 {% block content %}
@@ -122,13 +21,12 @@
   <!-- Latest Updates -->
   <h3 class="heading-with-line">Latest Updates</h3>
   
-  <!-- New Update - Color Theme Update -->
-  <div class="update-item new-item" data-aos="fade-up">
+  <div class="card-border-left hover-subtle" data-aos="fade-up">
     <div class="update-date">May 8, 2025</div>
-    <h4 class="update-title">Fresh New Color Theme Introduced</h4>
+    <h4 class="section-title mb-2">Fresh New Color Theme Introduced</h4>
     <div>
-      <span class="feature-tag enhancement">Enhancement</span>
-      <span class="feature-tag new">New Feature</span>
+      <span class="badge-base status-success">Enhancement</span>
+      <span class="badge-base status-info">New Feature</span>
     </div>
     <div class="update-details">
       <p>We've refreshed the entire platform with a new color theme featuring navy and teal as primary colors!</p>

@@ -9,10 +9,10 @@
 
 <!-- Create New Code Section -->
 <div class="card-base">
-  <h4>➕ Generate New Code</h4>
+  <h4 class="section-title">➕ Generate New Code</h4>
   <div class="row g-3">
     <div class="col-md-8">
-      <input type="text" id="codeTitle" class="input-base" placeholder="Enter portal title (e.g. Summer Camp 2025)">
+      <input type="text" id="codeTitle" class="input-base" placeholder="Give your group a name">
     </div>
     <div class="col-md-4">
       <button class="btn-base btn-accent w-100" onclick="createAccessCode()">🎟️ Generate Code</button>
@@ -26,7 +26,7 @@
   
   <ul class="list-group mt-3">
     {% for code, data in codes.items() %}
-      <li class="list-group-item d-flex flex-column access-code-item">
+    <li class="list-group-item d-flex flex-column hover-subtle">
         <div class="code-badge">{{ data.created_at|default('New') }}</div>
         <div class="d-flex justify-content-between align-items-center">
           <div>
@@ -44,7 +44,7 @@
         </div>
       </li>
     {% else %}
-      <li class="list-group-item text-muted text-center">You haven't created any access codes yet.</li>
+    <li class="list-group-item d-flex flex-column hover-subtle">You haven't created any access codes yet.</li>
     {% endfor %}
   </ul>
 </div>
