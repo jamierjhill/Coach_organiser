@@ -4,7 +4,173 @@
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-
+<style>
+  /* Player Portal specific styles */
+  .bulletin-message {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: var(--light);
+    border-left: 4px solid var(--teal);
+  }
+  
+  .bulletin-content {
+    margin-bottom: 5px;
+    white-space: pre-line;
+  }
+  
+  .bulletin-timestamp {
+    font-size: var(--font-xxs);
+    color: var(--text-secondary);
+  }
+  
+  .weather-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-right: 15px;
+  }
+  
+  .weather-info {
+    flex-grow: 1;
+  }
+  
+  .tennis-tip {
+    background-color: rgba(0, 160, 126, 0.1);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .tip-icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .forecast-scroll-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    scrollbar-width: thin;
+  }
+  
+  .period-block {
+    min-width: 110px;
+    flex: 0 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    border: 1px solid var(--light-border);
+  }
+  
+  .period-block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .five-day-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 5px 0;
+    scrollbar-width: thin;
+  }
+  
+  .day-card {
+    flex: 0 0 140px;
+    background-color: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .day-status {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  
+  .day-status.good {
+    background-color: rgba(0, 160, 126, 0.1);
+    color: var(--teal-dark);
+  }
+  
+  .day-status.bad {
+    background-color: rgba(247, 201, 72, 0.1);
+    color: #c7920a;
+  }
+  
+  .upcoming-event-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: var(--light);
+    border-left: 3px solid var(--teal);
+  }
+  
+  .chatbox {
+    height: 300px;
+    overflow-y: auto;
+    background: var(--light);
+    border: 1px solid var(--light-border);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+  }
+  
+  .chat-msg {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    max-width: 85%;
+  }
+  
+  .chat-user {
+    background: var(--teal-light);
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+  
+  .chat-bot {
+    background: white;
+    border: 1px solid var(--light-border);
+    align-self: flex-start;
+  }
+  
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--text-secondary);
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: typing 1s infinite;
+  }
+  
+  @keyframes typing {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-5px); }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -12,7 +178,7 @@
   <h1 class="page-title">🎾 {{ title }}</h1>
   <p class="page-subtitle">Player Portal</p>
   <div class="title-nav-buttons">
-    <a href="/logout" class="btn btn-outline-success">🚪 Logout</a>
+    <a href="/logout" class="btn-base btn-outline-accent">🚪 Logout</a>
   </div>
 </div>
 
@@ -39,7 +205,7 @@
     </div>
     
     <!-- ☀️ Weather Widget -->
-    <div class="forecast-container section-card">
+    <div class="card-base">
       <h3 class="section-title">☀️ Weather Forecast</h3>
       <p class="location-display">{{ weather.location }}</p>
 
@@ -49,27 +215,27 @@
         {% set today = weather.forecast[0] %}
         
         <!-- Today's Weather Card -->
-        <div class="weather-card mb-4">
-          <div class="weather-header d-flex justify-content-between align-items-center mb-3">
-            <h4 class="day-heading mb-0">Today</h4>
+        <div class="card-border-left hover-subtle mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Today</h4>
             {% if today.good_for_tennis %}
-              <span class="tennis-badge good">✓ Good for Tennis</span>
+              <span class="badge-base status-success">✓ Good for Tennis</span>
             {% else %}
-              <span class="tennis-badge bad">⚠️ Check Conditions</span>
+              <span class="badge-base status-warning">⚠️ Check Conditions</span>
             {% endif %}
           </div>
           
-          <div class="weather-body d-flex align-items-center">
+          <div class="d-flex align-items-center">
             {% if today.hourly|length > 0 %}
               {% set current = today.hourly[0] %}
-              <div class="weather-icon-container me-4">
+              <div class="weather-icon-wrapper">
                 <img src="https://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="{{ current.desc }}">
               </div>
               
               <div class="weather-info">
                 <div class="temp-display">{{ current.temp|round(0) }}°C</div>
-                <div class="weather-description">{{ current.desc|capitalize }}</div>
-                <div class="weather-metrics">
+                <div class="text-sm">{{ current.desc|capitalize }}</div>
+                <div class="text-xs text-muted">
                   <span><i class="weather-icon">💨</i> Wind: {{ (current.wind * 2.237)|round(0) }} mph</span> | 
                   <span><i class="weather-icon">💧</i> Rain: {{ (current.rain * 100)|round(0) }}%</span>
                 </div>
@@ -80,14 +246,14 @@
           {% if today.good_for_tennis %}
             <div class="tennis-tip">
               <div class="tip-icon">💡</div>
-              <div class="tip-content">
+              <div class="tip-content text-sm">
                 Great day for tennis! Consider scheduling longer sessions or focusing on match play.
               </div>
             </div>
           {% else %}
             <div class="tennis-tip">
               <div class="tip-icon">💡</div>
-              <div class="tip-content">
+              <div class="tip-content text-sm">
                 Weather conditions may affect play. Have indoor options ready or adjust your drills accordingly.
               </div>
             </div>
@@ -95,108 +261,54 @@
         </div>
         
         <!-- Hourly Forecast -->
-        <h5 class="forecast-heading">Today's Hourly Forecast</h5>
-        <div class="forecast-scroll-row mb-4">
+        <h5 class="mb-3 font-medium">Today's Hourly Forecast</h5>
+        <div class="forecast-scroll-row">
           {% for hour in today.hourly %}
             <div class="period-block">
-              <div class="period-time">{{ hour.time }}</div>
-              <div class="weather-icon-wrapper">
-                <img src="https://openweathermap.org/img/wn/{{ hour.icon }}.png" class="weather-icon-small" alt="{{ hour.desc }}">
+              <div class="period-time font-medium">{{ hour.time }}</div>
+              <div class="weather-icon-small">
+                <img src="https://openweathermap.org/img/wn/{{ hour.icon }}.png" alt="{{ hour.desc }}">
               </div>
-              <div class="period-temp">{{ hour.temp|round(0) }}°C</div>
-              <div class="period-desc">{{ hour.desc|capitalize }}</div>
-              <div class="period-metrics">
-                <span><i class="weather-icon-tiny">💨</i> {{ (hour.wind * 2.237)|round(0) }}mph</span>
-                <span><i class="weather-icon-tiny">🌧️</i> {{ (hour.rain * 100)|round(0) }}%</span>
+              <div class="period-temp font-semibold">{{ hour.temp|round(0) }}°C</div>
+              <div class="text-xs">{{ hour.desc|capitalize }}</div>
+              <div class="text-xxs text-muted">
+                <span><i>💨</i> {{ (hour.wind * 2.237)|round(0) }}mph</span>
+                <span><i>🌧️</i> {{ (hour.rain * 100)|round(0) }}%</span>
               </div>
             </div>
           {% endfor %}
         </div>
         
-        <!-- Simplified 5-Day Outlook Section -->
-        <div class="five-day-section">
-          <h5 class="forecast-heading">5-Day Tennis Outlook</h5>
-          
-          <div class="five-day-row">
-            {% for day in weather.forecast %}
-              {% if not loop.first %} <!-- Skip today -->
-                <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
-                  <div class="day-card-header">
-                    <span class="day-name">{{ day.day.split(' ')[0] }}</span>
-                    {% if day.good_for_tennis %}
-                      <span class="day-status good">Good</span>
-                    {% else %}
-                      <span class="day-status bad">Check</span>
-                    {% endif %}
-                  </div>
-                  
-                  {% if day.hourly|length > 0 %}
-                    {% set morning = day.hourly[0] %}
-                    {% set afternoon = day.hourly[0] %}
-                    
-                    {% for hour in day.hourly %}
-                      {% if '09:' in hour.time %}
-                        {% set morning = hour %}
-                      {% endif %}
-                      {% if '15:' in hour.time %}
-                        {% set afternoon = hour %}
-                      {% endif %}
-                    {% endfor %}
-
-                    <div class="day-card-body">
-                      <div class="day-weather">
-                        <img src="https://openweathermap.org/img/wn/{{ morning.icon }}.png" class="day-icon" alt="{{ morning.desc }}">
-                        <div class="day-temp">{{ morning.temp|round(0) }}°C</div>
-                      </div>
-                      
-                      <div class="day-metrics">
-                        <div class="metric">
-                          <span class="metric-icon">💨</span>
-                          <span class="metric-value">{{ (morning.wind * 2.237)|round(0) }}mph</span>
-                        </div>
-                        <div class="metric">
-                          <span class="metric-icon">🌧️</span>
-                          <span class="metric-value">{{ (morning.rain * 100)|round(0) }}%</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {% set avg_temp = (morning.temp + afternoon.temp) / 2 %}
-                    {% set max_wind = morning.wind %}
-                    {% if afternoon.wind > morning.wind %}
-                      {% set max_wind = afternoon.wind %}
-                    {% endif %}
-                    {% set max_rain = morning.rain %}
-                    {% if afternoon.rain > morning.rain %}
-                      {% set max_rain = afternoon.rain %}
-                    {% endif %}
-                          
-                    <div class="day-card-footer">
-                      {% if day.good_for_tennis %}
-                        {% if max_wind > 5 %}
-                          <span class="day-tip">Good with wind adjustments</span>
-                        {% else %}
-                          <span class="day-tip">Excellent for tennis</span>
-                        {% endif %}
-                      {% else %}
-                        {% if max_rain > 0.3 %}
-                          <span class="day-tip">Consider indoor courts</span>
-                        {% elif max_wind > 10 %}
-                          <span class="day-tip">Use heavier balls</span>
-                        {% elif avg_temp < 10 %}
-                          <span class="day-tip">Dress in layers</span>
-                        {% elif avg_temp > 25 %}
-                          <span class="day-tip">Stay hydrated</span>
-                        {% else %}
-                          <span class="day-tip">Check conditions</span>
-                        {% endif %}
-                      {% endif %}
-                    </div>
+        <!-- 5-Day Outlook Section -->
+        <h5 class="mt-4 mb-3 font-medium">5-Day Tennis Outlook</h5>
+        <div class="five-day-row">
+          {% for day in weather.forecast %}
+            {% if not loop.first %} <!-- Skip today -->
+              <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="font-medium">{{ day.day.split(' ')[0] }}</span>
+                  {% if day.good_for_tennis %}
+                    <span class="day-status good">Good</span>
+                  {% else %}
+                    <span class="day-status bad">Check</span>
                   {% endif %}
                 </div>
-              {% endif %}
-            {% endfor %}
-          </div>
+                
+                {% if day.hourly|length > 0 %}
+                  {% set morning = day.hourly[0] %}
+                  <div class="text-center">
+                    <img src="https://openweathermap.org/img/wn/{{ morning.icon }}.png" alt="{{ morning.desc }}">
+                    <div class="font-medium">{{ morning.temp|round(0) }}°C</div>
+                  </div>
+                  
+                  <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
+                    <div><i>💨</i> {{ (morning.wind * 2.237)|round(0) }}mph</div>
+                    <div><i>🌧️</i> {{ (morning.rain * 100)|round(0) }}%</div>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
         </div>
       {% else %}
         <div class="empty-state">
@@ -209,9 +321,9 @@
   
   <div class="col-lg-5">
     <!-- 📧 Notification Signup -->
-    <div class="section-card">
+    <div class="card-base">
       <h3 class="section-title">📧 Get Updates</h3>
-      <p class="mb-3">Subscribe to receive email updates from your coach.</p>
+      <p class="text-sm mb-3">Subscribe to receive email updates from your coach.</p>
       
       <div class="card-border-left">
         <div class="nav nav-tabs mb-3" id="subscription-tabs" role="tablist">
@@ -223,20 +335,20 @@
           <div class="tab-pane fade show active" id="subscribe-panel" role="tabpanel">
             <form method="POST" action="/subscribe-email">
               <div class="input-group mb-2">
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
-                <button type="submit" class="btn btn-success">Subscribe</button>
+                <input type="email" name="email" class="input-base" placeholder="Enter your email" required>
+                <button type="submit" class="btn-base btn-accent">Subscribe</button>
               </div>
-              <div class="form-text">You'll receive notifications about new bulletins and events.</div>
+              <div class="form-text text-xxs">You'll receive notifications about new bulletins and events.</div>
             </form>
           </div>
           
           <div class="tab-pane fade" id="unsubscribe-panel" role="tabpanel">
             <form method="POST" action="/unsubscribe-email">
               <div class="input-group mb-2">
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
-                <button type="submit" class="btn btn-outline-danger">Unsubscribe</button>
+                <input type="email" name="email" class="input-base" placeholder="Enter your email" required>
+                <button type="submit" class="btn-base btn-outline-danger">Unsubscribe</button>
               </div>
-              <div class="form-text">You'll no longer receive email notifications.</div>
+              <div class="form-text text-xxs">You'll no longer receive email notifications.</div>
             </form>
           </div>
         </div>
@@ -244,27 +356,27 @@
     </div>
 
     <!-- 📅 Calendar Section -->
-    <div class="section-card">
+    <div class="card-base">
       <h3 class="section-title">📅 Coaching Calendar</h3>
       <div id="calendar" class="mb-3"></div>
-      <div id="upcoming-events" class="mt-3">
-        <h5 class="upcoming-title">Upcoming Events</h5>
+      <div class="mt-3">
+        <h5 class="font-medium mb-3">Upcoming Events</h5>
         <div id="upcoming-events-list">
-          <div class="placeholder-text text-center">Loading events...</div>
+          <div class="text-center text-muted">Loading events...</div>
         </div>
       </div>
     </div>
 
     <!-- 🧠 CoachBot Section -->
-    <div class="section-card chat-container">
+    <div class="card-base">
       <h3 class="section-title">🧠 Ask CoachBot</h3>
       
       <!-- Chat Header -->
-      <div class="chat-header d-flex align-items-center mb-3">
-        <div class="chat-avatar me-3">🧠</div>
+      <div class="d-flex align-items-center mb-3">
+        <div class="weather-icon-wrapper me-3">🧠</div>
         <div>
-          <h5 class="chat-title mb-0">Tennis Assistant</h5>
-          <p class="chat-subtitle">Ask questions about tennis techniques, drills, and more</p>
+          <h5 class="font-medium mb-0">Tennis Assistant</h5>
+          <p class="text-xs text-muted mb-0">Ask questions about tennis techniques, drills, and more</p>
         </div>
       </div>
       
@@ -276,15 +388,15 @@
       <!-- Chat Input Area -->
       <div class="chat-input-container">
         <div class="input-group">
-          <input type="text" id="chatInput" class="form-control" placeholder="Ask a tennis question...">
-          <button class="btn btn-success" onclick="sendChat()">
-            <span class="send-icon">📤</span>
+          <input type="text" id="chatInput" class="input-base" placeholder="Ask a tennis question...">
+          <button class="btn-base btn-accent" onclick="sendChat()">
+            <span>📤</span>
             <span class="d-none d-md-inline">Send</span>
           </button>
         </div>
         
         <!-- Quick Question Suggestions -->
-        <div class="suggestion-chips d-flex flex-wrap gap-2 mt-3">
+        <div class="d-flex flex-wrap gap-2 mt-3">
           <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis tips for beginners</span>
           <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique</span>
           <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis drills</span>
@@ -395,10 +507,10 @@
       const li = document.createElement('div');
       li.className = 'upcoming-event-item';
       li.innerHTML = `
-        <div class="event-date">${dateString}</div>
+        <div class="event-date font-medium">${dateString}</div>
         <div class="event-details">
-          <div class="event-title">${event.title}</div>
-          <div class="event-time">${timeString}</div>
+          <div class="event-title font-medium">${event.title}</div>
+          <div class="event-time text-xs text-muted">${timeString}</div>
         </div>
       `;
       listEl.appendChild(li);

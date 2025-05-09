@@ -44,7 +44,7 @@
           <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
         </div>
         <div class="col-md-2">
-          <button type="submit" name="add_player" class="btn-base btn-accent w-100">➕ Add</button>
+          <button type="submit" name="add_player" class="btn-base btn-accent">➕ Add</button>
         </div>
 
       </div>
@@ -98,7 +98,7 @@
     <div class="text-center my-4">
       <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent me-2">🎯 Organize Matches</button>
       <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent me-2">🔀 Reshuffle</button>
-      <button type="submit" name="reset" class="btn btn-outline-danger me-2">🔁 Reset All</button>
+      <button type="submit" name="reset" class="btn-base btn-outline-danger me-2">🔁 Reset All</button>
     </div>
     
     {% if error %}
@@ -224,18 +224,24 @@
   </div>
 
   <!-- Timer -->
-  <div class="timer-controls">
-    <h5>⏱️ Match Timer</h5>
-    <div id="main-timer-display" class="text-center mb-2">20:00</div>
-    <div class="d-flex gap-2 justify-content-center mb-2">
-      <button class="btn-base btn-accent me-2" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
-      <button class="btn-base btn-accent me-2" onclick="pauseClock()">⏸️ Pause</button>
-    </div>
-    <div class="input-group w-50 mx-auto">
-      <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
-      <button class="btn-base btn-accent me-2" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+  <div class="container my-4">
+    <div class="card shadow-sm border-0 rounded-4 p-4 bg-light mx-auto" style="max-width: 400px;">
+      <h5 class="text-center text-primary mb-3">⏱️ Match Timer</h5>
+  
+      <div id="main-timer-display" class="display-4 fw-semibold text-center text-dark mb-3">20:00</div>
+  
+      <div class="d-flex justify-content-center gap-3 mb-3">
+        <button class="btn btn-success px-4" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
+        <button class="btn btn-warning px-4" onclick="pauseClock()">⏸️ Pause</button>
+      </div>
+  
+      <div class="input-group">
+        <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
+        <button class="btn btn-outline-primary" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
+      </div>
     </div>
   </div>
+  
 {% endblock %}
 
 {% block extra_js %}
@@ -403,21 +409,309 @@
     });
   }
   
-  // Add more JavaScript functions for organizing matches, reshuffling, etc.
   function reshuffleRound(roundNum) {
-    // Implement reshuffle round functionality
-  }
-  
-  function reshuffleAll() {
-    // Implement reshuffle all functionality
-  }
-  
-  function organizeMatches() {
-    // Implement organize matches functionality
-  }
-  
-  function uploadCSV() {
-    // Implement CSV upload functionality
-  }
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
+    formData.append('reshuffle_round', roundNum);
+    
+    // Add all existing form inputs to maintain state
+    const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
+    inputs.forEach(input => {
+        if (input.name && input.value) {
+            formData.append(input.name, input.value);
+        }
+    });
+    
+    // Store current scroll position
+    const scrollPosition = window.pageYOffset;
+    
+    fetch('/index', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+        return response.text();
+    })
+    .then(html => {
+        if (!html) return;
+        
+        // Parse the response and update the entire page
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Update the entire schedule sections
+        const newScheduleRound = doc.querySelector('#schedule-round');
+        const currentScheduleRound = document.querySelector('#schedule-round');
+        if (newScheduleRound && currentScheduleRound) {
+            currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+        }
+        
+        const newScheduleCourt = doc.querySelector('#schedule-court');
+        const currentScheduleCourt = document.querySelector('#schedule-court');
+        if (newScheduleCourt && currentScheduleCourt) {
+            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+        }
+        
+        // Update the player summary section (back to simple list)
+        const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+        const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+        if (newSummary && currentSummary) {
+            currentSummary.innerHTML = newSummary.innerHTML;
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+        
+        // Re-run the toggle function to show the correct view
+        const currentView = document.getElementById('scheduleToggle').value;
+        toggleScheduleView(currentView);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback to regular form submission
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'reshuffle_round';
+        input.value = roundNum;
+        form.appendChild(input);
+        form.submit();
+    });
+    
+    return false;
+}
+
+function reshuffleAll() {
+ const formData = new FormData();
+ formData.append('reshuffle', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => response.text())
+ .then(html => {
+     // Create a temporary DOM element to parse the response
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update both schedule views
+     const newScheduleRound = doc.querySelector('#schedule-round');
+     const currentScheduleRound = document.querySelector('#schedule-round');
+     if (newScheduleRound && currentScheduleRound) {
+         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+     }
+     
+     const newScheduleCourt = doc.querySelector('#schedule-court');
+     const currentScheduleCourt = document.querySelector('#schedule-court');
+     if (newScheduleCourt && currentScheduleCourt) {
+         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+     }
+     
+     // Also update the player summary section (back to simple list)
+     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+     if (newSummary && currentSummary) {
+         currentSummary.innerHTML = newSummary.innerHTML;
+     }
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission if AJAX fails
+     const form = document.querySelector('form');
+     const input = document.createElement('input');
+     input.type = 'hidden';
+     input.name = 'reshuffle';
+     input.value = 'true';
+     form.appendChild(input);
+     form.submit();
+ });
+ 
+ return false; // Prevent default form submission
+}
+
+function organizeMatches() {
+ // Get form values
+ const form = document.querySelector('form');
+ const courts = parseInt(form.querySelector('input[name="courts"]').value) || 1;
+ const match_type = form.querySelector('select[name="match_type"]').value;
+ const players = document.querySelectorAll('.player-box').length;
+ 
+ // Validate player count
+ const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
+ if (players < minPlayersNeeded) {
+     alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
+     return false;
+ }
+ 
+ // Check if there are enough players for the number of courts
+ const playersPerCourt = match_type === 'singles' ? 2 : 4;
+ if (players < courts * playersPerCourt) {
+     const maxCourts = Math.floor(players / playersPerCourt);
+     if (maxCourts === 0) {
+         alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
+         return false;
+     } else {
+         if (!confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`)) {
+             return false;
+         }
+     }
+ }
+ 
+ const formData = new FormData(form);
+ formData.append('organize_matches', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => response.text())
+ .then(html => {
+     // Create a temporary DOM element to parse the response
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update both schedule views
+     const newScheduleRound = doc.querySelector('#schedule-round');
+     const currentScheduleRound = document.querySelector('#schedule-round');
+     if (newScheduleRound && currentScheduleRound) {
+         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
+     }
+     
+     const newScheduleCourt = doc.querySelector('#schedule-court');
+     const currentScheduleCourt = document.querySelector('#schedule-court');
+     if (newScheduleCourt && currentScheduleCourt) {
+         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
+     }
+     
+     // Update the entire match schedule section to include warnings
+     const newScheduleSection = doc.querySelector('.card-section:nth-of-type(5)');
+     const currentScheduleSection = document.querySelector('.card-section:nth-of-type(5)');
+     if (newScheduleSection && currentScheduleSection) {
+         currentScheduleSection.innerHTML = newScheduleSection.innerHTML;
+     }
+     
+     // Also update the player summary section
+     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
+     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
+     if (newSummary && currentSummary) {
+         currentSummary.innerHTML = newSummary.innerHTML;
+     }
+     
+     // Update error messages if any
+     const newError = doc.querySelector('.alert-danger');
+     const existingError = document.querySelector('.alert-danger');
+     if (newError) {
+         if (existingError) {
+             existingError.innerHTML = newError.innerHTML;
+         } else {
+             // Add new error alert after action buttons
+             const actionButtons = document.querySelector('.text-center.my-4');
+             actionButtons.insertAdjacentHTML('afterend', newError.outerHTML);
+         }
+     } else if (existingError) {
+         existingError.remove();
+     }
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+     
+     // Re-run the toggle function to show the correct view
+     const currentView = document.getElementById('scheduleToggle').value;
+     toggleScheduleView(currentView);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission if AJAX fails
+     const form = document.querySelector('form');
+     const input = document.createElement('input');
+     input.type = 'hidden';
+     input.name = 'organize_matches';
+     input.value = 'true';
+     form.appendChild(input);
+     form.submit();
+ });
+ 
+ return false; // Prevent default form submission
+}
+
+function uploadCSV() {
+ const fileInput = document.querySelector('input[name="csv_file"]');
+ const file = fileInput.files[0];
+ 
+ if (!file) {
+     alert('Please select a file');
+     return false;
+ }
+ 
+ const formData = new FormData();
+ formData.append('csv_file', file);
+ formData.append('upload_csv', 'true');
+ 
+ // Store current scroll position
+ const scrollPosition = window.pageYOffset;
+ 
+ fetch('/index', {
+     method: 'POST',
+     body: formData
+ })
+ .then(response => {
+     if (response.redirected && response.url.includes('/login')) {
+         // Session expired, redirect to login
+         window.location.href = '/login';
+         return;
+     }
+     return response.text();
+ })
+ .then(html => {
+     if (!html) return;
+     
+     // Update the page content
+     const parser = new DOMParser();
+     const doc = parser.parseFromString(html, 'text/html');
+     
+     // Update player list
+     const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
+     const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
+     if (newPlayerList && currentPlayerList) {
+         currentPlayerList.innerHTML = newPlayerList.innerHTML;
+     }
+     
+     // Update error messages
+     const newError = doc.querySelector('.text-danger.fw-bold');
+     const errorContainer = document.querySelector('.text-danger.fw-bold')?.parentElement || 
+                            document.querySelector('.mt-3');
+     if (newError && errorContainer) {
+         errorContainer.innerHTML = newError.outerHTML;
+     } else if (errorContainer && errorContainer.querySelector('.text-danger.fw-bold')) {
+         errorContainer.querySelector('.text-danger.fw-bold').remove();
+     }
+     
+     // Clear file input
+     fileInput.value = '';
+     
+     // Restore scroll position
+     window.scrollTo(0, scrollPosition);
+ })
+ .catch(error => {
+     console.error('Error:', error);
+     // Fallback to regular form submission
+     document.querySelector('form').submit();
+ });
+ 
+ return false;
+}
 </script>
 {% endblock %}
