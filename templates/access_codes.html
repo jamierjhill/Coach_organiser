@@ -10,43 +10,74 @@
 <!-- Create New Code Section -->
 <div class="card-base">
   <h4 class="section-title">➕ Generate New Code</h4>
-  <div class="row g-10">
-    <div class="col-md-3">
-      <input type="text" id="codeTitle" class="input-base" placeholder="Give your group a name">
+  <div class="d-flex flex-column flex-md-row gap-3 align-items-end">
+    <div class="flex-grow-1">
+      <label for="codeTitle" class="form-label font-medium">Group Name</label>
+      <input type="text" id="codeTitle" class="input-base input-wide" placeholder="Enter a name for this group">
     </div>
-    <div class="col-md-4">
-      <button class="btn-base btn-accent" onclick="createAccessCode()">🎟️ Generate Code</button>
+    <div>
+      <button class="btn-base btn-accent w-100" onclick="createAccessCode()">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <span>🎟️</span>
+          <span>Generate Code</span>
+        </div>
+      </button>
     </div>
   </div>
 </div>
 
 <!-- Existing Codes Section -->
 <div class="card-base">
-  <h4>🔑 Your Access Codes</h4>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="section-title mb-0">🔑 Your Access Codes</h4>
+    {% if codes and codes|length > 0 %}
+    <span class="badge-base status-info">{{ codes|length }} active</span>
+    {% endif %}
+  </div>
   
-  <ul class="list-group mt-3">
+  {% if codes and codes|length > 0 %}
+  <ul class="list-group">
     {% for code, data in codes.items() %}
-    <li class="list-group-item d-flex flex-column hover-subtle">
-        <div class="code-badge">{{ data.created_at|default('New') }}</div>
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="access-code">{{ code }}</span>
-            <strong>{{ data.title }}</strong>
-          </div>
-          <button class="btn-base btn-danger btn-sm" onclick="deleteCode('{{ code }}')">🗑️</button>
+    <li class="card-border-left hover-subtle mb-3" id="code-{{ code }}">
+      <!-- Header row with title and delete button -->
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="badge-base status-success">{{ data.created_at|default('New') }}</span>
+          <strong class="ms-2 h5">{{ data.title }}</strong>
         </div>
-        <div class="code-actions">
+        <button class="btn-base btn-danger btn-sm" onclick="deleteCode('{{ code }}')">🗑️</button>
+      </div>
+      
+      <!-- Code display row -->
+      <div class="card-base p-2 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="h4 mb-0 text-success">{{ code }}</div>
           <button class="btn-base btn-outline-accent btn-sm" onclick="copyCode('{{ code }}')">📋 Copy Code</button>
+        </div>
+      </div>
+      
+      <!-- Link display row -->
+      <div class="card-base bg-light p-2 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="text-muted text-sm" id="share-link-{{ code }}">{{ request.url_root }}player-access?code={{ code }}</div>
           <button class="btn-base btn-outline-accent btn-sm" onclick="copyLink('{{ code }}')">🔗 Copy Link</button>
         </div>
-        <div class="share-link mt-2" id="share-link-{{ code }}">
-          {{ request.url_root }}player-access?code={{ code }}
-        </div>
-      </li>
-    {% else %}
-    <li class="list-group-item d-flex flex-column hover-subtle">You haven't created any access codes yet.</li>
+      </div>
+      
+      <!-- Help text -->
+      <div class="text-muted small">
+        Share this link or code with your players to grant them access
+      </div>
+    </li>
     {% endfor %}
   </ul>
+  {% else %}
+  <div class="empty-state text-center py-4">
+    <div class="empty-icon">🔑</div>
+    <p>You haven't created any access codes yet.</p>
+    <p class="text-muted small">Generate your first code above to give players access to your portal.</p>
+  </div>
+  {% endif %}
 </div>
 
 <!-- How to Use Section -->

@@ -287,6 +287,22 @@
     border-color: var(--teal);
     box-shadow: 0 0 0 0.25rem rgba(0, 160, 126, 0.25);
   }
+/* Add this to your static/colours.css file */
+
+/* Wide input for notes, bulletin, and access codes */
+.input-wide {
+  width: 100%; /* Make input take full width of container */
+  max-width: 100%; /* Ensure it doesn't exceed container */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Specific styling for textareas to make them resize properly */
+textarea.input-wide {
+  resize: vertical; /* Allow vertical resizing only */
+  min-height: 100px; /* Set minimum height */
+}
+
+
   
   /* ===========================================
      STATUS INDICATORS
