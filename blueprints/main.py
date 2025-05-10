@@ -158,6 +158,7 @@ def guide():
     return render_template("coach_guide.html")
 
 # === NOTES ===
+# Update this function in blueprints/main.py
 @main_bp.route("/notes", methods=["GET", "POST"])
 @login_required
 def notes():
@@ -169,22 +170,45 @@ def notes():
     notes_list = []
     if os.path.exists(notes_path):
         with open(notes_path, "r") as f:
-            notes_list = json.load(f)
+            # Check if we need to migrate from old format (list of strings)
+            # to new format (list of objects with text and timestamp)
+            content = json.load(f)
+            if content and isinstance(content, list):
+                if content and isinstance(content[0], str):
+                    # Migrate old format to new format
+                    notes_list = [
+                        {
+                            "id": str(uuid4()),
+                            "text": note,
+                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                        } for note in content
+                    ]
+                    # Save migrated notes
+                    with open(notes_path, "w") as f:
+                        json.dump(notes_list, f, indent=2)
+                else:
+                    notes_list = content
 
     if request.method == "POST":
         if "note" in request.form:
             new_note = request.form["note"].strip()
             if new_note:
-                notes_list.append(new_note)
+                notes_list.append({
+                    "id": str(uuid4()),
+                    "text": new_note,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                })
         elif "delete_note" in request.form:
-            to_delete = request.form["delete_note"].strip()
-            notes_list = [n for n in notes_list if n != to_delete]
+            note_id = request.form["delete_note"].strip()
+            notes_list = [n for n in notes_list if n.get("id") != note_id]
 
         with open(notes_path, "w") as f:
             json.dump(notes_list, f, indent=2)
 
         return '', 204
 
+    # Sort notes by timestamp (newest first) before sending to template
+    notes_list = sorted(notes_list, key=lambda x: x.get("timestamp", ""), reverse=True)
     return render_template("notes.html", notes=notes_list)
 
 # === CONTACT ===

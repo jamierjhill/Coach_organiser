@@ -12,7 +12,7 @@
     <div class="mb-4">
       <h4 class="section-title">✏️ Create New Note</h4>
       <div class="mb-3">
-<textarea id="newNote" class="input-base input-wide" rows="3" placeholder="Write a new note..."></textarea>
+        <textarea id="newNote" class="input-base input-wide" rows="3" placeholder="Write a new note..."></textarea>
       </div>
       <button id="addNoteBtn" class="btn-base btn-accent w-100">➕ Add Note</button>
     </div>
@@ -22,7 +22,7 @@
     <!-- Saved notes section -->
     <div class="saved-notes-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="section-title mb-0"> Your Saved Notes</h4>
+        <h4 class="section-title mb-0">Your Saved Notes</h4>
         <div class="dropdown">
           <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Sort By
@@ -36,11 +36,14 @@
 
       {% if notes and notes|length > 0 %}
         <div id="notesList" class="notes-list">
-          {% for line in notes %}
-          <div class="card-border-left hover-subtle">
-              <div class="note-text">{{ line }}</div>
-              <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('{{ line }}')">🗑️</button>
+          {% for note in notes %}
+          <div class="card-border-left hover-subtle note-item" data-timestamp="{{ note.timestamp }}" data-id="{{ note.id }}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="note-text">{{ note.text }}</div>
+              <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('{{ note.id }}')">🗑️</button>
             </div>
+            <p class="timestamp mt-2 mb-0 text-muted small">📅 {{ note.timestamp }}</p>
+          </div>
           {% endfor %}
         </div>
       {% else %}
@@ -80,7 +83,7 @@
   <script>
     // Variables
     let currentSort = 'newest';
-    let deleteNoteContent = '';
+    let deleteNoteId = '';
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const noteInput = document.getElementById('newNote');
     const notesList = document.getElementById('notesList');
@@ -126,12 +129,22 @@
           emptyNotes.remove();
         }
         
+        // Generate a temporary ID and current timestamp for display
+        const tempId = 'temp-' + Date.now();
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
+        
         // Create new note item with animation
         const noteItem = document.createElement('div');
-        noteItem.className = 'note-item new-note';
+        noteItem.className = 'card-border-left hover-subtle note-item animate-highlight';
+        noteItem.dataset.timestamp = timestamp;
+        noteItem.dataset.id = tempId;
         noteItem.innerHTML = `
-          <div class="note-text">${note}</div>
-          <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('${note}')">🗑️</button>
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="note-text">${note}</div>
+            <button class="btn btn-sm btn-outline-danger delete-btn" onclick="deleteNote('${tempId}')">🗑️</button>
+          </div>
+          <p class="timestamp mt-2 mb-0 text-muted small">📅 ${timestamp}</p>
         `;
         
         // Apply different insertion logic based on sort order
@@ -157,50 +170,49 @@
     }
   
     // Ask for confirmation before deleting
-    function deleteNote(note) {
-      deleteNoteContent = note;
+    function deleteNote(noteId) {
+      deleteNoteId = noteId;
       deleteModal.show();
       
       // Set up confirmation button
       document.getElementById('confirmDelete').onclick = function() {
-        performDelete(deleteNoteContent);
+        performDelete(deleteNoteId);
         deleteModal.hide();
       };
     }
     
     // Perform the actual deletion
-    function performDelete(note) {
+    function performDelete(noteId) {
       fetch('/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ delete_note: note })
+        body: new URLSearchParams({ delete_note: noteId })
       }).then(() => {
-        const items = document.querySelectorAll('.note-item');
+        // Find the note item with matching ID
+        const item = document.querySelector(`.note-item[data-id="${noteId}"]`);
         
-        // Apply fade-out animation before removing
-        items.forEach(item => {
-          if (item.querySelector('.note-text')?.textContent === note) {
-            item.style.transition = 'all 0.3s ease';
-            item.style.opacity = '0';
-            item.style.transform = 'translateX(20px)';
+        if (item) {
+          // Apply fade-out animation before removing
+          item.style.transition = 'all 0.3s ease';
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(20px)';
+          
+          setTimeout(() => {
+            item.remove();
             
-            setTimeout(() => {
-              item.remove();
-              
-              // Show empty state if no notes left
-              if (notesList.children.length === 0) {
-                notesList.innerHTML = `
-                  <div class="empty-notes">
-                    <p class="text-muted text-center">
-                      You don't have any notes yet.<br>
-                      Write your first note above.
-                    </p>
-                  </div>
-                `;
-              }
-            }, 300);
-          }
-        });
+            // Show empty state if no notes left
+            if (notesList.children.length === 0) {
+              notesList.innerHTML = `
+                <div class="empty-notes">
+                  <p class="text-muted text-center">
+                    You don't have any notes yet.<br>
+                    Write your first note above.
+                  </p>
+                </div>
+              `;
+            }
+          }, 300);
+        }
       });
     }
     
@@ -212,18 +224,23 @@
       // Skip if there are no notes or only one note
       if (notes.length <= 1) return;
       
+      // Sort based on timestamp
+      notes.sort((a, b) => {
+        const timeA = a.dataset.timestamp;
+        const timeB = b.dataset.timestamp;
+        
+        if (order === 'newest') {
+          return timeB.localeCompare(timeA);
+        } else {
+          return timeA.localeCompare(timeB);
+        }
+      });
+      
       // Remove all notes from DOM
       notes.forEach(note => note.remove());
-      
-      // Sort based on order
-      if (order === 'oldest') {
-        notes.reverse();
-      }
       
       // Add back in sorted order
       notes.forEach(note => notesList.appendChild(note));
     }
   </script>
-
-
 {% endblock %}

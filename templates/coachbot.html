@@ -44,13 +44,13 @@
         </button>
       </div>
       
-      <div class="suggestion-chips flex flex-wrap gap-sm mb-2">
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique 🎯</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Beginner drills 🔰</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Match tactics 🏆</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips 🚀</span>
-        <span class="suggestion-chip" onclick="suggestQuery(this)">Footwork drills 👟</span>
-      </div>
+<!-- Alternative implementation using Bootstrap classes -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis tips for beginners 🔰</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Forehand technique 🎯</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis drills 🏋️‍♂️</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Serve tips 🚀</button>
+</div>
     </div>
   </div>
 {% endblock %}

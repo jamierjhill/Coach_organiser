@@ -324,9 +324,13 @@ def get_weather(location_input):
         avg_score = score / max(len(hourly_list), 1)
         good_for_tennis = avg_score < 100
         
+        # Find forecast entry closest to noon
+        noon_forecast = find_noon_forecast(hourly_list)
+        
         forecast.append({
             "day": day,
             "hourly": hourly_list,
+            "noon": noon_forecast,  # Add noon forecast
             "good_for_tennis": good_for_tennis
         })
 
@@ -346,3 +350,29 @@ def get_weather(location_input):
         pass
     
     return response
+
+
+def find_noon_forecast(hourly_list):
+    """Find the forecast entry closest to 12:00 (noon)."""
+    target_time = "11:00"
+    noon_entry = None
+    min_time_diff = float('inf')
+    
+    for entry in hourly_list:
+        time_str = entry["time"]
+        # Convert time string to minutes for comparison
+        h, m = map(int, time_str.split(':'))
+        entry_minutes = h * 60 + m
+        
+        # Convert target time to minutes
+        target_h, target_m = map(int, target_time.split(':'))
+        target_minutes = target_h * 60 + target_m
+        
+        # Calculate time difference
+        time_diff = abs(entry_minutes - target_minutes)
+        
+        if time_diff < min_time_diff:
+            min_time_diff = time_diff
+            noon_entry = entry
+    
+    return noon_entry if noon_entry else hourly_list[0]  # Fallback to first entry

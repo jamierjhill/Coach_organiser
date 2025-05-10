@@ -279,37 +279,48 @@
           {% endfor %}
         </div>
         
-        <!-- 5-Day Outlook Section -->
-        <h5 class="mt-4 mb-3 font-medium">5-Day Tennis Outlook</h5>
-        <div class="five-day-row">
-          {% for day in weather.forecast %}
-            {% if not loop.first %} <!-- Skip today -->
-              <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="font-medium">{{ day.day.split(' ')[0] }}</span>
-                  {% if day.good_for_tennis %}
-                    <span class="day-status good">Good</span>
-                  {% else %}
-                    <span class="day-status bad">Check</span>
-                  {% endif %}
-                </div>
-                
-                {% if day.hourly|length > 0 %}
-                  {% set morning = day.hourly[0] %}
-                  <div class="text-center">
-                    <img src="https://openweathermap.org/img/wn/{{ morning.icon }}.png" alt="{{ morning.desc }}">
-                    <div class="font-medium">{{ morning.temp|round(0) }}°C</div>
-                  </div>
-                  
-                  <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
-                    <div><i>💨</i> {{ (morning.wind * 2.237)|round(0) }}mph</div>
-                    <div><i>🌧️</i> {{ (morning.rain * 100)|round(0) }}%</div>
-                  </div>
-                {% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
+<!-- 5-Day Outlook Section -->
+<h5 class="mt-4 mb-3 font-medium">5-Day Tennis Outlook</h5>
+<div class="five-day-row">
+  {% for day in weather.forecast %}
+    {% if not loop.first %} <!-- Skip today -->
+      <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-medium">{{ day.day.split(' ')[0] }}</span>
+          {% if day.good_for_tennis %}
+            <span class="day-status good">Good</span>
+          {% else %}
+            <span class="day-status bad">Check</span>
+          {% endif %}
         </div>
+        
+        {% if day.noon %}
+          <div class="text-center">
+            <img src="https://openweathermap.org/img/wn/{{ day.noon.icon }}.png" alt="{{ day.noon.desc }}">
+            <div class="font-medium">{{ day.noon.temp|round(0) }}°C</div>
+          </div>
+          
+          <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
+            <div><i>💨</i> {{ (day.noon.wind * 2.237)|round(0) }}mph</div>
+            <div><i>🌧️</i> {{ (day.noon.rain * 100)|round(0) }}%</div>
+          </div>
+        {% elif day.hourly|length > 0 %}
+          <!-- Fallback to first hourly entry if noon data isn't available -->
+          {% set first_entry = day.hourly[0] %}
+          <div class="text-center">
+            <img src="https://openweathermap.org/img/wn/{{ first_entry.icon }}.png" alt="{{ first_entry.desc }}">
+            <div class="font-medium">{{ first_entry.temp|round(0) }}°C</div>
+          </div>
+          
+          <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
+            <div><i>💨</i> {{ (first_entry.wind * 2.237)|round(0) }}mph</div>
+            <div><i>🌧️</i> {{ (first_entry.rain * 100)|round(0) }}%</div>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
       {% else %}
         <div class="empty-state">
           <div class="empty-icon">🔍</div>
@@ -395,13 +406,13 @@
           </button>
         </div>
         
-        <!-- Quick Question Suggestions -->
-        <div class="d-flex flex-wrap gap-2 mt-3">
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis tips for beginners</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Forehand technique</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Tennis drills</span>
-          <span class="suggestion-chip" onclick="suggestQuery(this)">Serve tips</span>
-        </div>
+<!-- Alternative implementation using Bootstrap classes -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis tips for beginners 🔰</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Forehand technique 🎯</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis drills 🏋️‍♂️</button>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Serve tips 🚀</button>
+</div>
       </div>
     </div>
   </div>
