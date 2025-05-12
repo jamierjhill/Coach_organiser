@@ -5,3 +5,9 @@ drag and drop
 Add chat bot - done
 Refine chat bot 
 Move drill generator to new tab
+
+
+navy  00223e
+teal 00a07e
+white fafaf8
+light f3f6f9
