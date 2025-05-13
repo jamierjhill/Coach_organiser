@@ -910,6 +910,7 @@ textarea.input-wide {
     #chatInput {
       height: 44px;
     }
+  }
 /* ===========================================
    INSTALL POPUP COMPONENTS
    =========================================== */
@@ -1204,7 +1205,7 @@ textarea.input-wide {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Add to static/colours.css */
+/* Enhanced Cookie Consent Banner */
 .cookie-consent {
   position: fixed;
   bottom: 0;
@@ -1212,8 +1213,17 @@ textarea.input-wide {
   right: 0;
   background-color: var(--navy);
   color: white;
-  padding: 10px;
   z-index: 9999;
-  text-align: center;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
 }
+
+.cookie-consent p {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 767px) {
+  .cookie-consent p {
+    margin-bottom: 1rem;
+  }
 }

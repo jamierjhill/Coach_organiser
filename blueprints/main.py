@@ -306,3 +306,42 @@ def delete_access_code(code):
 @main_bp.route("/privacy-policy")
 def privacy_policy():
     return render_template("privacy_policy.html")
+
+
+@main_bp.route("/record-consent", methods=["POST"])
+def record_consent():
+    """Record user's consent preferences in the database"""
+    if not current_user.is_authenticated:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+        
+    try:
+        data = request.get_json()
+        consent_level = data.get("level")
+        if consent_level not in ["essential", "all"]:
+            return jsonify({"success": False, "error": "Invalid consent level"}), 400
+            
+        # Load user data
+        user_data = load_user(current_user.username)
+        if not user_data:
+            return jsonify({"success": False, "error": "User not found"}), 404
+            
+        # Update user's consent record
+        if "consent_records" not in user_data:
+            user_data["consent_records"] = []
+            
+        # Add new consent record
+        user_data["consent_records"].append({
+            "timestamp": datetime.now().isoformat(),
+            "level": consent_level,
+            "ip_address": request.remote_addr,
+            "user_agent": request.headers.get("User-Agent", "Unknown")
+        })
+        
+        # Save updated user data
+        save_user(user_data)
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        print(f"Error recording consent: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500    

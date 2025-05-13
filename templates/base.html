@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
-  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
@@ -83,12 +76,19 @@
     }
   </script>
 
-  <!-- Add to templates/base.html -->
+<!-- Enhanced Cookie Consent Banner -->
 <div id="cookieConsent" class="cookie-consent" style="display: none;">
-  <div class="cookie-content">
-    This site uses cookies to improve your experience. 
-    <button class="btn-sm btn-outline-light ms-2" onclick="acceptCookies()">Accept</button>
-    <a href="/privacy-policy" class="btn-sm btn-link text-white">Learn More</a>
+  <div class="container py-3">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <p class="mb-md-0">This site uses cookies for essential functionality. We'd also like to use analytics cookies to improve your experience.</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <button class="btn-base btn-sm btn-accent me-2" onclick="acceptAllCookies()">Accept All</button>
+        <button class="btn-base btn-sm btn-outline-accent me-2" onclick="acceptEssentialCookies()">Essential Only</button>
+        <a href="/privacy-policy" class="btn-base btn-sm btn-outline-light">More Info</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -102,6 +102,91 @@
     if (!localStorage.getItem('cookieConsent')) {
       document.getElementById('cookieConsent').style.display = 'block';
     }
+  });
+</script>
+<!-- Cookie Consent & Analytics Management -->
+<script>
+  // Cookie consent management
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+
+  // Load Google Analytics
+  function loadAnalytics() {
+    // Create script element for analytics.js
+    const gaScript = document.createElement('script');
+    gaScript.async = true;
+    gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC';
+    document.head.appendChild(gaScript);
+    
+    // Initialize gtag
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FL37QBZMLC', { 'anonymize_ip': true });
+    
+    // Store gtag in window object
+    window.gtag = gtag;
+    
+    console.log("Analytics loaded");
+  }
+
+  // Consent handlers
+  function acceptAllCookies() {
+    setCookie('cookie_consent', 'all', 365);
+    setCookie('consent_timestamp', new Date().toISOString(), 365);
+    document.getElementById('cookieConsent').style.display = 'none';
+    loadAnalytics();
+    
+    // Optional: Send server-side record of consent
+    sendConsentToServer('all');
+  }
+
+  function acceptEssentialCookies() {
+    setCookie('cookie_consent', 'essential', 365);
+    setCookie('consent_timestamp', new Date().toISOString(), 365);
+    document.getElementById('cookieConsent').style.display = 'none';
+    
+    // Optional: Send server-side record of consent
+    sendConsentToServer('essential');
+  }
+  
+  function sendConsentToServer(level) {
+    // This is placeholder - implement a fetch/ajax call to your backend
+    // to record user consent in your database
+    console.log("Consent level " + level + " recorded at " + new Date().toISOString());
+    // Example: fetch('/record-consent', {method: 'POST', body: JSON.stringify({level: level})});
+  }
+
+  // Check consent status on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const consentValue = getCookie('cookie_consent');
+    
+    if (!consentValue) {
+      // No consent yet - show banner
+      document.getElementById('cookieConsent').style.display = 'block';
+    } else if (consentValue === 'all') {
+      // User already consented to analytics
+      loadAnalytics();
+    }
+    // If consent is 'essential', do nothing (don't load analytics)
   });
 </script>
   
