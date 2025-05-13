@@ -60,9 +60,9 @@
 
   <!-- Footer -->
   {% block footer %}
-    <footer class="text-center text-muted py-4">
-      <p>Built by Jamie • v2.2 • <a href="/contact" class="text-link">Contact Us</a></p>
-    </footer>
+<footer class="text-center text-muted py-4">
+  <p>Built by Jamie • v2.2 • <a href="/contact" class="text-link">Contact Us</a> • <a href="/privacy-policy" class="text-link">Privacy Policy</a></p>
+</footer>
   {% endblock %}
 
   <!-- Core JS Libraries -->
@@ -82,8 +82,33 @@
       });
     }
   </script>
+
+  <!-- Add to templates/base.html -->
+<div id="cookieConsent" class="cookie-consent" style="display: none;">
+  <div class="cookie-content">
+    This site uses cookies to improve your experience. 
+    <button class="btn-sm btn-outline-light ms-2" onclick="acceptCookies()">Accept</button>
+    <a href="/privacy-policy" class="btn-sm btn-link text-white">Learn More</a>
+  </div>
+</div>
+
+<script>
+  function acceptCookies() {
+    document.getElementById('cookieConsent').style.display = 'none';
+    localStorage.setItem('cookieConsent', 'accepted');
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem('cookieConsent')) {
+      document.getElementById('cookieConsent').style.display = 'block';
+    }
+  });
+</script>
   
   <!-- Additional JS from extending templates -->
   {% block extra_js %}{% endblock %}
+
+  <!-- Add to templates/base.html footer -->
+
 </body>
 </html>

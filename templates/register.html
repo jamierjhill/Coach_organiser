@@ -48,9 +48,16 @@
         <div class="mb-3">
           <label class="form-label">Password</label>
           <input type="password" name="password" class="form-control" required>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="gdprConsent" name="gdpr_consent" required>
+            <label class="form-check-label" for="gdprConsent">
+              I agree to the <a href="/privacy-policy" target="_blank">Privacy Policy</a> and consent to data processing
+            </label>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary w-100">Create Account</button>
       </form>
+      <!-- Add to templates/register.html form -->
       
       <p class="text-center mt-3">
         Already have an account? <a href="/login" class="text-link">Login here</a>

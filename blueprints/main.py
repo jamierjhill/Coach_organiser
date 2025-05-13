@@ -301,3 +301,8 @@ def delete_access_code(code):
             json.dump(codes, f, indent=2)
         return '', 204
     return '', 403
+
+# Add this to blueprints/main.py
+@main_bp.route("/privacy-policy")
+def privacy_policy():
+    return render_template("privacy_policy.html")

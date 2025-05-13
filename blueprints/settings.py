@@ -1,8 +1,10 @@
-import os, json
-from flask import Blueprint, render_template, request, redirect, flash, session
+# Add to blueprints/settings.py (at the top with other imports)
+import os
+import json
+from flask import Blueprint, render_template, request, redirect, flash, session, make_response
 from flask_login import login_required, current_user
 from user_utils import (
-    load_user, save_user
+    load_user, save_user, load_json_feature  # Add load_json_feature here
 )
 from password_utils import hash_password, verify_password
 
@@ -64,3 +66,45 @@ def settings():
     return render_template("settings.html", user_settings={
         "default_postcode": user_data.get("default_postcode", "")
     })
+
+
+@settings_bp.route("/download-data")
+@login_required
+def download_data():
+    username = current_user.username
+    
+    # Collect all user data
+    user_data = load_user(username)
+    
+    # Remove sensitive data before export
+    if user_data:
+        user_data_export = user_data.copy()
+        # Remove password-related fields for security
+        if "password" in user_data_export:
+            del user_data_export["password"]
+        if "password_hash" in user_data_export:
+            del user_data_export["password_hash"]
+        if "password_salt" in user_data_export:
+            del user_data_export["password_salt"]
+    else:
+        user_data_export = {}
+    
+    # Collect other user data
+    bulletin_data = load_json_feature("data/bulletins", username)
+    notes_data = load_json_feature("notes", username)
+    events_data = load_json_feature("data/events", username)
+    
+    # Combine all data
+    full_data = {
+        "user_profile": user_data_export,
+        "bulletins": bulletin_data,
+        "notes": notes_data,
+        "events": events_data
+    }
+    
+    # Create JSON response
+    response = make_response(json.dumps(full_data, indent=2))
+    response.headers["Content-Disposition"] = f"attachment; filename={username}_data.json"
+    response.headers["Content-Type"] = "application/json"
+    
+    return response

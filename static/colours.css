@@ -1203,4 +1203,17 @@ textarea.input-wide {
   transform: translateY(-2px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* Add to static/colours.css */
+.cookie-consent {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--navy);
+  color: white;
+  padding: 10px;
+  z-index: 9999;
+  text-align: center;
+}
 }
