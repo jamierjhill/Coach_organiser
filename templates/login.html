@@ -29,7 +29,13 @@
         </div>
       </div>
       
-      <h3 class="text-success text-center mb-4">🎾 Coaches Hub Login</h3>
+      <!-- Updated welcome heading with consistent font styling -->
+      <h1 class="display-5 fw-light text-success mb-4 text-center" data-aos="fade-down" data-aos-duration="700">🎾 Welcome to Coaches Hub</h1>
+      
+      <!-- Beta testing notice -->
+      <div class="alert alert-info text-center mb-4" data-aos="fade-down" data-aos-duration="700" id="betaAlert">
+        <strong>🧪 Beta Testing:</strong> This app is currently in beta testing. Please provide feedback using the contact form at the bottom of the page.
+      </div>
       
       <!-- Coach Login -->
       <form method="POST" action="/login">
@@ -62,10 +68,7 @@
     
     <!-- Beta note and Learn More button - aligned below the login container -->
     <div class="mt-4 text-center">
-      <a href="/learn-more" class="btn btn-outline-success">
-        <span class="m-2"></span> Learn More About Coaches Hub
-      </a>
-      <p class="text-success">This app is currently in beta testing, please give feedback using the contact form below</p>
+      <a href="/learn-more" class="btn btn-sm btn-outline-info" data-aos="fade-down" data-aos-duration="700">📣 Learn More About Coaches Hub</a>
     </div>
   </div>
 {% endblock %}
@@ -77,7 +80,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
+// Initialize AOS
+document.addEventListener('DOMContentLoaded', function() {
+  AOS.init();
+});
+
 // Simplified installation script
 document.addEventListener('DOMContentLoaded', function() {
   let deferredPrompt;
@@ -132,9 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Keep the existing timeout script for alerts
+// Modified timeout script to exclude the beta alert
 setTimeout(() => {
-  document.querySelectorAll('.alert').forEach(alert => {
+  document.querySelectorAll('.alert:not(#betaAlert)').forEach(alert => {
     alert.classList.remove('show');
     alert.classList.add('fade');
     setTimeout(() => alert.remove(), 500);
