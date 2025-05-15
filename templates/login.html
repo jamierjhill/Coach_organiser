@@ -11,25 +11,25 @@
     <div class="login-card tennis-card mx-auto">
       <!-- PWA Install Popup -->
       <!-- Installation Banner (using only existing styles) -->
-<div class="card-border-left hover-subtle mb-4" id="installBanner" style="display: none;">
-  <div class="d-flex align-items-center">
-    <div class="me-3">
-      <div style="width: 50px; height: 50px; background: linear-gradient(145deg, var(--teal), var(--teal-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
-        🎾
+      <div class="card-border-left hover-subtle mb-4" id="installBanner" style="display: none;">
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <div style="width: 50px; height: 50px; background: linear-gradient(145deg, var(--teal), var(--teal-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+              🎾
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <h5 class="mb-1">Install Coaches Hub</h5>
+            <p class="text-sm mb-2">Add to your home screen for faster access and offline support!</p>
+            <button id="installButton" class="btn-base btn-accent me-2">
+              <span class="me-1">📱</span> Install Now
+            </button>
+            <button id="dismissButton" class="btn-base btn-outline-secondary btn-sm">Maybe Later</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="flex-grow-1">
-      <h5 class="mb-1">Install Coaches Hub</h5>
-      <p class="text-sm mb-2">Add to your home screen for faster access and offline support!</p>
-      <button id="installButton" class="btn-base btn-accent me-2">
-        <span class="me-1">📱</span> Install Now
-      </button>
-      <button id="dismissButton" class="btn-base btn-outline-secondary btn-sm">Maybe Later</button>
-    </div>
-  </div>
-</div>
       
-      <h3 class="text-success text-center mb-4">🎾 Coaches Hub Login - BETA</h3>
+      <h3 class="text-success text-center mb-4">🎾 Coaches Hub Login</h3>
       
       <!-- Coach Login -->
       <form method="POST" action="/login">
@@ -59,6 +59,14 @@
         <button type="submit" class="btn btn-outline-primary w-100">Enter as Player</button>
       </form>
     </div>
+    
+    <!-- Beta note and Learn More button - aligned below the login container -->
+    <div class="mt-4 text-center">
+      <a href="/learn-more" class="btn btn-outline-success">
+        <span class="m-2"></span> Learn More About Coaches Hub
+      </a>
+      <p class="text-success">This app is currently in beta testing, please give feedback using the contact form below</p>
+    </div>
   </div>
 {% endblock %}
 
@@ -67,6 +75,7 @@
     <p>Built by Jamie • v2.2 • <a href="/contact" class="text-link">Contact Us</a></p>
   </footer>
 {% endblock %}
+
 {% block extra_js %}
 <script>
 // Simplified installation script

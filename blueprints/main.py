@@ -345,3 +345,8 @@ def record_consent():
     except Exception as e:
         print(f"Error recording consent: {e}")
         return jsonify({"success": False, "error": str(e)}), 500    
+    
+@main_bp.route("/learn-more")
+def marketing_page():
+    """Serve the marketing/landing page for the app."""
+    return render_template("marketing.html")
