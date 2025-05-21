@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}New Invoice{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-card {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .form-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--navy);
+  }
+  
+  .input-group-text {
+    background-color: var(--teal);
+    color: white;
+    font-weight: bold;
+    border: none;
+  }
+  
+  .required-field::after {
+    content: "*";
+    color: var(--danger);
+    margin-left: 4px;
+  }
+  
+  .create-button {
+    height: 50px;
+    font-size: 1.1rem;
+  }
+  
+  .currency-input {
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title-container">
+  <h1 class="page-title">➕ New Invoice</h1>
+  <div class="title-nav-buttons">
+    <a href="/invoices" class="btn-base btn-outline-accent">Back to Invoices</a>
+  </div>
+</div>
+
+<div class="form-card card-base">
+  <form method="POST" action="/invoices/create">
+    <!-- Client Name -->
+    <div class="mb-4">
+      <label class="form-label required-field">Client Name</label>
+      <input type="text" name="client_name" class="form-control" placeholder="Who is this invoice for?" required autofocus>
+    </div>
+    
+    <!-- Description -->
+    <div class="mb-4">
+      <label class="form-label required-field">Description</label>
+      <input type="text" name="description" class="form-control" placeholder="e.g. Tennis Lessons - May 2025" required>
+    </div>
+    
+    <!-- Amount -->
+    <div class="mb-4">
+      <label class="form-label required-field">Amount</label>
+      <div class="input-group">
+        <span class="input-group-text">£</span>
+        <input type="number" name="amount" class="form-control currency-input" placeholder="0.00" step="0.01" min="0" required>
+      </div>
+    </div>
+    
+    <!-- Due Date -->
+    <div class="mb-4">
+      <label class="form-label required-field">Due Date</label>
+      <input type="date" name="due_date" class="form-control" value="{{ due_date }}" required>
+    </div>
+    
+    <!-- Notes (Optional) -->
+    <div class="mb-4">
+      <label class="form-label">Notes (Optional)</label>
+      <textarea name="notes" class="form-control" rows="3" placeholder="Additional information or payment instructions..."></textarea>
+    </div>
+    
+    <!-- Submit Button -->
+    <div class="d-grid gap-2 mt-5">
+      <button type="submit" class="btn-base btn-accent create-button">Create Invoice</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

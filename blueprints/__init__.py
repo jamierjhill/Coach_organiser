@@ -7,6 +7,7 @@ from .settings import settings_bp
 from .player import player_bp
 from .whats_new import whats_new_bp
 from .admin import admin_bp
+from .invoice import invoice_bp
 
 # Ensure all blueprints are properly imported and listed
 all_blueprints = [
@@ -18,5 +19,6 @@ all_blueprints = [
     settings_bp,  # User settings
     player_bp,    # Player portal access
     whats_new_bp, # What's new page
-    admin_bp      # Admin dashboard
+    admin_bp,     # Admin dashboard
+    invoice_bp    # Invoice management
 ]
