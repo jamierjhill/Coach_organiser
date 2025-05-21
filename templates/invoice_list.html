@@ -4,68 +4,40 @@
 
 {% block extra_css %}
 <style>
-  .summary-card {
-    background: linear-gradient(135deg, var(--navy), var(--navy-light));
-    color: white;
-    border-radius: var(--card-radius);
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 20px rgba(0, 34, 62, 0.1);
+  .summary-number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--navy);
   }
   
   .summary-label {
-    text-transform: uppercase;
+    color: var(--text-secondary);
     font-size: 0.9rem;
-    letter-spacing: 1px;
-    opacity: 0.8;
-    margin-bottom: 8px;
-  }
-  
-  .summary-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 0;
-  }
-  
-  .summary-item {
-    position: relative;
-    padding-left: 20px;
-  }
-  
-  .summary-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 70%;
-    background-color: var(--teal);
-    border-radius: 2px;
   }
   
   .invoice-card {
-    border-radius: 12px;
-    margin-bottom: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
     overflow: hidden;
-    background-color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--light-border);
   }
   
   .invoice-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
   }
   
-  .status-indicator {
-    width: 8px;
+  .status-badge {
     position: absolute;
     top: 0;
-    bottom: 0;
-    left: 0;
+    right: 0;
+    padding: 5px 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    border-bottom-left-radius: 10px;
   }
   
   .status-unpaid {
@@ -80,198 +52,62 @@
     background-color: #e74c3c;
   }
   
-  .status-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 12px;
-    color: white;
-    font-weight: bold;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    margin-bottom: 8px;
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
   }
   
-  .invoice-content {
-    padding: 20px 25px;
-    padding-left: 33px;
-  }
-  
-  .invoice-title {
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: var(--navy);
-    font-weight: 600;
-    font-size: 1.2rem;
-  }
-  
-  .invoice-desc {
-    margin-bottom: 10px;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-  }
-  
-  .invoice-info {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-top: 15px;
-  }
-  
-  .invoice-amount {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--navy);
-  }
-  
-  .invoice-date {
-    font-size: 0.85rem;
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
     color: var(--text-secondary);
   }
   
-  .action-buttons {
+  .section-divider {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    margin: 30px 0;
+  }
+  
+  .section-divider::before,
+  .section-divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid var(--light-border);
+  }
+  
+  .section-divider h4 {
+    margin: 0 15px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    white-space: nowrap;
   }
   
   .action-button {
     border: none;
+    color: white;
+    font-weight: bold;
     padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    color: white;
   }
   
   .action-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .btn-view {
-    background-color: var(--teal);
-  }
-  
-  .btn-paid {
+  .pay-button {
     background-color: #27ae60;
   }
   
-  .create-new-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 160, 126, 0.05);
-    border: 2px dashed rgba(0, 160, 126, 0.2);
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    transition: all 0.2s ease;
-  }
-  
-  .create-new-card:hover {
-    background-color: rgba(0, 160, 126, 0.1);
-    border-color: var(--teal);
-    transform: translateY(-5px);
-  }
-  
-  .create-icon {
-    width: 60px;
-    height: 60px;
+  .view-button {
     background-color: var(--teal);
-    color: white;
-    font-size: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
   }
   
-  .create-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 10px;
-  }
-  
-  .create-desc {
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-  }
-  
-  .section-divider {
-    position: relative;
-    text-align: center;
-    margin: 40px 0;
-  }
-  
-  .section-divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: var(--light-border);
-    z-index: 0;
-  }
-  
-  .section-divider-text {
-    position: relative;
-    background-color: var(--light);
-    padding: 0 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: inline-block;
-    z-index: 1;
-  }
-  
-  .empty-state {
-    text-align: center;
-    padding: 50px 30px;
-  }
-  
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: 20px;
-    color: var(--text-secondary);
-    opacity: 0.5;
-  }
-  
-  @media (max-width: 768px) {
-    .summary-card {
-      padding: 20px;
-    }
-    
-    .summary-number {
-      font-size: 1.8rem;
-    }
-    
-    .invoice-card {
-      margin-bottom: 15px;
-    }
-    
-    .invoice-content {
-      padding: 15px 20px;
-      padding-left: 23px;
-    }
-    
-    .invoice-amount {
-      font-size: 1.2rem;
-    }
-    
-    .action-buttons {
-      flex-wrap: wrap;
-    }
+  .delete-button {
+    background-color: #e74c3c;
   }
 </style>
 {% endblock %}
@@ -280,142 +116,121 @@
 <div class="page-title-container">
   <h1 class="page-title">💰 Invoices</h1>
   <div class="title-nav-buttons">
-    <a href="/invoices/create" class="btn-base btn-accent">
-      <i class="bi bi-plus-circle"></i> Create New Invoice
+    <a href="/invoices/create" class="btn-base btn-accent btn-lg">
+      <i class="bi bi-plus-circle"></i> New Invoice
     </a>
   </div>
 </div>
 
 <!-- Financial Summary -->
-<div class="summary-card">
-  <div class="row">
+<div class="card-base">
+  <div class="row text-center g-4">
     <div class="col-md-4">
-      <div class="summary-item">
-        <div class="summary-label">Outstanding</div>
-        <h2 class="summary-number">£{{ "%.2f"|format(total_unpaid) }}</h2>
-      </div>
+      <div class="summary-number">£{{ "%.2f"|format(total_unpaid) }}</div>
+      <div class="summary-label">OUTSTANDING BALANCE</div>
     </div>
     <div class="col-md-4">
-      <div class="summary-item">
-        <div class="summary-label">Total Received</div>
-        <h2 class="summary-number">£{{ "%.2f"|format(total_paid) }}</h2>
-      </div>
+      <div class="summary-number">£{{ "%.2f"|format(total_paid) }}</div>
+      <div class="summary-label">TOTAL RECEIVED</div>
     </div>
     <div class="col-md-4">
-      <div class="summary-item">
-        <div class="summary-label">Overdue Invoices</div>
-        <h2 class="summary-number">{{ num_overdue }}</h2>
-      </div>
+      <div class="summary-number">{{ num_overdue }}</div>
+      <div class="summary-label">OVERDUE INVOICES</div>
     </div>
   </div>
 </div>
 
+<!-- Unpaid Invoices Section -->
+<div class="card-base">
+  <h3 class="section-title">Unpaid Invoices</h3>
+  
+  {% if unpaid_invoices %}
+    <div class="row">
+      {% for invoice in unpaid_invoices %}
+        <div class="col-md-6">
+          <div class="card-border-left invoice-card" style="border-left-color: {% if invoice.status == 'overdue' %}#e74c3c{% else %}#f39c12{% endif %};">
+            <div class="status-badge status-{{ invoice.status }}">{{ invoice.status }}</div>
+            
+            <h4 class="mb-1">{{ invoice.client_name }}</h4>
+            <p class="mb-2">{{ invoice.description }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <strong class="h5">£{{ "%.2f"|format(invoice.amount) }}</strong>
+                <small class="text-muted d-block">Due: {{ invoice.due_date }}</small>
+              </div>
+              
+              <div class="d-flex gap-2">
+                <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
+                  <button type="submit" class="action-button pay-button">Paid</button>
+                </form>
+                <a href="/invoices/view/{{ invoice.id }}" class="action-button view-button">View</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">💯</div>
+      <p>No unpaid invoices! Well done!</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Divider -->
+<div class="section-divider">
+  <h4>PAYMENT HISTORY</h4>
+</div>
+
+<!-- Paid Invoices Section -->
+<div class="card-base">
+  <h3 class="section-title">Paid Invoices</h3>
+  
+  {% if paid_invoices %}
+    <div class="row">
+      {% for invoice in paid_invoices %}
+        <div class="col-md-6">
+          <div class="card-border-left invoice-card" style="border-left-color: #27ae60; opacity: 0.9;">
+            <div class="status-badge status-paid">paid</div>
+            
+            <h4 class="mb-1">{{ invoice.client_name }}</h4>
+            <p class="mb-2">{{ invoice.description }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <strong class="h5">£{{ "%.2f"|format(invoice.amount) }}</strong>
+                <small class="text-muted d-block">Paid on: {{ invoice.paid_date if invoice.paid_date else "Unknown" }}</small>
+              </div>
+              
+              <div class="d-flex gap-2">
+                <a href="/invoices/view/{{ invoice.id }}" class="action-button view-button">View</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">💰</div>
+      <p>No payment history yet. Invoices will appear here once they're paid.</p>
+    </div>
+  {% endif %}
+</div>
+
 {% if not unpaid_invoices and not paid_invoices %}
   <!-- Empty State for No Invoices -->
-  <div class="card-base">
+  <div class="card-base text-center">
     <div class="empty-state">
-      <div class="empty-icon">📝</div>
+      <div class="empty-state-icon">📝</div>
       <h3>No Invoices Yet</h3>
-      <p class="mb-4">Create your first invoice to get started tracking payments from your clients.</p>
+      <p class="mb-4">Create your first invoice to get started!</p>
       <a href="/invoices/create" class="btn-base btn-accent btn-lg">
         Create Your First Invoice
       </a>
     </div>
-  </div>
-{% else %}
-  <!-- Unpaid Invoices -->
-  <div class="card-base">
-    <h3 class="section-title">Unpaid Invoices</h3>
-    
-    {% if unpaid_invoices %}
-      <div class="row">
-        {% for invoice in unpaid_invoices %}
-          <div class="col-lg-6">
-            <div class="invoice-card">
-              <div class="status-indicator status-{{ invoice.status }}"></div>
-              <div class="invoice-content">
-                <span class="status-badge status-{{ invoice.status }}">{{ invoice.status }}</span>
-                <h4 class="invoice-title">{{ invoice.client_name }}</h4>
-                <div class="invoice-desc">{{ invoice.items[0].description if invoice.items else invoice.description }}</div>
-                
-                <div class="invoice-info">
-                  <div>
-                    <div class="invoice-amount">£{{ "%.2f"|format(invoice.total_amount) }}</div>
-                    <div class="invoice-date">Due: {{ invoice.due_date }}</div>
-                  </div>
-                  
-                  <div class="action-buttons">
-                    <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
-                      <button type="submit" class="action-button btn-paid">Mark Paid</button>
-                    </form>
-                    <a href="/invoices/view/{{ invoice.id }}" class="action-button btn-view">View</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-        
-        <!-- Create New Card -->
-        <div class="col-lg-6">
-          <a href="/invoices/create" class="create-new-card">
-            <div class="create-icon">+</div>
-            <h4 class="create-title">Create New Invoice</h4>
-            <p class="create-desc">Add a new invoice for a client</p>
-            <div class="btn-base btn-accent">Get Started</div>
-          </a>
-        </div>
-      </div>
-    {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">✅</div>
-        <p>No unpaid invoices. All caught up!</p>
-        <a href="/invoices/create" class="btn-base btn-outline-accent mt-3">Create New Invoice</a>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- Section Divider -->
-  <div class="section-divider">
-    <span class="section-divider-text">Payment History</span>
-  </div>
-
-  <!-- Paid Invoices -->
-  <div class="card-base">
-    <h3 class="section-title">Paid Invoices</h3>
-    
-    {% if paid_invoices %}
-      <div class="row">
-        {% for invoice in paid_invoices %}
-          <div class="col-lg-6">
-            <div class="invoice-card">
-              <div class="status-indicator status-paid"></div>
-              <div class="invoice-content">
-                <span class="status-badge status-paid">paid</span>
-                <h4 class="invoice-title">{{ invoice.client_name }}</h4>
-                <div class="invoice-desc">{{ invoice.items[0].description if invoice.items else invoice.description }}</div>
-                
-                <div class="invoice-info">
-                  <div>
-                    <div class="invoice-amount">£{{ "%.2f"|format(invoice.total_amount) }}</div>
-                    <div class="invoice-date">Paid: {{ invoice.paid_date }}</div>
-                  </div>
-                  
-                  <div class="action-buttons">
-                    <a href="/invoices/view/{{ invoice.id }}" class="action-button btn-view">View</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">💰</div>
-        <p>No payment history yet. Invoices will appear here once they're paid.</p>
-      </div>
-    {% endif %}
   </div>
 {% endif %}
 {% endblock %}

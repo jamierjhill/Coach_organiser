@@ -41,57 +41,37 @@
     margin-bottom: 20px;
   }
   
-  .invoice-items {
-    margin: 30px 0;
+  .amount-box {
+    border: 2px solid var(--navy);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
   }
   
-  .item-table {
-    width: 100%;
-    border-collapse: collapse;
+  .amount-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
   }
   
-  .item-table th {
-    background-color: var(--navy);
-    color: white;
-    padding: 10px;
-    text-align: left;
+  .amount-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--navy);
   }
   
-  .item-table td {
-    padding: 12px 10px;
+  .details-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--light-border);
   }
   
-  .item-table tr:nth-child(even) {
-    background-color: var(--light);
-  }
-  
-  .item-table th:last-child,
-  .item-table td:last-child {
-    text-align: right;
-  }
-  
-  .invoice-totals {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-  
-  .total-row {
-    display: flex;
-    justify-content: space-between;
-    width: 250px;
-    margin-bottom: 5px;
-    padding: 5px 0;
-  }
-  
-  .total-row.grand-total {
-    border-top: 2px solid var(--navy);
-    margin-top: 10px;
-    padding-top: 10px;
+  .details-label {
     font-weight: bold;
-    font-size: 1.2rem;
+    color: var(--text-secondary);
   }
   
   .notes-section {
@@ -106,17 +86,7 @@
     margin-bottom: 10px;
   }
   
-  .action-buttons {
-    margin-top: 30px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  
   .action-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: bold;
@@ -131,37 +101,21 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
   
-  .btn-email {
-    background-color: #3498db;
-  }
-  
-  .btn-pdf {
-    background-color: #8e44ad;
-  }
-  
-  .btn-paid {
-    background-color: #27ae60;
-  }
-  
-  .btn-print {
+  .print-button {
     background-color: var(--navy);
   }
   
-  .btn-delete {
-    background-color: #e74c3c;
+  .pay-button {
+    background-color: #27ae60;
   }
   
-  .email-form {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: var(--light);
-    border-radius: 10px;
-    display: none;
+  .delete-button {
+    background-color: #e74c3c;
   }
   
   @media print {
     .no-print {
-      display: none !important;
+      display: none;
     }
     
     .card-base {
@@ -171,22 +125,6 @@
     
     .invoice-view {
       max-width: 100%;
-    }
-    
-    .page-break-before {
-      page-break-before: always;
-    }
-    
-    .status-badge {
-      border: 1px solid #000;
-      color: #000 !important;
-      background-color: transparent !important;
-    }
-    
-    .item-table th {
-      background-color: #f3f6f9 !important;
-      color: #000 !important;
-      border-bottom: 1px solid #000;
     }
   }
 </style>
@@ -206,6 +144,20 @@
     <div>
       <span class="status-badge status-{{ invoice.status }}">{{ invoice.status }}</span>
     </div>
+    
+    <div class="d-flex gap-2">
+      {% if invoice.status != "paid" %}
+        <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
+          <button type="submit" class="action-button pay-button">Mark as Paid</button>
+        </form>
+      {% endif %}
+      
+      <button onclick="window.print()" class="action-button print-button">Print</button>
+      
+      <form action="/invoices/delete/{{ invoice.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this invoice?')">
+        <button type="submit" class="action-button delete-button">Delete</button>
+      </form>
+    </div>
   </div>
   
   <!-- Invoice Header -->
@@ -216,11 +168,8 @@
     </div>
     
     <div class="text-end">
-      <div><strong>Issue Date:</strong> {{ invoice.issue_date }}</div>
-      <div><strong>Due Date:</strong> {{ invoice.due_date }}</div>
-      {% if invoice.status == "paid" and invoice.paid_date %}
-      <div class="text-success"><strong>Paid Date:</strong> {{ invoice.paid_date }}</div>
-      {% endif %}
+      <div><strong>Date:</strong> {{ invoice.issue_date }}</div>
+      <div><strong>Due:</strong> {{ invoice.due_date }}</div>
     </div>
   </div>
   
@@ -229,9 +178,8 @@
     <div class="col-md-6">
       <div class="coach-details">
         <h5>FROM</h5>
-        <div>{{ invoice.coach_name|default(current_user.username)|capitalize }}</div>
-        <div>Tennis Coach</div>
-        <!-- Add more coach details if available -->
+        <div>{{ current_user.username }}</div>
+        <!-- Add more coach details if needed -->
       </div>
     </div>
     
@@ -239,56 +187,20 @@
       <div class="client-details">
         <h5>TO</h5>
         <div>{{ invoice.client_name }}</div>
-        {% if invoice.client_email %}
-        <div>{{ invoice.client_email }}</div>
-        {% endif %}
       </div>
     </div>
   </div>
   
-  <!-- Invoice Items -->
-  <div class="invoice-items">
-    <table class="item-table">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Quantity</th>
-          <th>Rate</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in invoice.items %}
-        <tr>
-          <td>{{ item.description }}</td>
-          <td>{{ item.quantity }}</td>
-          <td>£{{ "%.2f"|format(item.rate) }}</td>
-          <td>£{{ "%.2f"|format(item.amount) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    
-    <!-- Totals -->
-    <div class="invoice-totals">
-      <div class="total-row">
-        <div>Subtotal</div>
-        <div>£{{ "%.2f"|format(invoice.total_amount) }}</div>
-      </div>
-      
-      <!-- Tax row (if applicable) -->
-      {% if invoice.tax_amount is defined and invoice.tax_amount > 0 %}
-      <div class="total-row">
-        <div>Tax ({{ invoice.tax_rate }}%)</div>
-        <div>£{{ "%.2f"|format(invoice.tax_amount) }}</div>
-      </div>
-      {% endif %}
-      
-      <div class="total-row grand-total">
-        <div>Total</div>
-        <div>£{{ "%.2f"|format(invoice.total_amount) }}</div>
-      </div>
-    </div>
+  <!-- Amount -->
+  <div class="amount-box">
+    <div class="amount-label">TOTAL AMOUNT</div>
+    <div class="amount-value">£{{ "%.2f"|format(invoice.amount) }}</div>
+  </div>
+  
+  <!-- Description -->
+  <div class="details-row">
+    <div class="details-label">Description</div>
+    <div>{{ invoice.description }}</div>
   </div>
   
   <!-- Notes (if present) -->
@@ -299,72 +211,10 @@
     </div>
   {% endif %}
   
-  <!-- Action Buttons -->
-  <div class="action-buttons no-print">
-    {% if invoice.status != "paid" %}
-    <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
-      <button type="submit" class="action-button btn-paid">
-        <span>✓</span> Mark as Paid
-      </button>
-    </form>
-    {% endif %}
-    
-    <button type="button" class="action-button btn-email" id="emailButton">
-      <span>📧</span> Email Invoice
-    </button>
-    
-    <button onclick="window.print()" class="action-button btn-print">
-      <span>🖨️</span> Print
-    </button>
-    
-    <form action="/invoices/delete/{{ invoice.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this invoice?')">
-      <button type="submit" class="action-button btn-delete">
-        <span>🗑️</span> Delete
-      </button>
-    </form>
-  </div>
-  
-  <!-- Email Form (hidden by default) -->
-  <div class="email-form no-print" id="emailForm">
-    <form action="/invoices/send-email/{{ invoice.id }}" method="POST">
-      <div class="mb-3">
-        <label class="form-label">Client Email</label>
-        <input type="email" name="client_email" class="form-control" value="{{ invoice.client_email }}" required>
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn-base btn-accent">Send Invoice</button>
-        <button type="button" class="btn-base btn-outline-secondary" id="cancelEmailButton">Cancel</button>
-      </div>
-    </form>
-  </div>
-  
   <!-- Footer -->
   <div class="text-center mt-5">
     <p class="mb-1"><strong>Thank you for your business!</strong></p>
     <p class="text-muted small">Generated by Coaches Hub</p>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Email button functionality
-    const emailButton = document.getElementById('emailButton');
-    const emailForm = document.getElementById('emailForm');
-    const cancelEmailButton = document.getElementById('cancelEmailButton');
-    
-    if (emailButton && emailForm && cancelEmailButton) {
-      emailButton.addEventListener('click', function() {
-        emailForm.style.display = 'block';
-        emailButton.style.display = 'none';
-      });
-      
-      cancelEmailButton.addEventListener('click', function() {
-        emailForm.style.display = 'none';
-        emailButton.style.display = 'inline-flex';
-      });
-    }
-  });
-</script>
 {% endblock %}
