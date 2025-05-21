@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}New Invoice{% endblock %}
+{% block title %}Create Invoice{% endblock %}
 
 {% block extra_css %}
 <style>
   .form-card {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
   }
   
@@ -37,56 +37,378 @@
     font-weight: bold;
     font-size: 1.2rem;
   }
+  
+  .line-item {
+    background-color: var(--light);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  .remove-item {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .remove-item:hover {
+    background: rgba(231, 76, 60, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .add-item-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px dashed var(--light-border);
+    background-color: transparent;
+    color: var(--teal);
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-bottom: 25px;
+  }
+  
+  .add-item-btn:hover {
+    background-color: rgba(0, 160, 126, 0.05);
+    border-color: var(--teal);
+  }
+  
+  .invoice-summary {
+    background-color: var(--navy);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 30px;
+  }
+  
+  .total-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+  
+  .total-amount {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .send-options {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  
+  .option-card {
+    flex: 1;
+    background-color: var(--light);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  
+  .option-card.selected, .option-card:hover {
+    border-color: var(--teal);
+    background-color: rgba(0, 160, 126, 0.05);
+  }
+  
+  .option-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .tax-row {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    justify-content: flex-end;
+  }
+  
+  .tax-input {
+    width: 80px;
+    margin: 0 10px;
+  }
+  
+  .invoice-preview {
+    position: sticky;
+    top: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .send-options {
+      flex-direction: column;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-title-container">
-  <h1 class="page-title">➕ New Invoice</h1>
+  <h1 class="page-title">📝 Create Invoice</h1>
   <div class="title-nav-buttons">
     <a href="/invoices" class="btn-base btn-outline-accent">Back to Invoices</a>
   </div>
 </div>
 
 <div class="form-card card-base">
-  <form method="POST" action="/invoices/create">
-    <!-- Client Name -->
-    <div class="mb-4">
-      <label class="form-label required-field">Client Name</label>
-      <input type="text" name="client_name" class="form-control" placeholder="Who is this invoice for?" required autofocus>
-    </div>
-    
-    <!-- Description -->
-    <div class="mb-4">
-      <label class="form-label required-field">Description</label>
-      <input type="text" name="description" class="form-control" placeholder="e.g. Tennis Lessons - May 2025" required>
-    </div>
-    
-    <!-- Amount -->
-    <div class="mb-4">
-      <label class="form-label required-field">Amount</label>
-      <div class="input-group">
-        <span class="input-group-text">£</span>
-        <input type="number" name="amount" class="form-control currency-input" placeholder="0.00" step="0.01" min="0" required>
+  <form method="POST" action="/invoices/create" id="invoiceForm">
+    <div class="row">
+      <div class="col-md-8">
+        <!-- Client Information -->
+        <div class="client-info mb-4">
+          <h4 class="section-title">Client Information</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label required-field">Client Name</label>
+              <input type="text" name="client_name" class="form-control" placeholder="Who is this invoice for?" required autofocus>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Client Email</label>
+              <input type="email" name="client_email" class="form-control" placeholder="For sending invoice">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Line Items -->
+        <div class="line-items mb-4">
+          <h4 class="section-title">Items & Services</h4>
+          <div id="lineItemsContainer">
+            <!-- First line item (required) -->
+            <div class="line-item" id="item-0">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label required-field">Description</label>
+                  <input type="text" name="item_description[]" class="form-control item-description" placeholder="e.g. Tennis Lesson" required>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label required-field">Quantity</label>
+                  <input type="number" name="item_quantity[]" class="form-control item-quantity" value="1" min="0.5" step="0.5" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label required-field">Rate (£)</label>
+                  <input type="number" name="item_rate[]" class="form-control item-rate" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="button" id="addItemBtn" class="add-item-btn">
+            + Add Another Item
+          </button>
+          
+          <!-- Invoice Summary -->
+          <div class="invoice-summary">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="total-label">Total Amount</div>
+              <div class="total-amount">£<span id="totalAmount">0.00</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="additional-info mb-4">
+          <h4 class="section-title">Additional Information</h4>
+          
+          <div class="mb-3">
+            <label class="form-label required-field">Due Date</label>
+            <input type="date" name="due_date" class="form-control" value="{{ due_date }}" required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Notes (Optional)</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Payment instructions, terms, or additional information..."></textarea>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <!-- Due Date -->
-    <div class="mb-4">
-      <label class="form-label required-field">Due Date</label>
-      <input type="date" name="due_date" class="form-control" value="{{ due_date }}" required>
-    </div>
-    
-    <!-- Notes (Optional) -->
-    <div class="mb-4">
-      <label class="form-label">Notes (Optional)</label>
-      <textarea name="notes" class="form-control" rows="3" placeholder="Additional information or payment instructions..."></textarea>
-    </div>
-    
-    <!-- Submit Button -->
-    <div class="d-grid gap-2 mt-5">
-      <button type="submit" class="btn-base btn-accent create-button">Create Invoice</button>
+      
+      <div class="col-md-4">
+        <div class="invoice-preview">
+          <h4 class="section-title">Delivery Options</h4>
+          
+          <div class="send-options">
+            <div class="option-card selected" data-option="save">
+              <div class="option-icon">💾</div>
+              <div class="option-title">Save Only</div>
+            </div>
+            <div class="option-card" data-option="email">
+              <div class="option-icon">📧</div>
+              <div class="option-title">Email to Client</div>
+            </div>
+          </div>
+          
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="send_email" id="sendEmail">
+            <label class="form-check-label" for="sendEmail">
+              Send invoice to client via email
+            </label>
+          </div>
+          
+          <!-- Submit Button -->
+          <div class="d-grid gap-2 mt-5">
+            <button type="submit" class="btn-base btn-accent create-button">Create Invoice</button>
+          </div>
+        </div>
+      </div>
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Track the number of line items
+  let itemCount = 1;
+  
+  // Update the total amount when inputs change
+  function updateTotal() {
+    let total = 0;
+    
+    // Loop through all line items
+    document.querySelectorAll('.line-item').forEach(item => {
+      const quantity = parseFloat(item.querySelector('.item-quantity').value) || 0;
+      const rate = parseFloat(item.querySelector('.item-rate').value) || 0;
+      total += quantity * rate;
+    });
+    
+    // Update the displayed total
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+  }
+  
+  // Add a new line item
+  function addLineItem() {
+    // Fetch a new line item template from the server
+    fetch(`/api/invoice-template?index=${itemCount}`)
+      .then(response => response.json())
+      .then(data => {
+        // Insert the new line item
+        const container = document.getElementById('lineItemsContainer');
+        container.insertAdjacentHTML('beforeend', data.html);
+        
+        // Set up the event listeners for the new item
+        setupLineItemListeners(itemCount);
+        
+        // Increment the item count
+        itemCount++;
+      })
+      .catch(error => {
+        console.error('Error fetching line item template:', error);
+        
+        // Fallback: Create a new line item manually
+        const container = document.getElementById('lineItemsContainer');
+        const newItem = document.createElement('div');
+        newItem.className = 'line-item';
+        newItem.id = `item-${itemCount}`;
+        newItem.innerHTML = `
+          <button type="button" class="remove-item" onclick="removeLineItem(${itemCount})">×</button>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label required-field">Description</label>
+              <input type="text" name="item_description[]" class="form-control item-description" placeholder="e.g. Tennis Lesson" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label required-field">Quantity</label>
+              <input type="number" name="item_quantity[]" class="form-control item-quantity" value="1" min="0.5" step="0.5" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label required-field">Rate (£)</label>
+              <input type="number" name="item_rate[]" class="form-control item-rate" placeholder="0.00" step="0.01" min="0" required>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(newItem);
+        
+        // Set up the event listeners for the new item
+        setupLineItemListeners(itemCount);
+        
+        // Increment the item count
+        itemCount++;
+      });
+  }
+  
+  // Remove a line item
+  function removeLineItem(id) {
+    const item = document.getElementById(`item-${id}`);
+    if (item && document.querySelectorAll('.line-item').length > 1) {
+      // Add fade-out animation
+      item.style.opacity = '0';
+      item.style.transform = 'translateX(20px)';
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        item.remove();
+        updateTotal();
+      }, 300);
+    }
+  }
+  
+  // Set up event listeners for a line item
+  function setupLineItemListeners(id) {
+    const item = document.getElementById(`item-${id}`);
+    
+    // Add event listeners to the quantity and rate inputs
+    const quantityInput = item.querySelector('.item-quantity');
+    const rateInput = item.querySelector('.item-rate');
+    
+    quantityInput.addEventListener('input', updateTotal);
+    rateInput.addEventListener('input', updateTotal);
+    
+    // Add remove button functionality
+    const removeButton = item.querySelector('.remove-item');
+    if (removeButton) {
+      removeButton.addEventListener('click', () => removeLineItem(id));
+    }
+  }
+  
+  // Handle delivery options
+  function setupDeliveryOptions() {
+    const optionCards = document.querySelectorAll('.option-card');
+    const emailCheckbox = document.getElementById('sendEmail');
+    
+    optionCards.forEach(card => {
+      card.addEventListener('click', () => {
+        // Remove selected class from all cards
+        optionCards.forEach(c => c.classList.remove('selected'));
+        
+        // Add selected class to clicked card
+        card.classList.add('selected');
+        
+        // Update the checkbox based on selection
+        const option = card.getAttribute('data-option');
+        emailCheckbox.checked = option === 'email';
+      });
+    });
+  }
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add the first line item's listeners
+    setupLineItemListeners(0);
+    
+    // Add event listener to the "Add Item" button
+    const addButton = document.getElementById('addItemBtn');
+    addButton.addEventListener('click', addLineItem);
+    
+    // Setup delivery options
+    setupDeliveryOptions();
+    
+    // Set initial total
+    updateTotal();
+  });
+</script>
 {% endblock %}
