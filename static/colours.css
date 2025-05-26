@@ -1403,3 +1403,163 @@
         margin-bottom: 1rem;
       }
     }
+    /* Additional Mobile-Friendly Invoice Styles */
+/* Add this to your existing colours.css or create a separate invoice.css file */
+
+/* Enhanced Invoice Card Styling */
+.invoice-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.invoice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 34, 62, 0.12);
+}
+
+/* Mobile-optimized invoice amount display */
+.invoice-amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* Responsive summary cards */
+.summary-card {
+  transition: transform 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Mobile button improvements */
+@media (max-width: 768px) {
+  .invoice-card .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+  
+  .invoice-card .btn-base {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .invoice-amount {
+    font-size: 1.1rem;
+  }
+  
+  .summary-card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Stack action buttons vertically on very small screens */
+  .title-nav-buttons {
+    width: 100%;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Further mobile optimizations */
+  .card-base {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .invoice-card {
+    padding: 1rem;
+  }
+  
+  .page-title-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .row.g-3 {
+    --bs-gutter-x: 0.75rem;
+  }
+  
+  /* Make form inputs more touch-friendly */
+  .input-base {
+    padding: 12px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .btn-base {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-lg {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+}
+
+/* Print optimizations */
+@media print {
+  .invoice-amount-display {
+    background: white !important;
+    color: black !important;
+    border: 2px solid #000;
+  }
+  
+  .card-border-left {
+    border-left: 2px solid #000 !important;
+    background: white !important;
+  }
+}
+
+/* Better spacing for form elements */
+.form-label {
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.5rem;
+}
+
+/* Enhanced empty state */
+.empty-state {
+  padding: 3rem 1rem;
+}
+
+.empty-state .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Loading states for buttons */
+.btn-base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Better focus states for accessibility */
+.input-base:focus,
+.btn-base:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Improved badge visibility */
+.badge-base {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+}
+
+/* Ensure touch targets are large enough on mobile */
+@media (max-width: 768px) {
+  .btn-base, .input-base, a[href] {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .input-base {
+    display: block;
+  }
+}

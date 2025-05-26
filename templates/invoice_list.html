@@ -6,141 +6,132 @@
 <div class="page-title-container">
   <h1 class="page-title">💰 Invoices</h1>
   <div class="title-nav-buttons">
-    <a href="/invoices/create" class="btn-base btn-accent">
-      ➕ New Invoice
-    </a>
+    <a href="/invoices/create" class="btn-base btn-accent">➕ New Invoice</a>
   </div>
 </div>
 
 <!-- Financial Summary -->
-<div class="card-base" style="padding: 1rem;">
+<div class="card-base">
   <div class="row text-center g-3">
-    <div class="col-md-4">
-      <div class="h3 mb-0" style="color: var(--navy); font-weight: bold;">£{{ "%.2f"|format(total_unpaid) }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Outstanding</div>
+    <div class="col-md-4 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_unpaid) }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Outstanding</div>
+      </div>
     </div>
-    <div class="col-md-4">
-      <div class="h3 mb-0" style="color: var(--teal); font-weight: bold;">£{{ "%.2f"|format(total_paid) }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Received</div>
+    <div class="col-md-4 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_paid) }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Received</div>
+      </div>
     </div>
-    <div class="col-md-4">
-      <div class="h3 mb-0" style="color: var(--danger, #dc3545); font-weight: bold;">{{ num_overdue }}</div>
-      <div class="text-muted" style="font-size: 0.8rem;">Overdue</div>
+    <div class="col-md-4 col-12">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">{{ num_overdue }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Overdue</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Unpaid Invoices Section -->
-<div class="card-base" style="padding: 1rem;">
-  <h4 class="section-title" style="margin-bottom: 1rem;">💸 Unpaid ({{ unpaid_invoices|length }})</h4>
+<!-- Unpaid Invoices -->
+{% if unpaid_invoices %}
+<div class="card-base">
+  <h4 class="section-title">💸 Unpaid Invoices ({{ unpaid_invoices|length }})</h4>
   
-  {% if unpaid_invoices %}
-    <div class="row g-2">
-      {% for invoice in unpaid_invoices %}
-        <div class="col-lg-4 col-md-6">
-          <div class="card-border-left" style="border-left-color: {% if invoice.status == 'overdue' %}var(--danger, #dc3545){% else %}var(--warning, #ffc107){% endif %}; position: relative; padding: 0.75rem;">
-            
-            <!-- Compact Status Badge -->
-            <div style="position: absolute; top: 0; right: 0; background: {% if invoice.status == 'overdue' %}var(--danger, #dc3545){% else %}var(--warning, #ffc107){% endif %}; color: white; padding: 2px 6px; font-size: 0.6rem; font-weight: bold; border-bottom-left-radius: 4px;">
-              {{ invoice.status|upper }}
-            </div>
-            
-            <!-- Invoice Info -->
-            <div class="mb-2">
-              <div class="h6 mb-0" style="line-height: 1.2;">{{ invoice.client_name }}</div>
-              <div class="text-muted" style="font-size: 0.75rem; line-height: 1.1;">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
-            </div>
-            
-            <!-- Amount and Dates -->
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="h5 mb-0" style="color: var(--navy);">£{{ "%.0f"|format(invoice.amount) }}</div>
-              <div class="text-end">
-                <div style="font-size: 0.65rem; color: var(--text-muted);">{{ invoice.invoice_number }}</div>
-                <div style="font-size: 0.65rem; color: var(--text-muted);">Due {{ invoice.due_date[5:] }}</div>
-              </div>
-            </div>
-            
-            <!-- Compact Action Buttons -->
-            <div class="d-flex gap-1">
-              <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="flex-fill">
-                <button type="submit" class="btn-base btn-success w-100" style="padding: 4px 6px; font-size: 0.7rem;">✅ Paid</button>
-              </form>
-              <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent" style="padding: 4px 6px; font-size: 0.7rem;">👁️</a>
-              <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" style="padding: 4px 6px; font-size: 0.7rem;">📋</a>
-            </div>
+  <div class="row g-3">
+    {% for invoice in unpaid_invoices %}
+    <div class="col-lg-6 col-xl-4">
+      <div class="card-border-left invoice-card" 
+           style="border-left-color: {% if invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};">
+        
+        <!-- Status Badge -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-0">{{ invoice.client_name }}</h6>
+          <span class="badge-base {% if invoice.status == 'overdue' %}status-danger{% else %}status-warning{% endif %}">
+            {{ invoice.status|upper }}
+          </span>
+        </div>
+        
+        <!-- Description -->
+        <p class="text-muted small mb-2">{{ invoice.description[:50] }}{% if invoice.description|length > 50 %}...{% endif %}</p>
+        
+        <!-- Amount & Details -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="invoice-amount">£{{ "%.2f"|format(invoice.amount) }}</div>
+          <div class="text-end text-muted small">
+            <div>{{ invoice.invoice_number }}</div>
+            <div>Due {{ invoice.due_date }}</div>
           </div>
         </div>
-      {% endfor %}
+        
+        <!-- Actions -->
+        <div class="d-flex gap-2 flex-wrap">
+          <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="flex-fill">
+            <button type="submit" class="btn-base btn-success w-100">✅ Mark Paid</button>
+          </form>
+          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent">👁️</a>
+          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">📋</a>
+        </div>
+      </div>
     </div>
-  {% else %}
-    <div class="text-center" style="padding: 20px;">
-      <div style="font-size: 32px; margin-bottom: 10px;">💯</div>
-      <p class="text-muted mb-0">No unpaid invoices!</p>
-    </div>
-  {% endif %}
+    {% endfor %}
+  </div>
 </div>
+{% endif %}
 
-<!-- Paid Invoices Section -->
-<div class="card-base" style="padding: 1rem;">
-  <h4 class="section-title" style="margin-bottom: 1rem;">✅ Paid ({{ paid_invoices|length }})</h4>
+<!-- Paid Invoices -->
+{% if paid_invoices %}
+<div class="card-base">
+  <h4 class="section-title">✅ Paid Invoices ({{ paid_invoices|length }})</h4>
   
-  {% if paid_invoices %}
-    <div class="row g-2">
-      {% for invoice in paid_invoices %}
-        <div class="col-lg-4 col-md-6">
-          <div class="card-border-left" style="border-left-color: var(--success, #28a745); opacity: 0.9; position: relative; padding: 0.75rem;">
-            
-            <!-- Compact Status Badge -->
-            <div style="position: absolute; top: 0; right: 0; background: var(--success, #28a745); color: white; padding: 2px 6px; font-size: 0.6rem; font-weight: bold; border-bottom-left-radius: 4px;">
-              PAID
-            </div>
-            
-            <!-- Invoice Info -->
-            <div class="mb-2">
-              <div class="h6 mb-0" style="line-height: 1.2;">{{ invoice.client_name }}</div>
-              <div class="text-muted" style="font-size: 0.75rem; line-height: 1.1;">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
-            </div>
-            
-            <!-- Amount and Dates -->
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="h5 mb-0" style="color: var(--success, #28a745);">£{{ "%.0f"|format(invoice.amount) }}</div>
-              <div class="text-end">
-                <div style="font-size: 0.65rem; color: var(--text-muted);">{{ invoice.invoice_number }}</div>
-                <div style="font-size: 0.65rem; color: var(--text-muted);">Paid {{ invoice.paid_date[5:] if invoice.paid_date else "?" }}</div>
-              </div>
-            </div>
-            
-            <!-- Compact Action Buttons -->
-            <div class="d-flex gap-1">
-              <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent flex-fill" style="padding: 4px 6px; font-size: 0.7rem;">👁️ View</a>
-              <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" style="padding: 4px 6px; font-size: 0.7rem;">📋</a>
-              <form action="/invoices/delete/{{ invoice.id }}" method="POST" class="d-inline" onsubmit="return confirm('Delete?')">
-                <button type="submit" class="btn-base btn-outline-danger" style="padding: 4px 6px; font-size: 0.7rem;">🗑️</button>
-              </form>
-            </div>
+  <div class="row g-3">
+    {% for invoice in paid_invoices %}
+    <div class="col-lg-6 col-xl-4">
+      <div class="card-border-left invoice-card" style="border-left-color: var(--success); opacity: 0.95;">
+        
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="mb-0">{{ invoice.client_name }}</h6>
+          <span class="badge-base status-success">PAID</span>
+        </div>
+        
+        <!-- Description -->
+        <p class="text-muted small mb-2">{{ invoice.description[:50] }}{% if invoice.description|length > 50 %}...{% endif %}</p>
+        
+        <!-- Amount & Details -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="invoice-amount" style="color: var(--success);">£{{ "%.2f"|format(invoice.amount) }}</div>
+          <div class="text-end text-muted small">
+            <div>{{ invoice.invoice_number }}</div>
+            <div>Paid {{ invoice.paid_date if invoice.paid_date else "?" }}</div>
           </div>
         </div>
-      {% endfor %}
+        
+        <!-- Actions -->
+        <div class="d-flex gap-2">
+          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent flex-fill">👁️ View</a>
+          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">🔄</a>
+          <form action="/invoices/delete/{{ invoice.id }}" method="POST" onsubmit="return confirm('Delete this invoice?')">
+            <button type="submit" class="btn-base btn-outline-danger">🗑️</button>
+          </form>
+        </div>
+      </div>
     </div>
-  {% else %}
-    <div class="text-center" style="padding: 20px;">
-      <div style="font-size: 32px; margin-bottom: 10px;">💰</div>
-      <p class="text-muted mb-0">No payment history yet.</p>
-    </div>
-  {% endif %}
+    {% endfor %}
+  </div>
 </div>
+{% endif %}
 
+<!-- Empty State -->
 {% if not unpaid_invoices and not paid_invoices %}
-  <!-- Empty State for No Invoices -->
-  <div class="card-base text-center">
-    <div style="padding: 40px 20px;">
-      <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
-      <h4 class="mb-3">No Invoices Yet</h4>
-      <p class="mb-4 text-muted">Create your first invoice to get started!</p>
-      <a href="/invoices/create" class="btn-base btn-accent">
-        ✨ Create Your First Invoice
-      </a>
-    </div>
+<div class="card-base text-center">
+  <div class="empty-state">
+    <div class="empty-icon">📝</div>
+    <h4 class="mb-3">No Invoices Yet</h4>
+    <p class="mb-4 text-muted">Create your first invoice to start tracking payments.</p>
+    <a href="/invoices/create" class="btn-base btn-accent btn-lg">✨ Create First Invoice</a>
   </div>
+</div>
 {% endif %}
 {% endblock %}
