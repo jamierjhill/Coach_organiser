@@ -18,41 +18,83 @@ def generate_invoice_number():
     count = len(load_json_feature(INVOICES_DIR, current_user.username)) + 1
     return f"INV-{date_part}-{count:03d}"
 
+def normalize_invoice_data(invoice):
+    """Ensure invoice has consistent field names for templates."""
+    # Make sure we have total_amount field (templates expect this)
+    if "total_amount" not in invoice and "amount" in invoice:
+        invoice["total_amount"] = invoice["amount"]
+    elif "amount" not in invoice and "total_amount" in invoice:
+        invoice["amount"] = invoice["total_amount"]
+    elif "total_amount" not in invoice and "amount" not in invoice:
+        invoice["total_amount"] = invoice["amount"] = 0
+    
+    # Ensure we have all required fields with defaults
+    invoice.setdefault("status", "unpaid")
+    invoice.setdefault("client_name", "Unknown Client")
+    invoice.setdefault("description", "")
+    invoice.setdefault("notes", "")
+    invoice.setdefault("issue_date", datetime.now().strftime("%Y-%m-%d"))
+    invoice.setdefault("due_date", datetime.now().strftime("%Y-%m-%d"))
+    
+    return invoice
+
 @invoice_bp.route("/invoices")
 @login_required
 def invoice_list():
     """Display the simplified invoice dashboard with clear paid/unpaid sections."""
-    invoices = load_json_feature(INVOICES_DIR, current_user.username)
-    
-    # Sort invoices by date (newest first)
-    invoices.sort(key=lambda x: x.get("created_at", ""), reverse=True)
-    
-    # Separate into paid and unpaid
-    paid_invoices = [inv for inv in invoices if inv.get("status") == "paid"]
-    unpaid_invoices = [inv for inv in invoices if inv.get("status") in ["unpaid", "overdue"]]
-    
-    # Check for overdue invoices and update status
-    today = datetime.now().date()
-    for invoice in unpaid_invoices:
-        due_date = datetime.strptime(invoice.get("due_date", ""), "%Y-%m-%d").date()
-        if due_date < today and invoice.get("status") != "overdue":
-            invoice["status"] = "overdue"
-            # We'll need to save the updated statuses
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        
+        # Normalize all invoice data
+        invoices = [normalize_invoice_data(inv) for inv in invoices]
+        
+        # Sort invoices by date (newest first)
+        invoices.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        
+        # Separate into paid and unpaid
+        paid_invoices = [inv for inv in invoices if inv.get("status") == "paid"]
+        unpaid_invoices = [inv for inv in invoices if inv.get("status") in ["unpaid", "overdue"]]
+        
+        # Check for overdue invoices and update status
+        today = datetime.now().date()
+        updated = False
+        for invoice in unpaid_invoices:
+            try:
+                due_date = datetime.strptime(invoice.get("due_date", ""), "%Y-%m-%d").date()
+                if due_date < today and invoice.get("status") != "overdue":
+                    invoice["status"] = "overdue"
+                    updated = True
+            except ValueError:
+                # Skip if due_date is invalid
+                continue
+        
+        # Save updated statuses if any changed
+        if updated:
             save_json_feature(INVOICES_DIR, current_user.username, invoices)
-    
-    # Calculate totals
-    total_paid = sum(float(inv.get("amount", 0)) for inv in paid_invoices)
-    total_unpaid = sum(float(inv.get("amount", 0)) for inv in unpaid_invoices)
-    num_overdue = sum(1 for inv in unpaid_invoices if inv.get("status") == "overdue")
-    
-    return render_template(
-        "invoice_list.html",
-        paid_invoices=paid_invoices,
-        unpaid_invoices=unpaid_invoices,
-        total_paid=total_paid,
-        total_unpaid=total_unpaid,
-        num_overdue=num_overdue
-    )
+        
+        # Calculate totals using total_amount field
+        total_paid = sum(float(inv.get("total_amount", 0)) for inv in paid_invoices)
+        total_unpaid = sum(float(inv.get("total_amount", 0)) for inv in unpaid_invoices)
+        num_overdue = sum(1 for inv in unpaid_invoices if inv.get("status") == "overdue")
+        
+        return render_template(
+            "invoice_list.html",
+            paid_invoices=paid_invoices,
+            unpaid_invoices=unpaid_invoices,
+            total_paid=total_paid,
+            total_unpaid=total_unpaid,
+            num_overdue=num_overdue
+        )
+    except Exception as e:
+        flash(f"❌ Error loading invoices: {str(e)}", "danger")
+        return render_template(
+            "invoice_list.html",
+            paid_invoices=[],
+            unpaid_invoices=[],
+            total_paid=0,
+            total_unpaid=0,
+            num_overdue=0
+        )
 
 @invoice_bp.route("/invoices/create", methods=["GET", "POST"])
 @login_required
@@ -73,69 +115,109 @@ def create_invoice():
         
         try:
             amount = float(amount)
+            if amount <= 0:
+                flash("❌ Amount must be greater than 0.", "danger")
+                return redirect(url_for("invoice.create_invoice"))
         except ValueError:
             flash("❌ Amount must be a valid number.", "danger")
             return redirect(url_for("invoice.create_invoice"))
         
+        # Validate due date
+        try:
+            datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            flash("❌ Please provide a valid due date.", "danger")
+            return redirect(url_for("invoice.create_invoice"))
+        
         # Create new simplified invoice
         new_invoice = {
-            "id": str(datetime.now().timestamp()),
+            "id": str(datetime.now().timestamp()).replace(".", ""),
             "invoice_number": generate_invoice_number(),
             "client_name": client_name,
             "description": description,
             "amount": amount,
+            "total_amount": amount,  # Include both for compatibility
             "issue_date": datetime.now().strftime("%Y-%m-%d"),
             "due_date": due_date,
             "notes": notes,
             "status": "unpaid",
             "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
+            "updated_at": datetime.now().isoformat(),
+            "coach_name": current_user.username
         }
         
-        # Save invoice
-        invoices = load_json_feature(INVOICES_DIR, current_user.username)
-        invoices.append(new_invoice)
-        save_json_feature(INVOICES_DIR, current_user.username, invoices)
-        
-        flash("✅ Invoice created successfully!", "success")
-        return redirect(url_for("invoice.invoice_list"))
+        try:
+            # Save invoice
+            invoices = load_json_feature(INVOICES_DIR, current_user.username)
+            invoices.append(new_invoice)
+            save_json_feature(INVOICES_DIR, current_user.username, invoices)
+            
+            flash("✅ Invoice created successfully!", "success")
+            return redirect(url_for("invoice.invoice_list"))
+        except Exception as e:
+            flash(f"❌ Error saving invoice: {str(e)}", "danger")
+            return redirect(url_for("invoice.create_invoice"))
+    
+    # Handle duplicate functionality
+    duplicate_from = None
+    is_duplicate = False
+    
+    if request.args.get("duplicate"):
+        try:
+            invoices = load_json_feature(INVOICES_DIR, current_user.username)
+            duplicate_from = next((inv for inv in invoices if inv.get("id") == request.args.get("duplicate")), None)
+            is_duplicate = True
+        except:
+            duplicate_from = None
     
     # Default due date (7 days from now)
     default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
     
     return render_template(
         "invoice_create.html", 
-        due_date=default_due_date
+        due_date=default_due_date,
+        duplicate_from=duplicate_from,
+        is_duplicate=is_duplicate
     )
 
 @invoice_bp.route("/invoices/view/<invoice_id>")
 @login_required
 def view_invoice(invoice_id):
     """View a specific invoice."""
-    invoices = load_json_feature(INVOICES_DIR, current_user.username)
-    invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
-    
-    if not invoice:
-        flash("❌ Invoice not found.", "danger")
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
+        
+        if not invoice:
+            flash("❌ Invoice not found.", "danger")
+            return redirect(url_for("invoice.invoice_list"))
+        
+        # Normalize invoice data for consistent template rendering
+        invoice = normalize_invoice_data(invoice)
+        
+        return render_template("invoice_view.html", invoice=invoice)
+    except Exception as e:
+        flash(f"❌ Error loading invoice: {str(e)}", "danger")
         return redirect(url_for("invoice.invoice_list"))
-    
-    return render_template("invoice_view.html", invoice=invoice)
 
 @invoice_bp.route("/invoices/mark-paid/<invoice_id>", methods=["POST"])
 @login_required
 def mark_paid(invoice_id):
     """Simple one-click action to mark invoice as paid."""
-    invoices = load_json_feature(INVOICES_DIR, current_user.username)
-    invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
-    
-    if not invoice:
-        flash("❌ Invoice not found.", "danger")
-    else:
-        invoice["status"] = "paid"
-        invoice["updated_at"] = datetime.now().isoformat()
-        invoice["paid_date"] = datetime.now().strftime("%Y-%m-%d")
-        save_json_feature(INVOICES_DIR, current_user.username, invoices)
-        flash("✅ Invoice marked as paid!", "success")
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
+        
+        if not invoice:
+            flash("❌ Invoice not found.", "danger")
+        else:
+            invoice["status"] = "paid"
+            invoice["updated_at"] = datetime.now().isoformat()
+            invoice["paid_date"] = datetime.now().strftime("%Y-%m-%d")
+            save_json_feature(INVOICES_DIR, current_user.username, invoices)
+            flash("✅ Invoice marked as paid!", "success")
+    except Exception as e:
+        flash(f"❌ Error updating invoice: {str(e)}", "danger")
     
     return redirect(url_for("invoice.invoice_list"))
 
@@ -143,10 +225,42 @@ def mark_paid(invoice_id):
 @login_required
 def delete_invoice(invoice_id):
     """Delete an invoice."""
-    invoices = load_json_feature(INVOICES_DIR, current_user.username)
-    invoices = [inv for inv in invoices if inv.get("id") != invoice_id]
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        original_count = len(invoices)
+        invoices = [inv for inv in invoices if inv.get("id") != invoice_id]
+        
+        if len(invoices) == original_count:
+            flash("❌ Invoice not found.", "danger")
+        else:
+            save_json_feature(INVOICES_DIR, current_user.username, invoices)
+            flash("✅ Invoice deleted successfully!", "success")
+    except Exception as e:
+        flash(f"❌ Error deleting invoice: {str(e)}", "danger")
     
-    save_json_feature(INVOICES_DIR, current_user.username, invoices)
-    
-    flash("✅ Invoice deleted successfully!", "success")
     return redirect(url_for("invoice.invoice_list"))
+
+@invoice_bp.route("/invoices/duplicate/<invoice_id>")
+@login_required
+def duplicate_invoice(invoice_id):
+    """Create a new invoice based on an existing one."""
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        original_invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
+        
+        if not original_invoice:
+            flash("❌ Original invoice not found.", "danger")
+            return redirect(url_for("invoice.invoice_list"))
+        
+        # Default due date (7 days from now)
+        default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+        
+        return render_template(
+            "invoice_create.html", 
+            due_date=default_due_date,
+            duplicate_from=original_invoice,
+            is_duplicate=True
+        )
+    except Exception as e:
+        flash(f"❌ Error duplicating invoice: {str(e)}", "danger")
+        return redirect(url_for("invoice.invoice_list"))
