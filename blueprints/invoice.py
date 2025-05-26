@@ -1,16 +1,18 @@
 import os
 import json
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, flash, url_for
+from flask import Blueprint, render_template, request, redirect, flash, url_for, jsonify
 from flask_login import login_required, current_user
 from user_utils import load_json_feature, save_json_feature
 
 invoice_bp = Blueprint("invoice", __name__)
 
 INVOICES_DIR = "data/invoices"
+TEMPLATES_DIR = "data/invoice_templates"
 
-# Ensure invoices directory exists
+# Ensure directories exist
 os.makedirs(INVOICES_DIR, exist_ok=True)
+os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
 def generate_invoice_number():
     """Generate a simple invoice number based on date and random digits."""
@@ -20,7 +22,6 @@ def generate_invoice_number():
 
 def normalize_invoice_data(invoice):
     """Ensure invoice has consistent field names for templates."""
-    # Make sure we have total_amount field (templates expect this)
     if "total_amount" not in invoice and "amount" in invoice:
         invoice["total_amount"] = invoice["amount"]
     elif "amount" not in invoice and "total_amount" in invoice:
@@ -28,7 +29,6 @@ def normalize_invoice_data(invoice):
     elif "total_amount" not in invoice and "amount" not in invoice:
         invoice["total_amount"] = invoice["amount"] = 0
     
-    # Ensure we have all required fields with defaults
     invoice.setdefault("status", "unpaid")
     invoice.setdefault("client_name", "Unknown Client")
     invoice.setdefault("description", "")
@@ -38,20 +38,102 @@ def normalize_invoice_data(invoice):
     
     return invoice
 
+# === TEMPLATE MANAGEMENT ===
+
+@invoice_bp.route("/invoices/templates")
+@login_required
+def manage_templates():
+    """Manage invoice templates."""
+    try:
+        templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+        return render_template("invoice_templates.html", templates=templates)
+    except Exception as e:
+        flash(f"❌ Error loading templates: {str(e)}", "danger")
+        return render_template("invoice_templates.html", templates=[])
+
+@invoice_bp.route("/invoices/templates/create", methods=["POST"])
+@login_required
+def create_template():
+    """Create a new invoice template."""
+    try:
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+        amount = request.form.get("amount", "0").strip()
+        notes = request.form.get("notes", "").strip()
+        
+        if not name or not description or not amount:
+            flash("❌ Please fill in all required fields.", "danger")
+            return redirect(url_for("invoice.manage_templates"))
+        
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                flash("❌ Amount must be greater than 0.", "danger")
+                return redirect(url_for("invoice.manage_templates"))
+        except ValueError:
+            flash("❌ Amount must be a valid number.", "danger")
+            return redirect(url_for("invoice.manage_templates"))
+        
+        # Create new template
+        new_template = {
+            "id": str(datetime.now().timestamp()).replace(".", ""),
+            "name": name,
+            "description": description,
+            "amount": amount,
+            "notes": notes,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+        templates.append(new_template)
+        save_json_feature(TEMPLATES_DIR, current_user.username, templates)
+        
+        flash("✅ Template created successfully!", "success")
+    except Exception as e:
+        flash(f"❌ Error creating template: {str(e)}", "danger")
+    
+    return redirect(url_for("invoice.manage_templates"))
+
+@invoice_bp.route("/invoices/templates/delete/<template_id>", methods=["POST"])
+@login_required
+def delete_template(template_id):
+    """Delete an invoice template."""
+    try:
+        templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+        original_count = len(templates)
+        templates = [t for t in templates if t.get("id") != template_id]
+        
+        if len(templates) == original_count:
+            flash("❌ Template not found.", "danger")
+        else:
+            save_json_feature(TEMPLATES_DIR, current_user.username, templates)
+            flash("✅ Template deleted successfully!", "success")
+    except Exception as e:
+        flash(f"❌ Error deleting template: {str(e)}", "danger")
+    
+    return redirect(url_for("invoice.manage_templates"))
+
+@invoice_bp.route("/invoices/api/templates")
+@login_required
+def get_templates_api():
+    """API endpoint to get templates for AJAX requests."""
+    try:
+        templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+        return jsonify({"success": True, "templates": templates})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+# === EXISTING INVOICE ROUTES (Updated) ===
+
 @invoice_bp.route("/invoices")
 @login_required
 def invoice_list():
     """Display the simplified invoice dashboard with clear paid/unpaid sections."""
     try:
         invoices = load_json_feature(INVOICES_DIR, current_user.username)
-        
-        # Normalize all invoice data
         invoices = [normalize_invoice_data(inv) for inv in invoices]
-        
-        # Sort invoices by date (newest first)
         invoices.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         
-        # Separate into paid and unpaid
         paid_invoices = [inv for inv in invoices if inv.get("status") == "paid"]
         unpaid_invoices = [inv for inv in invoices if inv.get("status") in ["unpaid", "overdue"]]
         
@@ -65,14 +147,11 @@ def invoice_list():
                     invoice["status"] = "overdue"
                     updated = True
             except ValueError:
-                # Skip if due_date is invalid
                 continue
         
-        # Save updated statuses if any changed
         if updated:
             save_json_feature(INVOICES_DIR, current_user.username, invoices)
         
-        # Calculate totals using total_amount field
         total_paid = sum(float(inv.get("total_amount", 0)) for inv in paid_invoices)
         total_unpaid = sum(float(inv.get("total_amount", 0)) for inv in unpaid_invoices)
         num_overdue = sum(1 for inv in unpaid_invoices if inv.get("status") == "overdue")
@@ -99,16 +178,14 @@ def invoice_list():
 @invoice_bp.route("/invoices/create", methods=["GET", "POST"])
 @login_required
 def create_invoice():
-    """Create a new invoice with a simplified form."""
+    """Create a new invoice with template support."""
     if request.method == "POST":
-        # Extract form data
         client_name = request.form.get("client_name", "").strip()
         description = request.form.get("description", "").strip()
         amount = request.form.get("amount", "0").strip()
         due_date = request.form.get("due_date", "")
         notes = request.form.get("notes", "").strip()
         
-        # Basic validation
         if not client_name or not description or not amount:
             flash("❌ Please fill in all required fields.", "danger")
             return redirect(url_for("invoice.create_invoice"))
@@ -122,21 +199,19 @@ def create_invoice():
             flash("❌ Amount must be a valid number.", "danger")
             return redirect(url_for("invoice.create_invoice"))
         
-        # Validate due date
         try:
             datetime.strptime(due_date, "%Y-%m-%d")
         except ValueError:
             flash("❌ Please provide a valid due date.", "danger")
             return redirect(url_for("invoice.create_invoice"))
         
-        # Create new simplified invoice
         new_invoice = {
             "id": str(datetime.now().timestamp()).replace(".", ""),
             "invoice_number": generate_invoice_number(),
             "client_name": client_name,
             "description": description,
             "amount": amount,
-            "total_amount": amount,  # Include both for compatibility
+            "total_amount": amount,
             "issue_date": datetime.now().strftime("%Y-%m-%d"),
             "due_date": due_date,
             "notes": notes,
@@ -147,7 +222,6 @@ def create_invoice():
         }
         
         try:
-            # Save invoice
             invoices = load_json_feature(INVOICES_DIR, current_user.username)
             invoices.append(new_invoice)
             save_json_feature(INVOICES_DIR, current_user.username, invoices)
@@ -170,14 +244,17 @@ def create_invoice():
         except:
             duplicate_from = None
     
-    # Default due date (7 days from now)
+    # Load templates for quick selection
+    templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+    
     default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
     
     return render_template(
         "invoice_create.html", 
         due_date=default_due_date,
         duplicate_from=duplicate_from,
-        is_duplicate=is_duplicate
+        is_duplicate=is_duplicate,
+        templates=templates
     )
 
 @invoice_bp.route("/invoices/view/<invoice_id>")
@@ -192,9 +269,7 @@ def view_invoice(invoice_id):
             flash("❌ Invoice not found.", "danger")
             return redirect(url_for("invoice.invoice_list"))
         
-        # Normalize invoice data for consistent template rendering
         invoice = normalize_invoice_data(invoice)
-        
         return render_template("invoice_view.html", invoice=invoice)
     except Exception as e:
         flash(f"❌ Error loading invoice: {str(e)}", "danger")
@@ -252,14 +327,15 @@ def duplicate_invoice(invoice_id):
             flash("❌ Original invoice not found.", "danger")
             return redirect(url_for("invoice.invoice_list"))
         
-        # Default due date (7 days from now)
+        templates = load_json_feature(TEMPLATES_DIR, current_user.username)
         default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
         
         return render_template(
             "invoice_create.html", 
             due_date=default_due_date,
             duplicate_from=original_invoice,
-            is_duplicate=True
+            is_duplicate=True,
+            templates=templates
         )
     except Exception as e:
         flash(f"❌ Error duplicating invoice: {str(e)}", "danger")

@@ -4,77 +4,174 @@
 
 {% block content %}
 <div class="page-title-container">
-  <h1 class="page-title">💰 {% if is_duplicate %}Duplicate{% else %}New{% endif %} Invoice</h1>
+  <h1 class="page-title">📝 {% if is_duplicate %}Duplicate{% else %}Create{% endif %} Invoice</h1>
   <div class="title-nav-buttons">
-    <a href="/invoices" class="btn-base btn-outline-accent">← Back</a>
+    <a href="/invoices" class="btn-base btn-outline-accent">Back to Invoices</a>
+    <a href="/invoices/templates" class="btn-base btn-outline-secondary">📋 Templates</a>
   </div>
 </div>
 
-{% if is_duplicate %}
-<div class="card-base" style="background-color: rgba(0, 160, 126, 0.1); border-left: 4px solid var(--teal); margin-bottom: 1.5rem;">
-  <div class="d-flex align-items-center">
-    <div class="me-3" style="font-size: 24px;">📋</div>
+<div class="container-md">
+
+  {% if is_duplicate %}
+  <div class="card-base p-3 mb-4" style="background-color: rgba(0, 160, 126, 0.1); border: 1px solid var(--teal);">
+    <div class="d-flex align-items-center">
+      <div class="me-3" style="font-size: 24px;">📋</div>
+      <div>
+        <h5 class="mb-1">Duplicating Invoice</h5>
+        <p class="mb-0 text-muted">Based on invoice {{ duplicate_from.invoice_number }} for {{ duplicate_from.client_name }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if templates and not is_duplicate %}
+  <div class="card-base p-4 mb-4">
+    <h4 class="section-title">⚡ Quick Templates</h4>
+    <p class="text-sm text-muted mb-3">Click a template to auto-fill the form below</p>
+    
+    <div class="row g-2">
+      {% for template in templates[:6] %}
+      <div class="col-lg-4 col-md-6">
+        <button type="button" 
+                onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')"
+                class="w-100 text-start" 
+                style="background: var(--light); border: 1px solid var(--light-border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease;">
+          <div class="font-medium mb-1">{{ template.name }}</div>
+          <div class="text-xs text-muted mb-1">{{ template.description[:30] }}{% if template.description|length > 30 %}...{% endif %}</div>
+          <div class="text-sm font-semibold" style="color: var(--teal);">£{{ "%.0f"|format(template.amount) }}</div>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    
+    {% if templates|length > 6 %}
+    <div class="text-center mt-3">
+      <a href="/invoices/templates" class="btn-base btn-outline-accent btn-sm">
+        View All {{ templates|length }} Templates
+      </a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Invoice Form -->
+  <div class="card-base p-4 my-4" style="max-width: 700px; margin: 0 auto;">
+    <form method="POST" action="/invoices/create" id="invoiceForm">
+      
+      <!-- Step 1: Client -->
+      <div class="mb-4">
+        <h4 class="section-title">1. Client Details</h4>
+        <div class="mb-3">
+          <label class="form-label">Client Name *</label>
+          <input type="text" name="client_name" class="input-base" 
+                 placeholder="Enter client name" 
+                 value="{{ duplicate_from.client_name if duplicate_from else '' }}" required autofocus>
+        </div>
+      </div>
+      
+      <!-- Step 2: Service & Amount -->
+      <div class="mb-4">
+        <h4 class="section-title">2. Service & Amount</h4>
+        
+        <div class="mb-3">
+          <label class="form-label">Service Description *</label>
+          <input type="text" name="description" class="input-base" id="descriptionField"
+                 placeholder="e.g. Tennis Lessons (4 sessions), Court Rental" 
+                 value="{{ duplicate_from.description if duplicate_from else '' }}" required>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Total Amount (£) *</label>
+          <input type="number" name="amount" class="input-base" id="amountField"
+                 placeholder="0.00" step="0.01" min="0" 
+                 value="{{ duplicate_from.amount if duplicate_from else '' }}" required>
+        </div>
+      </div>
+      
+      <!-- Step 3: Payment Details -->
+      <div class="mb-4">
+        <h4 class="section-title">3. Payment Details</h4>
+        <div class="mb-3">
+          <label class="form-label">Due Date *</label>
+          <input type="date" name="due_date" class="input-base" value="{{ due_date }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Payment Notes (optional)</label>
+          <textarea name="notes" class="input-base" rows="3" id="notesField"
+                    placeholder="e.g. Bank transfer preferred, Payment due within 7 days"
+                    >{{ duplicate_from.notes if duplicate_from else '' }}</textarea>
+        </div>
+      </div>
+      
+      <!-- Step 4: Create Invoice -->
+      <div class="card-base p-4 mt-4" style="background-color: var(--light-bg, #f8f9fa); border: 2px dashed var(--accent-color, #007bff);">
+        <div class="text-center">
+          <h5 class="mb-3">Create Your Invoice</h5>
+          <button type="submit" class="btn-base btn-accent" style="padding: 15px 40px; font-size: 1.1rem; font-weight: 600;">
+            {% if is_duplicate %}🔄 Create Duplicate Invoice{% else %}✅ Create Invoice{% endif %}
+          </button>
+          <p class="text-muted mt-2 mb-0" style="font-size: 0.9rem;">
+            Invoice will be saved and numbered automatically
+          </p>
+        </div>
+      </div>
+      
+    </form>
+  </div>
+
+  {% if not templates and not is_duplicate %}
+  <div class="card-base text-center p-4 my-4" style="background-color: rgba(0, 160, 126, 0.05); border: 1px dashed rgba(0, 160, 126, 0.3);">
     <div>
-      <h5 class="mb-1">Duplicating Invoice</h5>
-      <p class="mb-0 text-muted">{{ duplicate_from.invoice_number }} for {{ duplicate_from.client_name }}</p>
+      <div style="font-size: 32px; margin-bottom: 10px;">💡</div>
+      <h5 class="mb-2">Speed Up Invoice Creation</h5>
+      <p class="text-muted mb-3">Create templates for your common services to create invoices faster next time!</p>
+      <a href="/invoices/templates" class="btn-base btn-outline-accent">📋 Manage Templates</a>
     </div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 
-<div class="card-base" style="max-width: 600px; margin: 0 auto;">
-  <form method="POST" action="/invoices/create" id="invoiceForm">
-    
-    <!-- Client Details -->
-    <div class="mb-4">
-      <label class="form-label">Client Name *</label>
-      <input type="text" name="client_name" class="input-base input-wide" 
-             placeholder="Enter client name" 
-             value="{{ duplicate_from.client_name if duplicate_from else '' }}" 
-             required autofocus>
-    </div>
-    
-    <!-- Service Description -->
-    <div class="mb-4">
-      <label class="form-label">Service Description *</label>
-      <input type="text" name="description" class="input-base input-wide" 
-             placeholder="e.g. Tennis Lessons (4 sessions)" 
-             value="{{ duplicate_from.description if duplicate_from else '' }}" 
-             required>
-    </div>
-    
-    <!-- Amount & Due Date Row -->
-    <div class="row g-3 mb-4">
-      <div class="col-sm-6">
-        <label class="form-label">Amount (£) *</label>
-        <input type="number" name="amount" class="input-base" 
-               placeholder="0.00" step="0.01" min="0" 
-               value="{{ duplicate_from.amount if duplicate_from else '' }}" 
-               required>
-      </div>
-      <div class="col-sm-6">
-        <label class="form-label">Due Date *</label>
-        <input type="date" name="due_date" class="input-base" 
-               value="{{ due_date }}" required>
-      </div>
-    </div>
-    
-    <!-- Notes -->
-    <div class="mb-4">
-      <label class="form-label">Payment Notes (optional)</label>
-      <textarea name="notes" class="input-base input-wide" rows="3" 
-                placeholder="e.g. Bank transfer preferred, Net 7 days"
-                >{{ duplicate_from.notes if duplicate_from else '' }}</textarea>
-    </div>
-    
-    <!-- Create Button -->
-    <div class="text-center">
-      <button type="submit" class="btn-base btn-accent btn-lg w-100 w-sm-auto">
-        {% if is_duplicate %}🔄 Create Duplicate{% else %}✅ Create Invoice{% endif %}
-      </button>
-      <p class="text-muted mt-2 mb-0 small">Invoice will be numbered automatically</p>
-    </div>
-    
-  </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Use template to fill form
+  function useTemplate(description, amount, notes) {
+    document.getElementById('descriptionField').value = description;
+    document.getElementById('amountField').value = amount;
+    document.getElementById('notesField').value = notes || '';
+    
+    // Visual feedback
+    const form = document.getElementById('invoiceForm');
+    form.style.transform = 'scale(1.02)';
+    form.style.transition = 'transform 0.2s ease';
+    setTimeout(() => {
+      form.style.transform = 'scale(1)';
+    }, 200);
+    
+    // Scroll and focus
+    form.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      document.querySelector('input[name="client_name"]').focus();
+    }, 300);
+  }
+
+  // Hover effects for template buttons
+  document.addEventListener('DOMContentLoaded', function() {
+    const templateButtons = document.querySelectorAll('button[onclick^="useTemplate"]');
+    templateButtons.forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'rgba(0, 160, 126, 0.1)';
+        this.style.borderColor = 'var(--teal)';
+        this.style.transform = 'translateY(-2px)';
+      });
+      button.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'var(--light)';
+        this.style.borderColor = 'var(--light-border)';
+        this.style.transform = 'translateY(0)';
+      });
+    });
+  });
+</script>
 {% endblock %}
