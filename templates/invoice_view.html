@@ -4,16 +4,194 @@
 
 {% block extra_css %}
 <style>
+  /* Print Optimization - Single Page Layout */
   @media print {
     .no-print {
       display: none !important;
     }
-    .card-base {
-      box-shadow: none;
-      border: none;
+    
+    /* Page setup */
+    @page {
+      size: A4;
+      margin: 0.5in 0.6in;
     }
+    
+    * {
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    
     body {
-      background: white;
+      background: white !important;
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    .container {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    .card-base {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: white !important;
+    }
+    
+    /* Compress all spacing */
+    .page-title-container {
+      display: none !important;
+    }
+    
+    .invoice-header {
+      border-bottom: 2px solid #333 !important;
+      padding-bottom: 8px !important;
+      margin-bottom: 12px !important;
+    }
+    
+    .invoice-header .display-6 {
+      font-size: 24px !important;
+      margin-bottom: 4px !important;
+    }
+    
+    .invoice-header .text-lg {
+      font-size: 14px !important;
+    }
+    
+    .invoice-header .row {
+      margin-bottom: 0 !important;
+    }
+    
+    .invoice-header .col-md-6 {
+      margin-bottom: 0 !important;
+    }
+    
+    /* Compact from/to section */
+    .row.mb-4 {
+      margin-bottom: 12px !important;
+    }
+    
+    .card-border-left {
+      border-left: 3px solid #333 !important;
+      background: #f8f9fa !important;
+      padding: 8px 12px !important;
+      margin-bottom: 8px !important;
+      border-radius: 4px !important;
+    }
+    
+    .section-title {
+      font-size: 12px !important;
+      font-weight: bold !important;
+      margin-bottom: 4px !important;
+      text-transform: uppercase !important;
+    }
+    
+    /* Optimize amount display */
+    .invoice-amount-display {
+      background: #333 !important;
+      color: white !important;
+      padding: 12px !important;
+      border-radius: 6px !important;
+      text-align: center !important;
+      margin: 12px 0 !important;
+    }
+    
+    .invoice-amount-display .small {
+      font-size: 10px !important;
+      margin-bottom: 4px !important;
+    }
+    
+    .invoice-amount-display .display-4 {
+      font-size: 28px !important;
+      font-weight: bold !important;
+      margin: 0 !important;
+    }
+    
+    /* Service description */
+    .mb-4 {
+      margin-bottom: 12px !important;
+    }
+    
+    .card-border-left p {
+      margin-bottom: 0 !important;
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+    }
+    
+    /* Footer */
+    .text-center.mt-5.pt-4 {
+      margin-top: 16px !important;
+      padding-top: 12px !important;
+      border-top: 1px solid #ddd !important;
+    }
+    
+    .text-center.mt-5.pt-4 p {
+      margin-bottom: 2px !important;
+      font-size: 11px !important;
+    }
+    
+    /* Typography adjustments */
+    h5, .h5 {
+      font-size: 12px !important;
+      margin-bottom: 4px !important;
+    }
+    
+    h6, .h6 {
+      font-size: 12px !important;
+      margin-bottom: 2px !important;
+    }
+    
+    .font-medium {
+      font-weight: 600 !important;
+    }
+    
+    .text-muted {
+      color: #666 !important;
+    }
+    
+    .small {
+      font-size: 10px !important;
+    }
+    
+    /* Badge styles for print */
+    .badge-base {
+      background: #333 !important;
+      color: white !important;
+      padding: 2px 6px !important;
+      border-radius: 3px !important;
+      font-size: 10px !important;
+      font-weight: bold !important;
+    }
+    
+    /* Ensure good contrast */
+    .text-success {
+      color: #28a745 !important;
+    }
+    
+    /* Remove extra spacing */
+    .row {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+    
+    .col-md-6 {
+      padding-left: 0 !important;
+      padding-right: 12px !important;
+    }
+    
+    /* Force single page */
+    .card-base {
+      page-break-inside: avoid !important;
+    }
+    
+    /* Minimize white space */
+    * {
+      margin-top: 0 !important;
     }
   }
   
@@ -32,6 +210,7 @@
     margin: 1.5rem 0;
   }
   
+  /* Mobile-friendly action buttons */
   @media (max-width: 576px) {
     .invoice-amount-display {
       padding: 1rem;
@@ -39,6 +218,22 @@
     .invoice-amount-display .display-4 {
       font-size: 2rem;
     }
+    
+    .action-buttons .btn-base {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    
+    .share-buttons {
+      margin-top: 1rem;
+    }
+  }
+  
+  /* Success animation for copy button */
+  .copy-success {
+    background: linear-gradient(135deg, var(--success), #059669) !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
   }
 </style>
 {% endblock %}
@@ -48,6 +243,7 @@
   <h1 class="page-title">Invoice #{{ invoice.invoice_number }}</h1>
   <div class="title-nav-buttons">
     <a href="/invoices" class="btn-base btn-outline-accent">← Back to Invoices</a>
+    <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">🔄 Duplicate</a>
   </div>
 </div>
 
@@ -61,10 +257,11 @@
       </span>
     </div>
     
-    <div class="d-flex flex-column flex-sm-row gap-2">
+    <!-- Primary Actions -->
+    <div class="action-buttons d-flex flex-column flex-sm-row gap-2">
       {% if invoice.status != "paid" %}
         <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
-          <button type="submit" class="btn-base btn-success">✓ Mark as Paid</button>
+          <button type="submit" class="btn-base btn-success">✅ Mark as Paid</button>
         </form>
       {% endif %}
       
@@ -74,6 +271,20 @@
         <button type="submit" class="btn-base btn-danger">🗑️ Delete</button>
       </form>
     </div>
+  </div>
+  
+  <!-- Share Options -->
+  <div class="card-border-left mb-4 no-print">
+    <h5 class="mb-3">📤 Share Invoice</h5>
+    <div class="share-buttons d-flex flex-column flex-sm-row gap-2">
+      <button onclick="shareViaWhatsApp()" class="btn-base btn-accent flex-fill">
+        <span>📱 Send via WhatsApp</span>
+      </button>
+      <button onclick="copyToClipboard()" id="copyBtn" class="btn-base btn-outline-accent flex-fill">
+        <span id="copyBtnText">📋 Copy Invoice Text</span>
+      </button>
+    </div>
+    <p class="text-muted small mt-2 mb-0">Share invoice details with your client quickly and easily</p>
   </div>
   
   <!-- Invoice Header -->
@@ -145,4 +356,175 @@
     <p class="text-muted small">Generated by Coaches Hub</p>
   </div>
 </div>
+
+<!-- Hidden invoice text for sharing -->
+<div id="invoiceText" style="display: none;">
+🎾 INVOICE
+
+Invoice #: {{ invoice.invoice_number }}
+From: {{ invoice.coach_name|default(current_user.username)|title }} (Tennis Coach)
+To: {{ invoice.client_name }}
+
+Service: {{ invoice.description }}
+Amount: £{{ "%.2f"|format(invoice.total_amount) }}
+
+Issue Date: {{ invoice.issue_date }}
+Due Date: {{ invoice.due_date }}
+{% if invoice.status == "paid" and invoice.paid_date %}
+✅ PAID on {{ invoice.paid_date }}
+{% else %}
+⏳ Status: {{ invoice.status.upper() }}
+{% endif %}
+
+{% if invoice.notes %}
+Notes: {{ invoice.notes }}
+{% endif %}
+
+Thank you for your business!
+- Generated by Coaches Hub
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Get the invoice text for sharing
+  function getInvoiceText() {
+    return document.getElementById('invoiceText').textContent.trim();
+  }
+  
+  // Share via WhatsApp
+  function shareViaWhatsApp() {
+    const invoiceText = getInvoiceText();
+    const encodedText = encodeURIComponent(invoiceText);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    
+    // Open WhatsApp in new window/tab
+    window.open(whatsappUrl, '_blank');
+    
+    // Optional: Show success message
+    showToast('📱 Opening WhatsApp to share invoice...', 'info');
+  }
+  
+  // Copy to clipboard
+  async function copyToClipboard() {
+    const invoiceText = getInvoiceText();
+    const copyBtn = document.getElementById('copyBtn');
+    const copyBtnText = document.getElementById('copyBtnText');
+    
+    try {
+      await navigator.clipboard.writeText(invoiceText);
+      
+      // Visual feedback
+      copyBtn.classList.add('copy-success');
+      copyBtnText.textContent = '✅ Copied!';
+      
+      // Show success message
+      showToast('✅ Invoice details copied to clipboard!', 'success');
+      
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        copyBtn.classList.remove('copy-success');
+        copyBtnText.textContent = '📋 Copy Invoice Text';
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      
+      // Fallback for older browsers
+      fallbackCopyTextToClipboard(invoiceText);
+    }
+  }
+  
+  // Fallback copy method for older browsers
+  function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        showToast('✅ Invoice details copied to clipboard!', 'success');
+        
+        const copyBtn = document.getElementById('copyBtn');
+        const copyBtnText = document.getElementById('copyBtnText');
+        copyBtn.classList.add('copy-success');
+        copyBtnText.textContent = '✅ Copied!';
+        
+        setTimeout(() => {
+          copyBtn.classList.remove('copy-success');
+          copyBtnText.textContent = '📋 Copy Invoice Text';
+        }, 2000);
+      } else {
+        showToast('❌ Failed to copy. Please try again.', 'danger');
+      }
+    } catch (err) {
+      showToast('❌ Copy not supported. Please select and copy manually.', 'warning');
+    }
+    
+    document.body.removeChild(textArea);
+  }
+  
+  // Show toast notification
+  function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in position-fixed`;
+    toast.style.cssText = `
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      max-width: 350px;
+      box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
+    `;
+    
+    toast.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }
+    }, 4000);
+  }
+  
+  // Handle mobile responsiveness
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is on mobile and adjust WhatsApp behavior
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // On mobile, WhatsApp links work better
+      console.log('Mobile device detected - WhatsApp sharing optimized');
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl+C or Cmd+C to copy
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        copyToClipboard();
+      }
+    });
+  });
+</script>
 {% endblock %}

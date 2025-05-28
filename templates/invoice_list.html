@@ -6,7 +6,7 @@
 <div class="page-title-container">
   <h1 class="page-title">💰 Invoices</h1>
   <div class="title-nav-buttons">
-    <a href="/invoices/create" class="btn-base btn-accent">➕ New Invoice</a>
+    <a href="/invoices/create" class="btn-base btn-accent">➕ Create New Invoice</a>
   </div>
 </div>
 
@@ -34,6 +34,60 @@
   </div>
 </div>
 
+<!-- Search and Filter -->
+<div class="card-base">
+  <h4 class="section-title">🔍 Search Invoices</h4>
+  
+  <div class="row g-3 align-items-end">
+    <div class="col-md-6">
+      <label class="form-label">Search invoices</label>
+      <div class="position-relative">
+        <input type="text" id="searchInput" class="input-base" 
+               placeholder="Search by client, invoice #, or description..." 
+               style="padding-right: 40px;">
+        <button onclick="clearSearch()" id="clearSearchBtn" 
+                class="btn-base btn-outline-secondary btn-sm position-absolute" 
+                style="right: 5px; top: 50%; transform: translateY(-50%); display: none; padding: 2px 8px;">
+          ✕
+        </button>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <label class="form-label">Filter by status</label>
+      <select id="statusFilter" class="input-base">
+        <option value="all">All Invoices</option>
+        <option value="unpaid">Unpaid Only</option>
+        <option value="paid">Paid Only</option>
+        <option value="overdue">Overdue Only</option>
+      </select>
+    </div>
+    
+    <div class="col-md-3">
+      <label class="form-label">Sort by</label>
+      <select id="sortBy" class="input-base">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="amount-high">Highest Amount</option>
+        <option value="amount-low">Lowest Amount</option>
+        <option value="client">Client Name A-Z</option>
+      </select>
+    </div>
+  </div>
+  
+  <!-- Search Results Summary -->
+  <div id="searchResults" class="mt-3" style="display: none;">
+    <div class="card-border-left">
+      <div class="d-flex justify-content-between align-items-center">
+        <span id="resultsText">Found 0 invoices</span>
+        <button onclick="clearAllFilters()" class="btn-base btn-outline-accent btn-sm">
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Unpaid Invoices -->
 {% if unpaid_invoices %}
 <div class="card-base">
@@ -43,7 +97,14 @@
     {% for invoice in unpaid_invoices %}
     <div class="col-lg-6 col-xl-4">
       <div class="card-border-left invoice-card" 
-           style="border-left-color: {% if invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};">
+           style="border-left-color: {% if invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};"
+           data-client="{{ invoice.client_name|lower }}"
+           data-invoice-number="{{ invoice.invoice_number|lower }}"
+           data-description="{{ invoice.description|lower }}"
+           data-amount="{{ invoice.amount }}"
+           data-status="{{ invoice.status }}"
+           data-date="{{ invoice.issue_date }}"
+           data-section="unpaid">
         
         <!-- Status Badge -->
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -65,13 +126,52 @@
           </div>
         </div>
         
-        <!-- Actions -->
+        <!-- Quick Share Row -->
+        <div class="d-flex gap-1 mb-2">
+          <button onclick="quickShareWhatsApp('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Share via WhatsApp">
+            <span class="d-none d-sm-inline">📱 WhatsApp</span>
+            <span class="d-sm-none">📱</span>
+          </button>
+          <button onclick="quickCopy('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Copy to clipboard">
+            <span class="d-none d-sm-inline">📋 Copy</span>
+            <span class="d-sm-none">📋</span>
+          </button>
+        </div>
+        
+        <!-- Main Actions -->
         <div class="d-flex gap-2 flex-wrap">
           <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="flex-fill">
             <button type="submit" class="btn-base btn-success w-100">✅ Mark Paid</button>
           </form>
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent">👁️</a>
-          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">🔄</a>
+          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent" title="View full invoice">
+            <span class="d-none d-lg-inline">👁️ View Invoice</span>
+            <span class="d-lg-none">👁️</span>
+          </a>
+          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" title="Create duplicate invoice">
+            <span class="d-none d-lg-inline">🔄 Duplicate</span>
+            <span class="d-lg-none">🔄</span>
+          </a>
+        </div>
+        
+        <!-- Hidden invoice data for sharing -->
+        <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
+🎾 INVOICE
+
+Invoice #: {{ invoice.invoice_number }}
+From: {{ invoice.coach_name|default(current_user.username)|title }} (Tennis Coach)
+To: {{ invoice.client_name }}
+
+Service: {{ invoice.description }}
+Amount: £{{ "%.2f"|format(invoice.amount) }}
+
+Issue Date: {{ invoice.issue_date }}
+Due Date: {{ invoice.due_date }}
+Status: {{ invoice.status.upper() }}
+
+{% if invoice.notes %}Notes: {{ invoice.notes }}
+
+{% endif %}Thank you for your business!
+- Generated by Coaches Hub
         </div>
       </div>
     </div>
@@ -88,7 +188,14 @@
   <div class="row g-3">
     {% for invoice in paid_invoices %}
     <div class="col-lg-6 col-xl-4">
-      <div class="card-border-left invoice-card" style="border-left-color: var(--success); opacity: 0.95;">
+      <div class="card-border-left invoice-card" style="border-left-color: var(--success); opacity: 0.95;"
+           data-client="{{ invoice.client_name|lower }}"
+           data-invoice-number="{{ invoice.invoice_number|lower }}"
+           data-description="{{ invoice.description|lower }}"
+           data-amount="{{ invoice.amount }}"
+           data-status="{{ invoice.status }}"
+           data-date="{{ invoice.issue_date }}"
+           data-section="paid">
         
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -108,13 +215,55 @@
           </div>
         </div>
         
+        <!-- Quick Share Row -->
+        <div class="d-flex gap-1 mb-2">
+          <button onclick="quickShareWhatsApp('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Share via WhatsApp">
+            <span class="d-none d-sm-inline">📱 WhatsApp</span>
+            <span class="d-sm-none">📱</span>
+          </button>
+          <button onclick="quickCopy('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Copy to clipboard">
+            <span class="d-none d-sm-inline">📋 Copy</span>
+            <span class="d-sm-none">📋</span>
+          </button>
+        </div>
+        
         <!-- Actions -->
         <div class="d-flex gap-2">
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent flex-fill">👁️ View</a>
-          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">🔄</a>
+          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent flex-fill">
+            <span class="d-none d-lg-inline">👁️ View Invoice</span>
+            <span class="d-lg-none">👁️</span>
+          </a>
+          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" title="Create duplicate invoice">
+            <span class="d-none d-lg-inline">🔄 Duplicate</span>
+            <span class="d-lg-none">🔄</span>
+          </a>
           <form action="/invoices/delete/{{ invoice.id }}" method="POST" onsubmit="return confirm('Delete this invoice?')">
-            <button type="submit" class="btn-base btn-outline-danger">🗑️</button>
+            <button type="submit" class="btn-base btn-outline-danger" title="Delete invoice">
+              <span class="d-none d-lg-inline">🗑️ Delete</span>
+              <span class="d-lg-none">🗑️</span>
+            </button>
           </form>
+        </div>
+        
+        <!-- Hidden invoice data for sharing -->
+        <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
+🎾 INVOICE - PAID ✅
+
+Invoice #: {{ invoice.invoice_number }}
+From: {{ invoice.coach_name|default(current_user.username)|title }} (Tennis Coach)
+To: {{ invoice.client_name }}
+
+Service: {{ invoice.description }}
+Amount: £{{ "%.2f"|format(invoice.amount) }}
+
+Issue Date: {{ invoice.issue_date }}
+Due Date: {{ invoice.due_date }}
+Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
+
+{% if invoice.notes %}Notes: {{ invoice.notes }}
+
+{% endif %}Thank you for your business!
+- Generated by Coaches Hub
         </div>
       </div>
     </div>
@@ -134,4 +283,256 @@
   </div>
 </div>
 {% endif %}
+
+<!-- Toast container for notifications -->
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Search and filter functionality
+  let allInvoices = [];
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize invoice search functionality
+    initializeSearch();
+  });
+  
+  function initializeSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+    
+    // Store all invoice elements
+    allInvoices = Array.from(document.querySelectorAll('.invoice-card'));
+    
+    // Add event listeners
+    searchInput.addEventListener('input', performSearch);
+    statusFilter.addEventListener('change', performSearch);
+    sortBy.addEventListener('change', performSearch);
+    
+    // Clear search button
+    searchInput.addEventListener('input', function() {
+      const clearBtn = document.getElementById('clearSearchBtn');
+      clearBtn.style.display = this.value ? 'block' : 'none';
+    });
+  }
+  
+  function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const sortOrder = document.getElementById('sortBy').value;
+    
+    let visibleInvoices = allInvoices.filter(invoice => {
+      // Text search
+      const client = invoice.dataset.client || '';
+      const invoiceNumber = invoice.dataset.invoiceNumber || '';
+      const description = invoice.dataset.description || '';
+      const amount = invoice.dataset.amount || '';
+      
+      const matchesSearch = !searchTerm || 
+        client.includes(searchTerm) ||
+        invoiceNumber.includes(searchTerm) ||
+        description.includes(searchTerm) ||
+        amount.includes(searchTerm);
+      
+      // Status filter
+      const status = invoice.dataset.status;
+      const matchesStatus = statusFilter === 'all' || status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+    
+    // Sort invoices
+    visibleInvoices = sortInvoices(visibleInvoices, sortOrder);
+    
+    // Hide all invoices first
+    allInvoices.forEach(invoice => {
+      invoice.closest('.col-lg-6').style.display = 'none';
+    });
+    
+    // Show filtered invoices
+    visibleInvoices.forEach(invoice => {
+      invoice.closest('.col-lg-6').style.display = 'block';
+    });
+    
+    // Update sections visibility
+    updateSectionVisibility(visibleInvoices);
+    
+    // Update results summary
+    updateSearchResults(searchTerm, statusFilter, visibleInvoices.length);
+  }
+  
+  function sortInvoices(invoices, sortOrder) {
+    return invoices.sort((a, b) => {
+      switch (sortOrder) {
+        case 'oldest':
+          return new Date(a.dataset.date) - new Date(b.dataset.date);
+        case 'amount-high':
+          return parseFloat(b.dataset.amount) - parseFloat(a.dataset.amount);
+        case 'amount-low':
+          return parseFloat(a.dataset.amount) - parseFloat(b.dataset.amount);
+        case 'client':
+          return a.dataset.client.localeCompare(b.dataset.client);
+        case 'newest':
+        default:
+          return new Date(b.dataset.date) - new Date(a.dataset.date);
+      }
+    });
+  }
+  
+  function updateSectionVisibility(visibleInvoices) {
+    // Check if we have visible unpaid invoices
+    const hasVisibleUnpaid = visibleInvoices.some(invoice => 
+      invoice.dataset.section === 'unpaid'
+    );
+    
+    // Check if we have visible paid invoices
+    const hasVisiblePaid = visibleInvoices.some(invoice => 
+      invoice.dataset.section === 'paid'
+    );
+    
+    // Show/hide section headers
+    const unpaidSection = document.querySelector('h4:contains("💸 Unpaid Invoices")');
+    const paidSection = document.querySelector('h4:contains("✅ Paid Invoices")');
+    
+    // Find sections by looking for their parent card-base elements
+    const sections = document.querySelectorAll('.card-base');
+    sections.forEach(section => {
+      const header = section.querySelector('h4');
+      if (header) {
+        if (header.textContent.includes('💸 Unpaid Invoices')) {
+          section.style.display = hasVisibleUnpaid ? 'block' : 'none';
+        } else if (header.textContent.includes('✅ Paid Invoices')) {
+          section.style.display = hasVisiblePaid ? 'block' : 'none';
+        }
+      }
+    });
+  }
+  
+  function updateSearchResults(searchTerm, statusFilter, count) {
+    const resultsDiv = document.getElementById('searchResults');
+    const resultsText = document.getElementById('resultsText');
+    
+    if (searchTerm || statusFilter !== 'all') {
+      let text = `Found ${count} invoice${count !== 1 ? 's' : ''}`;
+      
+      if (searchTerm && statusFilter !== 'all') {
+        text += ` matching "${searchTerm}" in ${statusFilter} invoices`;
+      } else if (searchTerm) {
+        text += ` matching "${searchTerm}"`;
+      } else if (statusFilter !== 'all') {
+        text += ` with status: ${statusFilter}`;
+      }
+      
+      resultsText.textContent = text;
+      resultsDiv.style.display = 'block';
+    } else {
+      resultsDiv.style.display = 'none';
+    }
+  }
+  
+  function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('clearSearchBtn').style.display = 'none';
+    performSearch();
+  }
+  
+  function clearAllFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('sortBy').value = 'newest';
+    document.getElementById('clearSearchBtn').style.display = 'none';
+    performSearch();
+  }
+  
+  // Quick share via WhatsApp
+  function quickShareWhatsApp(invoiceId) {
+    const invoiceData = document.getElementById(`invoice-${invoiceId}`);
+    if (!invoiceData) {
+      showToast('❌ Invoice data not found', 'danger');
+      return;
+    }
+    
+    const invoiceText = invoiceData.textContent.trim();
+    const encodedText = encodeURIComponent(invoiceText);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    showToast('📱 Opening WhatsApp...', 'info');
+  }
+  
+  // Quick copy to clipboard
+  async function quickCopy(invoiceId) {
+    const invoiceData = document.getElementById(`invoice-${invoiceId}`);
+    if (!invoiceData) {
+      showToast('❌ Invoice data not found', 'danger');
+      return;
+    }
+    
+    const invoiceText = invoiceData.textContent.trim();
+    
+    try {
+      await navigator.clipboard.writeText(invoiceText);
+      showToast('✅ Invoice copied to clipboard!', 'success');
+    } catch (err) {
+      // Fallback for older browsers
+      fallbackCopyTextToClipboard(invoiceText);
+    }
+  }
+  
+  // Fallback copy method
+  function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      showToast(successful ? '✅ Invoice copied!' : '❌ Copy failed', successful ? 'success' : 'danger');
+    } catch (err) {
+      showToast('❌ Copy not supported', 'warning');
+    }
+    
+    document.body.removeChild(textArea);
+  }
+  
+  // Show toast notification
+  function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+    
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in`;
+    toast.style.cssText = `
+      max-width: 300px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
+    `;
+    
+    toast.innerHTML = `
+      <div style="font-size: 0.9rem;">${message}</div>
+      <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close"></button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.remove();
+          }
+        }, 300);
+      }
+    }, 3000);
+  }
+</script>
 {% endblock %}
