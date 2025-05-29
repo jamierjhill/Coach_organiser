@@ -18,7 +18,6 @@ def create_app():
     # Check for required environment variables
     required_env_vars = {
         "FLASK_SECRET_KEY": "Secret key is required for secure session management",
-        "OPENWEATHER_API_KEY": "API key is required for weather functionality",
         "MAIL_SERVER": "Mail server configuration is required for email notifications"
     }
     

@@ -7,7 +7,6 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, request, session, flash
 from flask_login import login_required, current_user
 from user_utils import load_user
-from utils import get_weather
 
 main_bp = Blueprint("main", __name__)
 
@@ -241,49 +240,6 @@ def contact():
 
     return render_template("contact.html")
 
-# === WEATHER ===
-@main_bp.route("/weather")
-@login_required
-def weather():
-    user_data = load_user(current_user.username)
-    postcode = user_data.get("default_postcode", "SW6 4UL") if user_data else "SW6 4UL"
-    weather = get_weather(postcode)
-    return render_template("weather.html", weather=weather, default_postcode=postcode)
-
-# === ACCESS CODES ===
-@main_bp.route("/access-codes", methods=["GET", "POST"])
-@login_required
-def access_codes():
-    session["last_form_page"] = "/access-codes"
-    filepath = "data/session_codes.json"
-
-    codes = {}
-    if os.path.exists(filepath):
-        with open(filepath) as f:
-            codes = json.load(f)
-
-    coach = current_user.username
-
-    if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        if "go_home" in request.form:
-            return redirect("/home")
-        if not title:
-            return '', 400
-
-        new_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-        codes[new_code] = {
-            "title": title,
-            "created_by": coach
-        }
-
-        with open(filepath, "w") as f:
-            json.dump(codes, f, indent=2)
-        flash(f"✅ Created code: {new_code}", "success")
-        return '', 204
-
-    coach_codes = {code: data for code, data in codes.items() if data["created_by"] == coach}
-    return render_template("access_codes.html", codes=coach_codes)
 
 @main_bp.route("/delete-access-code/<code>", methods=["POST"])
 @login_required

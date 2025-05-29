@@ -24,21 +24,7 @@
     color: var(--text-secondary);
   }
   
-  .weather-icon-wrapper {
-    width: 60px;
-    height: 60px;
-    background-color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-right: 15px;
-  }
-  
-  .weather-info {
-    flex-grow: 1;
-  }
+
   
   .tennis-tip {
     background-color: rgba(0, 160, 126, 0.1);
@@ -204,132 +190,11 @@
       {% endif %}
     </div>
     
-    <!-- ☀️ Weather Widget -->
-    <div class="card-base">
-      <h3 class="section-title">☀️ Weather Forecast</h3>
-      <p class="location-display">{{ weather.location }}</p>
-
-      {% if weather.error %}
-        <div class="alert alert-warning">⚠️ {{ weather.error }}</div>
-      {% elif weather.forecast and weather.forecast|length > 0 %}
-        {% set today = weather.forecast[0] %}
-        
-        <!-- Today's Weather Card -->
-        <div class="card-border-left hover-subtle mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">Today</h4>
-            {% if today.good_for_tennis %}
-              <span class="badge-base status-success">✓ Good for Tennis</span>
-            {% else %}
-              <span class="badge-base status-warning">⚠️ Check Conditions</span>
-            {% endif %}
-          </div>
-          
-          <div class="d-flex align-items-center">
-            {% if today.hourly|length > 0 %}
-              {% set current = today.hourly[0] %}
-              <div class="weather-icon-wrapper">
-                <img src="https://openweathermap.org/img/wn/{{ current.icon }}@2x.png" alt="{{ current.desc }}">
-              </div>
-              
-              <div class="weather-info">
-                <div class="temp-display">{{ current.temp|round(0) }}°C</div>
-                <div class="text-sm">{{ current.desc|capitalize }}</div>
-                <div class="text-xs text-muted">
-                  <span><i class="weather-icon">💨</i> Wind: {{ (current.wind * 2.237)|round(0) }} mph</span> | 
-                  <span><i class="weather-icon">💧</i> Rain: {{ (current.rain * 100)|round(0) }}%</span>
-                </div>
-              </div>
-            {% endif %}
-          </div>
-          
-          {% if today.good_for_tennis %}
-            <div class="tennis-tip">
-              <div class="tip-icon">💡</div>
-              <div class="tip-content text-sm">
-                Great day for tennis! Consider scheduling longer sessions or focusing on match play.
-              </div>
-            </div>
-          {% else %}
-            <div class="tennis-tip">
-              <div class="tip-icon">💡</div>
-              <div class="tip-content text-sm">
-                Weather conditions may affect play. Have indoor options ready or adjust your drills accordingly.
-              </div>
-            </div>
-          {% endif %}
-        </div>
-        
-        <!-- Hourly Forecast -->
-        <h5 class="mb-3 font-medium">Today's Hourly Forecast</h5>
-        <div class="forecast-scroll-row">
-          {% for hour in today.hourly %}
-            <div class="period-block">
-              <div class="period-time font-medium">{{ hour.time }}</div>
-              <div class="weather-icon-small">
-                <img src="https://openweathermap.org/img/wn/{{ hour.icon }}.png" alt="{{ hour.desc }}">
-              </div>
-              <div class="period-temp font-semibold">{{ hour.temp|round(0) }}°C</div>
-              <div class="text-xs">{{ hour.desc|capitalize }}</div>
-              <div class="text-xxs text-muted">
-                <span><i>💨</i> {{ (hour.wind * 2.237)|round(0) }}mph</span>
-                <span><i>🌧️</i> {{ (hour.rain * 100)|round(0) }}%</span>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-        
-<!-- 5-Day Outlook Section -->
-<h5 class="mt-4 mb-3 font-medium">5-Day Tennis Outlook</h5>
-<div class="five-day-row">
-  {% for day in weather.forecast %}
-    {% if not loop.first %} <!-- Skip today -->
-      <div class="day-card {% if day.good_for_tennis %}good-day{% else %}caution-day{% endif %}">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="font-medium">{{ day.day.split(' ')[0] }}</span>
-          {% if day.good_for_tennis %}
-            <span class="day-status good">Good</span>
-          {% else %}
-            <span class="day-status bad">Check</span>
-          {% endif %}
-        </div>
-        
-        {% if day.noon %}
-          <div class="text-center">
-            <img src="https://openweathermap.org/img/wn/{{ day.noon.icon }}.png" alt="{{ day.noon.desc }}">
-            <div class="font-medium">{{ day.noon.temp|round(0) }}°C</div>
-          </div>
-          
-          <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
-            <div><i>💨</i> {{ (day.noon.wind * 2.237)|round(0) }}mph</div>
-            <div><i>🌧️</i> {{ (day.noon.rain * 100)|round(0) }}%</div>
-          </div>
-        {% elif day.hourly|length > 0 %}
-          <!-- Fallback to first hourly entry if noon data isn't available -->
-          {% set first_entry = day.hourly[0] %}
-          <div class="text-center">
-            <img src="https://openweathermap.org/img/wn/{{ first_entry.icon }}.png" alt="{{ first_entry.desc }}">
-            <div class="font-medium">{{ first_entry.temp|round(0) }}°C</div>
-          </div>
-          
-          <div class="d-flex justify-content-around mt-1 text-xxs text-muted">
-            <div><i>💨</i> {{ (first_entry.wind * 2.237)|round(0) }}mph</div>
-            <div><i>🌧️</i> {{ (first_entry.rain * 100)|round(0) }}%</div>
-          </div>
-        {% endif %}
-      </div>
-    {% endif %}
-  {% endfor %}
-</div>
-      {% else %}
-        <div class="empty-state">
-          <div class="empty-icon">🔍</div>
-          <p>No forecast data available at the moment.</p>
-        </div>
-      {% endif %}
-    </div>
-  </div>
   
+        
+
+        
+
   <div class="col-lg-5">
     <!-- 📧 Notification Signup -->
     <div class="card-base">
@@ -382,14 +247,7 @@
     <div class="card-base">
       <h3 class="section-title">🧠 Ask CoachBot</h3>
       
-      <!-- Chat Header -->
-      <div class="d-flex align-items-center mb-3">
-        <div class="weather-icon-wrapper me-3">🧠</div>
-        <div>
-          <h5 class="font-medium mb-0">Tennis Assistant</h5>
-          <p class="text-xs text-muted mb-0">Ask questions about tennis techniques, drills, and more</p>
-        </div>
-      </div>
+
       
       <!-- Chat Messages Area -->
       <div id="chatbox" class="chatbox mb-3">

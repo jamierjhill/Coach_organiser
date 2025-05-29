@@ -3,7 +3,6 @@ import os
 import json
 from functools import lru_cache
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
-from utils import get_weather
 from user_utils import load_user
 from pathlib import Path
 
@@ -71,19 +70,11 @@ def player_portal():
         with open(bulletin_path) as f:
             bulletin_messages = json.load(f)
 
-    # Load coach's postcode and weather
-    coach_data = load_user(coach)
-    postcode = coach_data.get("default_postcode", "SW6 4UL") if coach_data else "SW6 4UL"
-    weather = get_weather(postcode)
-    forecast = weather.get("forecast", [])
-
-    return render_template(
+        return render_template(
         "player_portal.html",
         code=code,
         title=portal_data["title"],
         bulletin_messages=bulletin_messages,
-        weather=weather,
-        forecast=forecast
     )
 
 @player_bp.route("/subscribe-email", methods=["POST"])
