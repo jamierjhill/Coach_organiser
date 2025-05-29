@@ -31,25 +31,7 @@
   </div>
 </div>
 
-<!-- Quick Actions -->
-{% if total_outstanding > 0 %}
-<div class="card-base">
-  <h5 class="section-title">⚡ Quick Actions</h5>
-  <div class="flex flex-wrap" style="gap: 0.5rem;">
-    <button onclick="sendPaymentReminder()" class="btn-base btn-accent">
-      📱 Send Reminder
-    </button>
-    <button onclick="copyOutstandingSummary()" class="btn-base btn-outline-accent">
-      📋 Copy Summary
-    </button>
-    {% if client_email and client_email.strip() %}
-    <button onclick="shareViaEmail()" class="btn-base btn-outline-secondary">
-      📧 Email Summary
-    </button>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+
 
 <!-- Invoice History -->
 <div class="card-base">

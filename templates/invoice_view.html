@@ -2,154 +2,230 @@
 
 {% block title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Print Optimization */
+  @media print {
+    .no-print { display: none !important; }
+    .card-base { box-shadow: none !important; border: 1px solid #ddd !important; }
+    .page-title-container { display: none !important; }
+    body { font-size: 12px !important; }
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .page-title { font-size: 1.5rem; }
+    .title-nav-buttons { 
+      flex-direction: column; 
+      gap: 0.5rem; 
+      align-items: stretch;
+    }
+    .title-nav-buttons .btn-base, 
+    .title-nav-buttons .dropdown > .btn-base { 
+      width: 100%; 
+      justify-content: center;
+    }
+    .action-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+    .action-grid .btn-base { width: 100%; }
+    .invoice-header { flex-direction: column; gap: 1rem; }
+    .invoice-details { gap: 1rem; }
+  }
+  
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .client-info {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+  }
+  
+  .status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--light-border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .invoice-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .invoice-details > div {
+    flex: 1;
+    min-width: 200px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-title-container">
+<div class="page-title-container no-print">
   <h1 class="page-title">Invoice #{{ invoice.invoice_number }}</h1>
   <div class="title-nav-buttons">
     <a href="/invoices" class="btn-base btn-outline-accent">← Back</a>
-    <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary">🔄 Duplicate</a>
+    
+    <div class="dropdown">
+      <button class="btn-base btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        ⚙️ More Actions
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="#" onclick="window.print()">🖨️ Print Invoice</a></li>
+        <li><a class="dropdown-item" href="/invoices/duplicate/{{ invoice.id }}">🔄 Duplicate Invoice</a></li>
+        <li><a class="dropdown-item" href="#" onclick="copyToClipboard()">📋 Copy Invoice Info</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<!-- Status Card -->
-<div class="card-border-left" style="border-left-color: {{ 'var(--danger)' if invoice.status == 'overdue' else 'var(--warning)' if invoice.status == 'unpaid' else 'var(--success)' }};">
-  <div class="flex flex-between align-items-center">
-    <div>
-      <div class="flex align-items-center mb-2">
-        <span class="badge-base status-{{ 'danger' if invoice.status == 'overdue' else 'warning' if invoice.status == 'unpaid' else 'success' }}">
-          {{ invoice.status.upper() }}
-        </span>
-        {% if invoice.client_email and invoice.email_sent %}
-          <span class="badge-base status-info ml-2">📧 EMAIL SENT</span>
+<div class="container" style="max-width: 800px; margin: 0 auto;">
+  
+  <!-- Status Card -->
+  <div class="card-border-left no-print" style="border-left-color: {{ 'var(--danger)' if invoice.status == 'overdue' else 'var(--warning)' if invoice.status == 'unpaid' else 'var(--success)' }};">
+    <div class="status-header">
+      <div>
+        <div class="flex align-items-center mb-2" style="gap: 0.5rem; flex-wrap: wrap;">
+          <span class="badge-base status-{{ 'danger' if invoice.status == 'overdue' else 'warning' if invoice.status == 'unpaid' else 'success' }}">
+            {{ invoice.status.upper() }}
+          </span>
+          {% if invoice.client_email and invoice.email_sent %}
+            <span class="badge-base status-info">📧 EMAIL SENT</span>
+          {% endif %}
+        </div>
+        
+        {% if invoice.status == "overdue" %}
+          <p class="text-danger font-medium mb-0">⚠️ This invoice is overdue</p>
+        {% elif invoice.status == "paid" %}
+          <p class="text-success font-medium mb-0">✅ Payment received on {{ invoice.paid_date }}</p>
+        {% else %}
+          <p class="text-muted mb-0">Due: {{ invoice.due_date }}</p>
         {% endif %}
       </div>
       
-      {% if invoice.status == "overdue" %}
-        <p class="text-danger font-medium mb-0">⚠️ This invoice is overdue</p>
-      {% elif invoice.status == "paid" %}
-        <p class="text-success font-medium mb-0">✅ Payment received on {{ invoice.paid_date }}</p>
-      {% else %}
-        <p class="text-muted mb-0">Due: {{ invoice.due_date }}</p>
-      {% endif %}
+      <div class="flex" style="gap: 0.5rem; flex-wrap: wrap;">
+        {% if invoice.status != "paid" %}
+          <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
+            <button type="submit" class="btn-base btn-success">✅ Mark Paid</button>
+          </form>
+        {% endif %}
+      </div>
     </div>
+  </div>
+
+  <!-- Suggested Actions -->
+  <div class="card-border-left no-print" style="background-color: rgba(0, 160, 126, 0.05);">
+    <h5 class="section-title">⚡ Suggested Actions</h5>
     
-    <div class="flex flex-wrap" style="gap: 0.5rem;">
-      {% if invoice.status != "paid" %}
-        <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
-          <button type="submit" class="btn-base btn-success">✅ Mark as Paid</button>
-        </form>
+    <div class="action-grid">
+      {% if invoice.client_email %}
+        <button onclick="sendInvoiceEmail()" id="sendEmailBtn" class="btn-base btn-accent">
+          <span id="sendEmailText">📤 Email Invoice</span>
+        </button>
+
       {% endif %}
       
-      <button onclick="window.print()" class="btn-base btn-outline-accent">🖨️ Print</button>
+      <button onclick="shareViaWhatsApp()" class="btn-base btn-accent">
+        📱 WhatsApp
+      </button>
+
     </div>
-  </div>
-</div>
-
-<!-- Email Actions -->
-{% if invoice.client_email %}
-<div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05);">
-  <h5 class="section-title">📧 Email Actions</h5>
-  <div class="flex flex-wrap mb-3" style="gap: 0.5rem;">
-    <button onclick="sendInvoiceEmail()" id="sendEmailBtn" class="btn-base btn-accent">
-      <span id="sendEmailText">📤 Email Invoice</span>
-    </button>
-    <button onclick="sendPaymentReminder()" class="btn-base btn-outline-accent">
-      ⏰ Payment Reminder
-    </button>
-  </div>
-  <div class="text-muted text-sm">
-    📧 {{ invoice.client_email }}
-    {% if invoice.email_sent_date %}
-    <br>Last emailed: {{ invoice.email_sent_date }}
-    {% endif %}
-  </div>
-</div>
-{% endif %}
-
-<!-- Share Options -->
-<div class="card-border-left">
-  <h5 class="section-title">📤 Share Invoice</h5>
-  <div class="flex flex-wrap" style="gap: 0.5rem;">
-    <button onclick="shareViaWhatsApp()" class="btn-base btn-accent">📱 WhatsApp</button>
-    <button onclick="copyToClipboard()" id="copyBtn" class="btn-base btn-outline-accent">
-      <span id="copyBtnText">📋 Copy Text</span>
-    </button>
+    
     {% if invoice.client_email %}
-    <button onclick="shareViaEmail()" class="btn-base btn-outline-secondary">📧 Email</button>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Invoice Content -->
-<div class="card-base">
-  <!-- Invoice Header -->
-  <div class="flex flex-between align-items-start mb-4" style="border-bottom: 2px solid var(--light-border); padding-bottom: 1.5rem;">
-    <div>
-      <h1 class="text-3xl font-bold mb-2">INVOICE</h1>
-      <div class="text-lg font-medium">{{ invoice.invoice_number }}</div>
-    </div>
-    
-    <div class="text-right">
-      <div class="mb-2"><strong>Issue Date:</strong> {{ invoice.issue_date }}</div>
-      <div class="mb-2"><strong>Due Date:</strong> {{ invoice.due_date }}</div>
-      {% if invoice.status == "paid" and invoice.paid_date %}
-      <div class="text-success"><strong>Paid Date:</strong> {{ invoice.paid_date }}</div>
+    <div class="client-info text-muted">
+      📧 {{ invoice.client_email }}
+      {% if invoice.email_sent_date %}
+        • Last emailed: {{ invoice.email_sent_date }}
       {% endif %}
     </div>
+    {% endif %}
   </div>
-  
-  <!-- From/To Details -->
-  <div class="flex flex-wrap mb-4" style="gap: 2rem;">
-    <div style="flex: 1; min-width: 200px;">
-      <div class="card-border-left">
-        <h6 class="section-title">FROM</h6>
-        <div class="font-medium">{{ invoice.coach_name|default(current_user.username)|title }}</div>
-        <div class="text-muted text-sm">Tennis Coach</div>
+
+  <!-- Invoice Content -->
+  <div class="card-base">
+    <!-- Invoice Header -->
+    <div class="invoice-header">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">INVOICE</h1>
+        <div class="text-lg font-medium">{{ invoice.invoice_number }}</div>
+      </div>
+      
+      <div class="text-right">
+        <div class="mb-2"><strong>Issue Date:</strong> {{ invoice.issue_date }}</div>
+        <div class="mb-2"><strong>Due Date:</strong> {{ invoice.due_date }}</div>
+        {% if invoice.status == "paid" and invoice.paid_date %}
+        <div class="text-success"><strong>Paid Date:</strong> {{ invoice.paid_date }}</div>
+        {% endif %}
       </div>
     </div>
     
-    <div style="flex: 1; min-width: 200px;">
-      <div class="card-border-left">
-        <h6 class="section-title">TO</h6>
-        <div class="font-medium">{{ invoice.client_name }}</div>
-        {% if invoice.client_email %}
-        <div class="text-muted text-sm">📧 {{ invoice.client_email }}</div>
-        {% endif %}
-        {% if invoice.payment_method %}
-        <div class="text-muted text-sm">💳 {{ invoice.payment_method|title }}</div>
-        {% endif %}
+    <!-- From/To Details -->
+    <div class="invoice-details">
+      <div>
+        <div class="card-border-left">
+          <h6 class="section-title">FROM</h6>
+          <div class="font-medium">{{ invoice.coach_name|default(current_user.username)|title }}</div>
+          <div class="text-muted text-sm">Tennis Coach</div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="card-border-left">
+          <h6 class="section-title">TO</h6>
+          <div class="font-medium">{{ invoice.client_name }}</div>
+          {% if invoice.client_email %}
+          <div class="text-muted text-sm">📧 {{ invoice.client_email }}</div>
+          {% endif %}
+          {% if invoice.payment_method %}
+          <div class="text-muted text-sm">💳 {{ invoice.payment_method|title }}</div>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
-  
-  <!-- Invoice Amount -->
-  <div class="summary-card text-center mb-4" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white;">
-    <div class="text-sm mb-2" style="opacity: 0.8;">TOTAL AMOUNT</div>
-    <div class="text-3xl font-bold">£{{ "%.2f"|format(invoice.total_amount) }}</div>
-  </div>
-  
-  <!-- Service Description -->
-  <div class="mb-4">
-    <h6 class="section-title">Service Description</h6>
-    <div class="card-border-left">
-      <p class="mb-0">{{ invoice.description }}</p>
+    
+    <!-- Invoice Amount -->
+    <div class="summary-card text-center mb-4" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white; padding: 1.5rem; border-radius: 12px;">
+      <div class="text-sm mb-2" style="opacity: 0.8;">TOTAL AMOUNT</div>
+      <div class="text-3xl font-bold">£{{ "%.2f"|format(invoice.total_amount) }}</div>
     </div>
-  </div>
-  
-  <!-- Notes -->
-  {% if invoice.notes %}
-  <div class="mb-4">
-    <h6 class="section-title">Notes</h6>
-    <div class="card-border-left">
-      <p class="mb-0" style="white-space: pre-line;">{{ invoice.notes }}</p>
+    
+    <!-- Service Description -->
+    <div class="mb-4">
+      <h6 class="section-title">Service Description</h6>
+      <div class="card-border-left">
+        <p class="mb-0">{{ invoice.description }}</p>
+      </div>
     </div>
-  </div>
-  {% endif %}
-  
-  <!-- Footer -->
-  <div class="text-center" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--light-border);">
-    <p class="font-medium mb-1">Thank you for your business!</p>
-    <p class="text-muted text-sm">Generated by Coaches Hub</p>
+    
+    <!-- Notes -->
+    {% if invoice.notes %}
+    <div class="mb-4">
+      <h6 class="section-title">Notes</h6>
+      <div class="card-border-left">
+        <p class="mb-0" style="white-space: pre-line;">{{ invoice.notes }}</p>
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Footer -->
+    <div class="text-center" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--light-border);">
+      <p class="font-medium mb-1">Thank you for your business!</p>
+      <p class="text-muted text-sm">Generated by Coaches Hub</p>
+    </div>
   </div>
 </div>
 
@@ -195,33 +271,15 @@ Thank you for your business!
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
     
     window.open(whatsappUrl, '_blank');
-    showToast('📱 Opening WhatsApp to share invoice...');
-  }
-  
-  function shareViaEmail() {
-    const invoiceText = getInvoiceText();
-    const subject = `Invoice #{{ invoice.invoice_number }} from {{ current_user.username|title }}`;
-    const mailto = `mailto:{{ invoice.client_email }}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(invoiceText)}`;
-    
-    window.location.href = mailto;
-    showToast('📧 Opening email client...');
+    showToast('📱 Opening WhatsApp to share invoice...', 'info');
   }
   
   async function copyToClipboard() {
     const invoiceText = getInvoiceText();
-    const copyBtn = document.getElementById('copyBtn');
-    const copyBtnText = document.getElementById('copyBtnText');
     
     try {
       await navigator.clipboard.writeText(invoiceText);
-      
-      copyBtnText.textContent = '✅ Copied!';
-      showToast('✅ Invoice details copied to clipboard!');
-      
-      setTimeout(() => {
-        copyBtnText.textContent = '📋 Copy Text';
-      }, 2000);
-      
+      showToast('✅ Invoice details copied to clipboard!', 'success');
     } catch (err) {
       fallbackCopyTextToClipboard(invoiceText);
     }
@@ -242,15 +300,24 @@ Thank you for your business!
     .then(data => {
       if (data.success) {
         sendText.textContent = '✅ Email Sent!';
-        showToast('📧 Invoice email sent successfully!');
+        showToast('📧 Invoice email sent successfully!', 'success');
+        
+        // Update email status indicator
+        const statusCard = document.querySelector('.card-border-left');
+        if (statusCard && !statusCard.querySelector('.badge-base:contains("EMAIL SENT")')) {
+          const emailBadge = document.createElement('span');
+          emailBadge.className = 'badge-base status-info ms-2';
+          emailBadge.textContent = '📧 EMAIL SENT';
+          statusCard.querySelector('.flex').appendChild(emailBadge);
+        }
       } else {
         sendText.textContent = '❌ Failed';
-        showToast(`❌ Email failed: ${data.error}`);
+        showToast(`❌ Email failed: ${data.error}`, 'danger');
       }
     })
     .catch(error => {
       sendText.textContent = '❌ Error';
-      showToast('❌ Failed to send email. Please try again.');
+      showToast('❌ Failed to send email. Please try again.', 'danger');
     })
     .finally(() => {
       sendBtn.disabled = false;
@@ -260,28 +327,29 @@ Thank you for your business!
     });
   }
   
-  function sendPaymentReminder() {
-    const reminderText = `Hi {{ invoice.client_name }},
-
-This is a friendly reminder that invoice #{{ invoice.invoice_number }} for £{{ "%.2f"|format(invoice.total_amount) }} is due on {{ invoice.due_date }}.
-
-{% if invoice.status == 'overdue' %}This invoice is now overdue. {% endif %}If you've already made payment, please ignore this reminder.
-
-Thank you!
-{{ current_user.username|title }}`;
-    
-    const encodedText = encodeURIComponent(reminderText);
-    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
-    showToast('📱 Opening WhatsApp with payment reminder...');
-  }
-  
-  function showToast(message) {
+  function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = 'alert alert-success position-fixed animate-fade-in';
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
+    toast.className = 'position-fixed top-0 start-50 translate-middle-x mt-3';
+    toast.style.cssText = `
+      background: ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--info)'};
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      z-index: 1050;
+      font-size: 0.875rem;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideDown 0.3s ease;
+    `;
+    
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideUp 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
   
   function fallbackCopyTextToClipboard(text) {
@@ -297,15 +365,39 @@ Thank you!
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        showToast('✅ Invoice details copied to clipboard!');
+        showToast('✅ Invoice details copied to clipboard!', 'success');
       } else {
-        showToast('❌ Failed to copy. Please try again.');
+        showToast('❌ Failed to copy. Please try again.', 'danger');
       }
     } catch (err) {
-      showToast('❌ Copy not supported. Please select and copy manually.');
+      showToast('❌ Copy not supported. Please select and copy manually.', 'warning');
     }
     
     document.body.removeChild(textArea);
   }
+  
+  // Mobile-specific optimizations
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth <= 768) {
+      // Optimize button sizes for touch
+      const buttons = document.querySelectorAll('.btn-base');
+      buttons.forEach(btn => {
+        btn.style.minHeight = '44px';
+        btn.style.fontSize = '0.9rem';
+      });
+    }
+  });
 </script>
+
+<style>
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -100%); opacity: 0; }
+}
+</style>
 {% endblock %}
