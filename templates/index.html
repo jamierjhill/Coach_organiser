@@ -92,12 +92,15 @@
       </div>
     </div>
     
-    <!-- Action Buttons -->
-    <div class="text-center my-4">
-      <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent me-2">🎯 Organize Matches</button>
-      <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent me-2">🔀 Reshuffle</button>
-      <button type="submit" name="reset" class="btn-base btn-outline-danger me-2">🔁 Reset All</button>
-    </div>
+<!-- Action Buttons -->
+<div class="card-section">
+  <div class="d-flex justify-content-between align-items-center">
+    <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent">🎯 Organize Matches</button>
+    <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent">🔀 Reshuffle</button>
+    <button type="submit" name="reset" class="btn-base btn-outline-danger">🔁 Reset All</button>
+  </div>
+</div>
+
     
     {% if error %}
       <div class="alert alert-danger">{{ error }}</div>
