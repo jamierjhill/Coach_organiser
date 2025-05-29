@@ -25,64 +25,79 @@
   </div>
   {% endif %}
 
+  <!-- Quick Templates Section - Mobile Optimized -->
   {% if templates and not is_duplicate %}
   <div class="card-base">
-    <h4 class="section-title">⚡ Quick Templates</h4>
-    <p class="text-muted mb-3">Click a template to auto-fill the form</p>
+    <h4 class="section-title">⚡ Quick Start Templates</h4>
+    <p class="text-muted mb-3">Tap a template to auto-fill the form</p>
     
-    <div class="row g-3 mb-3">
-      {% for template in templates[:6] %}
-      <div class="col-md-6 col-lg-4">
-        <div class="card-border-left hover-subtle" style="cursor: pointer;" onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-              <h6 class="mb-1 font-medium">{{ template.name }}</h6>
-              <p class="text-sm text-muted mb-2">{{ template.description[:30] }}{% if template.description|length > 30 %}...{% endif %}</p>
-            </div>
-            <div class="text-end">
-              <div class="h6 mb-0" style="color: var(--teal);">£{{ "%.0f"|format(template.amount) }}</div>
-            </div>
+    <!-- Mobile-first grid -->
+    <div class="row g-2 mb-3">
+      {% for template in templates[:4] %}
+      <div class="col-6 col-md-3">
+        <div class="card-border-left hover-subtle" 
+             style="cursor: pointer; padding: 0.75rem; min-height: 80px;" 
+             onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')">
+          <div class="text-center">
+            <h6 class="mb-1 font-medium text-sm">{{ template.name }}</h6>
+            <div class="h6 mb-0" style="color: var(--teal);">£{{ "%.0f"|format(template.amount) }}</div>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
     
-    {% if templates|length > 6 %}
+    {% if templates|length > 4 %}
     <div class="text-center">
-      <a href="/invoices/templates" class="btn-base btn-outline-accent btn-sm">
+      <button onclick="showAllTemplates()" class="btn-base btn-outline-accent btn-sm">
         View All {{ templates|length }} Templates
-      </a>
+      </button>
+    </div>
+    
+    <!-- Hidden templates for mobile -->
+    <div id="allTemplates" style="display: none;" class="mt-3">
+      <div class="row g-2">
+        {% for template in templates[4:] %}
+        <div class="col-6 col-md-4">
+          <div class="card-border-left hover-subtle" 
+               style="cursor: pointer; padding: 0.75rem;" 
+               onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')">
+            <div class="text-center">
+              <h6 class="mb-1 font-medium text-xs">{{ template.name }}</h6>
+              <div class="h6 mb-0" style="color: var(--teal);">£{{ "%.0f"|format(template.amount) }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
     {% endif %}
   </div>
   {% endif %}
 
-  <!-- Invoice Form -->
+  <!-- Invoice Form - Mobile Optimized -->
   <form method="POST" action="/invoices/create" id="invoiceForm">
     
     <!-- Client Information -->
     <div class="card-base">
       <h4 class="section-title">👤 Client Information</h4>
       
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Client Name *</label>
-          <input type="text" name="client_name" class="input-base" 
-                 placeholder="Enter client name" 
-                 value="{{ duplicate_from.client_name if duplicate_from else prefill_client if prefill_client else '' }}" 
-                 required autofocus>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Client Email</label>
-          <input type="email" name="client_email" class="input-base" 
-                 placeholder="client@example.com" 
-                 value="{{ duplicate_from.client_email if duplicate_from else prefill_email if prefill_email else '' }}">
-        </div>
+      <div class="mb-3">
+        <label class="form-label">Client Name *</label>
+        <input type="text" name="client_name" class="input-base" 
+               placeholder="Enter client name" 
+               value="{{ duplicate_from.client_name if duplicate_from else prefill_client if prefill_client else '' }}" 
+               required autofocus>
       </div>
       
-      <div class="form-text text-muted mt-2">
-        💡 Email will be saved for future invoices and payment reminders
+      <div class="mb-3">
+        <label class="form-label">Client Email (optional)</label>
+        <input type="email" name="client_email" class="input-base" 
+               placeholder="client@example.com" 
+               value="{{ duplicate_from.client_email if duplicate_from else prefill_email if prefill_email else '' }}">
+        <div class="form-text text-muted">
+          💡 Email will be saved for future invoices and payment reminders
+        </div>
       </div>
     </div>
     
@@ -93,18 +108,18 @@
       <div class="mb-3">
         <label class="form-label">Service Description *</label>
         <input type="text" name="description" class="input-base" id="descriptionField"
-               placeholder="e.g. Tennis Lessons (4 sessions), Court Rental" 
+               placeholder="e.g. Tennis Lessons (4 sessions)" 
                value="{{ duplicate_from.description if duplicate_from else '' }}" required>
       </div>
       
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Total Amount (£) *</label>
           <input type="number" name="amount" class="input-base" id="amountField"
                  placeholder="0.00" step="0.01" min="0" 
                  value="{{ duplicate_from.amount if duplicate_from else '' }}" required>
         </div>
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Payment Method</label>
           <select name="payment_method" class="input-base">
             <option value="">Select method (optional)</option>
@@ -123,11 +138,11 @@
       <h4 class="section-title">📅 Payment Details</h4>
       
       <div class="row g-3 mb-3">
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Due Date *</label>
           <input type="date" name="due_date" class="input-base" value="{{ due_date }}" required>
         </div>
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <label class="form-label">Status</label>
           <select name="status" class="input-base">
             <option value="unpaid">Unpaid</option>
@@ -138,13 +153,13 @@
       
       <div class="mb-3">
         <label class="form-label">Payment Notes (optional)</label>
-        <textarea name="notes" class="input-base" rows="3" id="notesField" style="height: auto; min-height: 80px; resize: vertical;"
+        <textarea name="notes" class="input-base" rows="3" id="notesField" 
                   placeholder="e.g. Payment due within 7 days, Bank details: ..."
                   >{{ duplicate_from.notes if duplicate_from else '' }}</textarea>
       </div>
     </div>
     
-    <!-- Email Notification -->
+    <!-- Email Notification - Mobile Optimized -->
     <div class="card-base">
       <h4 class="section-title">📧 Email Notification</h4>
       
@@ -155,28 +170,29 @@
             📧 Send invoice via email to client
           </label>
         </div>
-        <div class="form-text text-muted">
+        <div class="form-text text-muted text-xs">
           ℹ️ If enabled, an email with invoice details will be sent to the client's email address
         </div>
       </div>
     </div>
     
-    <!-- Submit Actions -->
-    <div class="card-base text-center">
-      <h5 class="mb-3">Create Your Invoice</h5>
-      <div class="d-flex gap-3 justify-content-center flex-wrap">
+    <!-- Submit Actions - Mobile Optimized -->
+    <div class="card-base">
+      <h5 class="text-center mb-3">Create Your Invoice</h5>
+      <div class="d-grid gap-2">
         <button type="submit" class="btn-base btn-accent" id="submitBtn">
           {% if is_duplicate %}🔄 Create Duplicate Invoice{% else %}✅ Create Invoice{% endif %}
         </button>
         <a href="/invoices" class="btn-base btn-outline-secondary">Cancel</a>
       </div>
-      <p class="text-muted mt-2 mb-0 small">
+      <p class="text-muted text-center mt-2 mb-0 small">
         Invoice will be saved and numbered automatically
       </p>
     </div>
     
   </form>
 
+  <!-- Mobile-friendly tips -->
   {% if not templates and not is_duplicate %}
   <div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05); border-left-color: var(--teal);">
     <div class="text-center">
@@ -193,7 +209,7 @@
 
 {% block extra_js %}
 <script>
-  // Template usage
+  // Template usage with mobile optimization
   function useTemplate(description, amount, notes) {
     document.getElementById('descriptionField').value = description;
     document.getElementById('amountField').value = amount;
@@ -212,6 +228,36 @@
     setTimeout(() => {
       document.querySelector('input[name="client_name"]').focus();
     }, 300);
+    
+    // Hide templates section to save space on mobile
+    if (window.innerWidth <= 768) {
+      const templatesSection = document.querySelector('.card-base');
+      if (templatesSection) {
+        templatesSection.style.transition = 'opacity 0.3s ease';
+        templatesSection.style.opacity = '0.5';
+        setTimeout(() => {
+          templatesSection.style.opacity = '1';
+        }, 1000);
+      }
+    }
+  }
+
+  // Show all templates function
+  function showAllTemplates() {
+    const allTemplates = document.getElementById('allTemplates');
+    const button = event.target;
+    
+    if (allTemplates.style.display === 'none') {
+      allTemplates.style.display = 'block';
+      button.textContent = 'Show Less';
+      // Smooth scroll to show the new templates
+      setTimeout(() => {
+        allTemplates.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    } else {
+      allTemplates.style.display = 'none';
+      button.textContent = `View All ${document.querySelectorAll('#allTemplates .col-6, #allTemplates .col-md-4').length + 4} Templates`;
+    }
   }
 
   // Form enhancements
@@ -262,11 +308,28 @@
       
       // Form will submit normally
     });
+    
+    // Mobile-specific enhancements
+    if (window.innerWidth <= 768) {
+      // Auto-resize textareas on mobile
+      const textareas = document.querySelectorAll('textarea');
+      textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+        });
+      });
+      
+      // Optimize form spacing for mobile
+      const cards = document.querySelectorAll('.card-base');
+      cards.forEach(card => {
+        card.style.marginBottom = '1rem';
+      });
+    }
   });
   
-  // Mock function for existing client email check
+  // Enhanced client email check with mobile feedback
   function checkExistingClientEmail(clientName) {
-    // In a real implementation, this would make an API call
     fetch(`/invoices/api/client-email/${encodeURIComponent(clientName)}`)
       .then(response => response.json())
       .then(data => {
@@ -274,8 +337,8 @@
           const clientEmailInput = document.querySelector('input[name="client_email"]');
           clientEmailInput.value = data.email;
           
-          // Show notification
-          showEmailSuggestion(clientName, data.email);
+          // Show mobile-friendly notification
+          showMobileToast(`📧 Found email for ${clientName}: ${data.email}`);
           
           // Enable email checkbox
           const emailCheckbox = document.getElementById('sendEmailNotification');
@@ -287,23 +350,74 @@
       });
   }
   
-  function showEmailSuggestion(clientName, email) {
-    const notification = document.createElement('div');
-    notification.className = 'alert alert-info alert-dismissible fade show animate-fade-in mt-2';
-    notification.innerHTML = `
-      <strong>📧 Email Found!</strong> Found existing email for ${clientName}: ${email}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  function showMobileToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed top-0 start-50 translate-middle-x mt-3';
+    toast.style.cssText = `
+      background: var(--teal);
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      z-index: 1050;
+      font-size: 0.875rem;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideDown 0.3s ease;
     `;
     
-    const clientEmailInput = document.querySelector('input[name="client_email"]');
-    clientEmailInput.parentNode.appendChild(notification);
+    toast.textContent = message;
+    document.body.appendChild(toast);
     
     setTimeout(() => {
-      if (notification.parentNode) {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-      }
-    }, 4000);
+      toast.style.animation = 'slideUp 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
   }
 </script>
+
+<style>
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -100%); opacity: 0; }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .title-nav-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .title-nav-buttons .btn-base {
+    width: 100%;
+  }
+  
+  .card-base {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
+  
+  .form-label {
+    font-size: 0.9rem;
+  }
+  
+  .input-base {
+    font-size: 1rem; /* Prevent zoom on iOS */
+  }
+}
+</style>
 {% endblock %}
