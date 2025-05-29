@@ -40,64 +40,8 @@
     font-size: 1.2rem;
   }
   
-  .forecast-scroll-row {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 10px 0;
-    margin-bottom: 20px;
-    scrollbar-width: thin;
-  }
-  
-  .period-block {
-    min-width: 110px;
-    flex: 0 0 auto;
-    background-color: white;
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    border: 1px solid var(--light-border);
-  }
-  
-  .period-block:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  
-  .five-day-row {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 5px 0;
-    scrollbar-width: thin;
-  }
-  
-  .day-card {
-    flex: 0 0 140px;
-    background-color: white;
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  
-  .day-status {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 500;
-  }
-  
-  .day-status.good {
-    background-color: rgba(0, 160, 126, 0.1);
-    color: var(--teal-dark);
-  }
-  
-  .day-status.bad {
-    background-color: rgba(247, 201, 72, 0.1);
-    color: #c7920a;
-  }
+
+
   
   .upcoming-event-item {
     padding: 12px;
@@ -107,50 +51,6 @@
     border-left: 3px solid var(--teal);
   }
   
-  .chatbox {
-    height: 300px;
-    overflow-y: auto;
-    background: var(--light);
-    border: 1px solid var(--light-border);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-  }
-  
-  .chat-msg {
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    max-width: 85%;
-  }
-  
-  .chat-user {
-    background: var(--teal-light);
-    color: white;
-    align-self: flex-end;
-    margin-left: auto;
-  }
-  
-  .chat-bot {
-    background: white;
-    border: 1px solid var(--light-border);
-    align-self: flex-start;
-  }
-  
-  .typing-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-  .typing-dot {
-    width: 6px;
-    height: 6px;
-    background-color: var(--text-secondary);
-    border-radius: 50%;
-    opacity: 0.7;
-    animation: typing 1s infinite;
-  }
   
   @keyframes typing {
     0%, 100% { opacity: 0.3; transform: translateY(0); }
@@ -243,36 +143,7 @@
       </div>
     </div>
 
-    <!-- 🧠 CoachBot Section -->
-    <div class="card-base">
-      <h3 class="section-title">🧠 Ask CoachBot</h3>
-      
 
-      
-      <!-- Chat Messages Area -->
-      <div id="chatbox" class="chatbox mb-3">
-        <!-- Welcome message will be added via JavaScript -->
-      </div>
-      
-      <!-- Chat Input Area -->
-      <div class="chat-input-container">
-        <div class="input-group">
-          <input type="text" id="chatInput" class="input-base" placeholder="Ask a tennis question...">
-          <button class="btn-base btn-accent" onclick="sendChat()">
-            <span>📤</span>
-            <span class="d-none d-md-inline">Send</span>
-          </button>
-        </div>
-        
-<!-- Alternative implementation using Bootstrap classes -->
-<div class="d-flex flex-wrap gap-2 mb-3">
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis tips for beginners 🔰</button>
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Forehand technique 🎯</button>
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Tennis drills 🏋️‍♂️</button>
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="suggestQuery(this)">Serve tips 🚀</button>
-</div>
-      </div>
-    </div>
   </div>
 </div>
 {% endblock %}
@@ -401,99 +272,6 @@
     });
   }
   
-  // Initialize chat with welcome message
-  function initializeChat() {
-    const chatbox = document.getElementById('chatbox');
-    
-    // Add welcome message
-    chatbox.innerHTML = `
-      <div class="chat-msg chat-bot welcome-message">
-        <strong>CoachBot:</strong> 👋 Hi there! I'm your tennis assistant. Ask me about tennis techniques, drills, or anything related to the sport. How can I help you today?
-      </div>
-    `;
-  }
-  
-  // Send chat message function
-  function sendChat() {
-    const input = document.getElementById("chatInput");
-    const chatbox = document.getElementById("chatbox");
-    const userMsg = input.value.trim();
-    
-    if (!userMsg) return;
-
-    // Add user message
-    chatbox.innerHTML += `
-      <div class="chat-msg chat-user">
-        <strong>You:</strong> ${userMsg}
-      </div>
-    `;
-    
-    // Clear input
-    input.value = "";
-    
-    // Auto scroll to bottom
-    chatbox.scrollTop = chatbox.scrollHeight;
-    
-    // Add typing indicator
-    chatbox.innerHTML += `
-      <div class="chat-msg chat-bot typing-message" id="typingIndicator">
-        <div class="typing-indicator">
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-        </div>
-      </div>
-    `;
-    chatbox.scrollTop = chatbox.scrollHeight;
-
-    // Make API request
-    fetch("/chatbot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userMsg })
-    })
-    .then(res => res.json())
-    .then(data => {
-      // Remove typing indicator
-      document.getElementById("typingIndicator")?.remove();
-      
-      // Add bot response
-      const botReply = data.success
-        ? `<strong>CoachBot:</strong> ${data.reply}`
-        : `<strong>Error:</strong> ${data.error}`;
-        
-      chatbox.innerHTML += `
-        <div class="chat-msg chat-bot">
-          ${botReply}
-        </div>
-      `;
-      
-      // Auto scroll to bottom
-      chatbox.scrollTop = chatbox.scrollHeight;
-    })
-    .catch(error => {
-      // Remove typing indicator
-      document.getElementById("typingIndicator")?.remove();
-      
-      // Add error message
-      chatbox.innerHTML += `
-        <div class="chat-msg chat-bot error-message">
-          <strong>Error:</strong> Sorry, I couldn't process your request right now. Please try again later.
-        </div>
-      `;
-      
-      // Auto scroll to bottom
-      chatbox.scrollTop = chatbox.scrollHeight;
-    });
-  }
-
-  // Suggestion chip function
-  function suggestQuery(element) {
-    const input = document.getElementById("chatInput");
-    if (input) {
-      input.value = element.textContent;
-      input.focus();
-    }
-  }
+ 
 </script>
 {% endblock %}
