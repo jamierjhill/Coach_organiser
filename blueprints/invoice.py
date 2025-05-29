@@ -55,6 +55,10 @@ def send_invoice_email(invoice, coach_name):
         
         subject = f"🎾 Invoice #{invoice['invoice_number']} from {coach_name}"
         
+        # Fix the f-string issue by moving the replace operation outside
+        payment_method = invoice.get('payment_method', '')
+        payment_method_display = payment_method.replace('_', ' ').title() if payment_method else ""
+        
         # Create email body
         body = f"""Hi {invoice['client_name']},
 
@@ -69,7 +73,7 @@ Issue Date: {invoice['issue_date']}
 Due Date: {invoice['due_date']}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-{f"Payment Method: {invoice.get('payment_method', '').replace('_', ' ').title()}" if invoice.get('payment_method') else ""}
+{f"Payment Method: {payment_method_display}" if payment_method_display else ""}
 
 {f"Additional Notes:\n{invoice['notes']}\n" if invoice.get('notes') else ""}
 
