@@ -130,7 +130,7 @@
   }
   
   /* For backwards compatibility - use card-base going forward */
-  .tennis-card, .card-section, .section-card, .weather-card, 
+  .tennis-card, .card-section, .section-card, 
   .chat-container, .whats-new-container, .admin-card {
     background-color: var(--white);
     border-radius: var(--card-radius);
@@ -739,69 +739,7 @@
     color: #c62828;
   }
   
-  /* ===========================================
-     WEATHER COMPONENTS
-     =========================================== */
-  .weather-card {
-    background-color: #f9fefc;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    transition: transform 0.2s ease;
-  }
   
-  .temp-display {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--teal);
-  }
-  
-  .forecast-scroll-row {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 10px 0;
-    scrollbar-width: thin;
-    -ms-overflow-style: none;
-    scroll-behavior: smooth;
-  }
-  
-  .period-block {
-    min-width: 110px;
-    flex: 0 0 auto;
-    background-color: white;
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    border: 1px solid #e0f2f1;
-    transition: transform 0.2s ease;
-  }
-  
-  .period-block:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  
-  .weather-status {
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-  }
-  
-  .status-good {
-    background-color: rgba(0, 160, 126, 0.1);
-    border: 1px solid rgba(0, 160, 126, 0.3);
-    color: var(--teal-dark);
-  }
-  
-  .status-bad {
-    background-color: #fff8e1;
-    border: 1px solid #ffe082;
-    color: #ff8f00;
-  }
   
   /* ===========================================
      CHAT COMPONENTS
