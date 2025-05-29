@@ -6,6 +6,7 @@
 <div class="page-title-container">
   <h1 class="page-title">💰 Invoices</h1>
   <div class="title-nav-buttons">
+    <a href="/invoices/clients" class="btn-base btn-outline-accent">👥 View Clients</a>
     <a href="/invoices/create" class="btn-base btn-accent">➕ Create New Invoice</a>
   </div>
 </div>
@@ -14,19 +15,19 @@
 <div class="card-base">
   <div class="row text-center g-3">
     <div class="col-md-4 col-6">
-      <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white; padding: 1rem; border-radius: 12px;">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white; padding: 1.25rem; border-radius: 12px;">
         <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_unpaid) }}</div>
         <div style="font-size: 0.9rem; opacity: 0.9;">Outstanding</div>
       </div>
     </div>
     <div class="col-md-4 col-6">
-      <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; padding: 1rem; border-radius: 12px;">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; padding: 1.25rem; border-radius: 12px;">
         <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_paid) }}</div>
         <div style="font-size: 0.9rem; opacity: 0.9;">Received</div>
       </div>
     </div>
     <div class="col-md-4 col-12">
-      <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white; padding: 1rem; border-radius: 12px;">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white; padding: 1.25rem; border-radius: 12px;">
         <div class="h3 mb-0 font-bold">{{ num_overdue }}</div>
         <div style="font-size: 0.9rem; opacity: 0.9;">Overdue</div>
       </div>
@@ -34,12 +35,44 @@
   </div>
 </div>
 
+<!-- Quick Navigation -->
+<div class="card-base">
+  <h4 class="section-title">📊 View Options</h4>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <a href="/invoices/clients" class="card-border-left hover-subtle text-decoration-none" 
+         style="display: block; background-color: rgba(0, 160, 126, 0.05); border-left-color: var(--teal);">
+        <div class="d-flex align-items-center">
+          <div class="me-3" style="font-size: 2rem;">👥</div>
+          <div>
+            <h6 class="mb-1 text-dark">Client Dashboard</h6>
+            <p class="text-muted small mb-0">View invoices grouped by client with outstanding balances</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-md-6">
+      <a href="/invoices/templates" class="card-border-left hover-subtle text-decoration-none" 
+         style="display: block; background-color: rgba(52, 152, 219, 0.05); border-left-color: var(--info);">
+        <div class="d-flex align-items-center">
+          <div class="me-3" style="font-size: 2rem;">📋</div>
+          <div>
+            <h6 class="mb-1 text-dark">Invoice Templates</h6>
+            <p class="text-muted small mb-0">Create and manage templates for faster invoice creation</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- Search and Filter -->
 <div class="card-base">
-  <h4 class="section-title">🔍 Search Invoices</h4>
+  <h4 class="section-title mb-3">🔍 Search & Filter</h4>
   
   <div class="row g-3 align-items-end">
-    <div class="col-md-6">
+    <div class="col-md-6 col-12">
       <label class="form-label">Search invoices</label>
       <div class="position-relative">
         <input type="text" id="searchInput" class="input-base" 
@@ -47,30 +80,30 @@
                style="padding-right: 40px;">
         <button onclick="clearSearch()" id="clearSearchBtn" 
                 class="btn-base btn-outline-secondary btn-sm position-absolute" 
-                style="right: 5px; top: 50%; transform: translateY(-50%); display: none; padding: 2px 8px;">
+                style="right: 5px; top: 50%; transform: translateY(-50%); display: none; padding: 4px 8px; font-size: 0.75rem;">
           ✕
         </button>
       </div>
     </div>
     
-    <div class="col-md-3">
-      <label class="form-label">Filter by status</label>
+    <div class="col-md-3 col-6">
+      <label class="form-label">Status</label>
       <select id="statusFilter" class="input-base">
-        <option value="all">All Invoices</option>
-        <option value="unpaid">Unpaid Only</option>
-        <option value="paid">Paid Only</option>
-        <option value="overdue">Overdue Only</option>
+        <option value="all">All Status</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="paid">Paid</option>
+        <option value="overdue">Overdue</option>
       </select>
     </div>
     
-    <div class="col-md-3">
+    <div class="col-md-3 col-6">
       <label class="form-label">Sort by</label>
       <select id="sortBy" class="input-base">
         <option value="newest">Newest First</option>
         <option value="oldest">Oldest First</option>
         <option value="amount-high">Highest Amount</option>
         <option value="amount-low">Lowest Amount</option>
-        <option value="client">Client Name A-Z</option>
+        <option value="client">Client A-Z</option>
       </select>
     </div>
   </div>
@@ -79,81 +112,114 @@
   <div id="searchResults" class="mt-3" style="display: none;">
     <div class="card-border-left">
       <div class="d-flex justify-content-between align-items-center">
-        <span id="resultsText">Found 0 invoices</span>
+        <span id="resultsText" class="small">Found 0 invoices</span>
         <button onclick="clearAllFilters()" class="btn-base btn-outline-accent btn-sm">
-          Clear All Filters
+          Clear Filters
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Unpaid Invoices -->
+<!-- Unpaid Invoices Section -->
 {% if unpaid_invoices %}
-<div class="card-base">
-  <h4 class="section-title">💸 Unpaid Invoices ({{ unpaid_invoices|length }})</h4>
+<div class="card-base" id="unpaidSection">
+  <h4 class="section-title mb-4">💸 Unpaid Invoices ({{ unpaid_invoices|length }})</h4>
   
   <div class="row g-3">
     {% for invoice in unpaid_invoices %}
-    <div class="col-lg-6 col-xl-4">
-      <div class="card-border-left invoice-card" 
+    <div class="col-lg-6 col-xl-4" data-section="unpaid">
+      <div class="invoice-card card-border-left hover-subtle" 
            style="border-left-color: {% if invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};"
            data-client="{{ invoice.client_name|lower }}"
            data-invoice-number="{{ invoice.invoice_number|lower }}"
            data-description="{{ invoice.description|lower }}"
            data-amount="{{ invoice.amount }}"
            data-status="{{ invoice.status }}"
-           data-date="{{ invoice.issue_date }}"
-           data-section="unpaid">
+           data-date="{{ invoice.issue_date }}">
         
-        <!-- Status Badge -->
+        <!-- Header: Client Name + Status Badge -->
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="mb-0">{{ invoice.client_name }}</h6>
+          <h6 class="mb-0 font-medium" style="color: var(--navy);">{{ invoice.client_name }}</h6>
           <span class="badge-base {% if invoice.status == 'overdue' %}status-danger{% else %}status-warning{% endif %}">
             {{ invoice.status|upper }}
           </span>
         </div>
         
         <!-- Description -->
-        <p class="text-muted small mb-2">{{ invoice.description[:50] }}{% if invoice.description|length > 50 %}...{% endif %}</p>
+        <p class="text-muted small mb-2" style="line-height: 1.3;">
+          {{ invoice.description[:55] }}{% if invoice.description|length > 55 %}...{% endif %}
+        </p>
         
-        <!-- Amount & Details -->
+        <!-- Amount & Invoice Details -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="invoice-amount">£{{ "%.2f"|format(invoice.amount) }}</div>
-          <div class="text-end text-muted small">
-            <div>{{ invoice.invoice_number }}</div>
-            <div>Due {{ invoice.due_date }}</div>
+          <div class="invoice-amount h5 mb-0" style="color: var(--navy); font-weight: 700;">
+            £{{ "%.2f"|format(invoice.amount) }}
+          </div>
+          <div class="text-end">
+            <div class="small font-medium" style="color: var(--text-secondary);">{{ invoice.invoice_number }}</div>
+            <div class="small text-muted">Due {{ invoice.due_date }}</div>
           </div>
         </div>
         
-        <!-- Quick Share Row -->
-        <div class="d-flex gap-1 mb-2">
-          <button onclick="quickShareWhatsApp('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Share via WhatsApp">
+        <!-- Primary Action Group -->
+        <div class="mb-3">
+          <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST">
+            <button type="submit" class="btn-base btn-success w-100">✅ Mark as Paid</button>
+          </form>
+        </div>
+        
+        <!-- Share Actions Group -->
+        <div class="d-flex gap-1 mb-3" style="border-top: 1px solid var(--light-border); padding-top: 12px;">
+          <button onclick="quickShare('{{ invoice.id }}', 'whatsapp')" 
+                  class="btn-base btn-outline-accent btn-sm flex-fill" 
+                  title="Share via WhatsApp">
             <span class="d-none d-sm-inline">📱 WhatsApp</span>
             <span class="d-sm-none">📱</span>
           </button>
-          <button onclick="quickCopy('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Copy to clipboard">
+          <button onclick="quickShare('{{ invoice.id }}', 'copy')" 
+                  class="btn-base btn-outline-accent btn-sm flex-fill" 
+                  title="Copy to clipboard">
             <span class="d-none d-sm-inline">📋 Copy</span>
             <span class="d-sm-none">📋</span>
           </button>
         </div>
         
-        <!-- Main Actions -->
-        <div class="d-flex gap-2 flex-wrap">
-          <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="flex-fill">
-            <button type="submit" class="btn-base btn-success w-100">✅ Mark Paid</button>
-          </form>
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent" title="View full invoice">
-            <span class="d-none d-lg-inline">👁️ View Invoice</span>
+        <!-- Secondary Actions Group -->
+        <div class="d-flex gap-2">
+          <a href="/invoices/view/{{ invoice.id }}" 
+             class="btn-base btn-outline-secondary flex-fill" 
+             title="View full invoice">
+            <span class="d-none d-lg-inline">👁️ View</span>
             <span class="d-lg-none">👁️</span>
           </a>
-          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" title="Create duplicate invoice">
-            <span class="d-none d-lg-inline">🔄 Duplicate</span>
+          <a href="/invoices/duplicate/{{ invoice.id }}" 
+             class="btn-base btn-outline-secondary" 
+             title="Create duplicate">
+            <span class="d-none d-lg-inline">🔄</span>
             <span class="d-lg-none">🔄</span>
           </a>
+          <div class="dropdown">
+            <button class="btn-base btn-outline-secondary dropdown-toggle" 
+                    type="button" 
+                    data-bs-toggle="dropdown">
+              ⋯
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/invoices/view/{{ invoice.id }}">👁️ View Details</a></li>
+              <li><a class="dropdown-item" href="/invoices/duplicate/{{ invoice.id }}">🔄 Duplicate Invoice</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form action="/invoices/delete/{{ invoice.id }}" method="POST" 
+                      onsubmit="return confirm('Delete this invoice?')">
+                  <button type="submit" class="dropdown-item text-danger">🗑️ Delete Invoice</button>
+                </form>
+              </li>
+            </ul>
+          </div>
         </div>
         
-        <!-- Hidden invoice data for sharing -->
+        <!-- Hidden data for sharing -->
         <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
 🎾 INVOICE
 
@@ -180,72 +246,98 @@ Status: {{ invoice.status.upper() }}
 </div>
 {% endif %}
 
-<!-- Paid Invoices -->
+<!-- Paid Invoices Section -->
 {% if paid_invoices %}
-<div class="card-base">
-  <h4 class="section-title">✅ Paid Invoices ({{ paid_invoices|length }})</h4>
+<div class="card-base" id="paidSection">
+  <h4 class="section-title mb-4">✅ Paid Invoices ({{ paid_invoices|length }})</h4>
   
   <div class="row g-3">
     {% for invoice in paid_invoices %}
-    <div class="col-lg-6 col-xl-4">
-      <div class="card-border-left invoice-card" style="border-left-color: var(--success); opacity: 0.95;"
+    <div class="col-lg-6 col-xl-4" data-section="paid">
+      <div class="invoice-card card-border-left hover-subtle" 
+           style="border-left-color: var(--success);"
            data-client="{{ invoice.client_name|lower }}"
            data-invoice-number="{{ invoice.invoice_number|lower }}"
            data-description="{{ invoice.description|lower }}"
            data-amount="{{ invoice.amount }}"
            data-status="{{ invoice.status }}"
-           data-date="{{ invoice.issue_date }}"
-           data-section="paid">
+           data-date="{{ invoice.issue_date }}">
         
-        <!-- Header -->
+        <!-- Header: Client Name + Status Badge -->
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="mb-0">{{ invoice.client_name }}</h6>
+          <h6 class="mb-0 font-medium" style="color: var(--navy);">{{ invoice.client_name }}</h6>
           <span class="badge-base status-success">PAID</span>
         </div>
         
         <!-- Description -->
-        <p class="text-muted small mb-2">{{ invoice.description[:50] }}{% if invoice.description|length > 50 %}...{% endif %}</p>
+        <p class="text-muted small mb-2" style="line-height: 1.3;">
+          {{ invoice.description[:55] }}{% if invoice.description|length > 55 %}...{% endif %}
+        </p>
         
-        <!-- Amount & Details -->
+        <!-- Amount & Invoice Details -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="invoice-amount" style="color: var(--success);">£{{ "%.2f"|format(invoice.amount) }}</div>
-          <div class="text-end text-muted small">
-            <div>{{ invoice.invoice_number }}</div>
-            <div>Paid {{ invoice.paid_date if invoice.paid_date else "?" }}</div>
+          <div class="invoice-amount h5 mb-0" style="color: var(--success); font-weight: 700;">
+            £{{ "%.2f"|format(invoice.amount) }}
+          </div>
+          <div class="text-end">
+            <div class="small font-medium" style="color: var(--text-secondary);">{{ invoice.invoice_number }}</div>
+            <div class="small text-muted">Paid {{ invoice.paid_date if invoice.paid_date else "?" }}</div>
           </div>
         </div>
         
-        <!-- Quick Share Row -->
-        <div class="d-flex gap-1 mb-2">
-          <button onclick="quickShareWhatsApp('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Share via WhatsApp">
+        <!-- Primary Action Group -->
+        <div class="mb-3">
+          <a href="/invoices/view/{{ invoice.id }}" 
+             class="btn-base btn-outline-accent w-100">
+            👁️ View Invoice
+          </a>
+        </div>
+        
+        <!-- Share Actions Group -->
+        <div class="d-flex gap-1 mb-3" style="border-top: 1px solid var(--light-border); padding-top: 12px;">
+          <button onclick="quickShare('{{ invoice.id }}', 'whatsapp')" 
+                  class="btn-base btn-outline-accent btn-sm flex-fill" 
+                  title="Share via WhatsApp">
             <span class="d-none d-sm-inline">📱 WhatsApp</span>
             <span class="d-sm-none">📱</span>
           </button>
-          <button onclick="quickCopy('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-sm flex-fill" title="Copy to clipboard">
+          <button onclick="quickShare('{{ invoice.id }}', 'copy')" 
+                  class="btn-base btn-outline-accent btn-sm flex-fill" 
+                  title="Copy to clipboard">
             <span class="d-none d-sm-inline">📋 Copy</span>
             <span class="d-sm-none">📋</span>
           </button>
         </div>
         
-        <!-- Actions -->
+        <!-- Secondary Actions Group -->
         <div class="d-flex gap-2">
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent flex-fill">
-            <span class="d-none d-lg-inline">👁️ View Invoice</span>
-            <span class="d-lg-none">👁️</span>
-          </a>
-          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary" title="Create duplicate invoice">
+          <a href="/invoices/duplicate/{{ invoice.id }}" 
+             class="btn-base btn-outline-secondary flex-fill" 
+             title="Create duplicate">
             <span class="d-none d-lg-inline">🔄 Duplicate</span>
             <span class="d-lg-none">🔄</span>
           </a>
-          <form action="/invoices/delete/{{ invoice.id }}" method="POST" onsubmit="return confirm('Delete this invoice?')">
-            <button type="submit" class="btn-base btn-outline-danger" title="Delete invoice">
-              <span class="d-none d-lg-inline">🗑️ Delete</span>
-              <span class="d-lg-none">🗑️</span>
+          <div class="dropdown">
+            <button class="btn-base btn-outline-secondary dropdown-toggle" 
+                    type="button" 
+                    data-bs-toggle="dropdown">
+              ⋯
             </button>
-          </form>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/invoices/view/{{ invoice.id }}">👁️ View Details</a></li>
+              <li><a class="dropdown-item" href="/invoices/duplicate/{{ invoice.id }}">🔄 Duplicate Invoice</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form action="/invoices/delete/{{ invoice.id }}" method="POST" 
+                      onsubmit="return confirm('Delete this invoice?')">
+                  <button type="submit" class="dropdown-item text-danger">🗑️ Delete Invoice</button>
+                </form>
+              </li>
+            </ul>
+          </div>
         </div>
         
-        <!-- Hidden invoice data for sharing -->
+        <!-- Hidden data for sharing -->
         <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
 🎾 INVOICE - PAID ✅
 
@@ -276,28 +368,66 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
 {% if not unpaid_invoices and not paid_invoices %}
 <div class="card-base text-center">
   <div class="empty-state">
-    <div class="empty-icon">📝</div>
+    <div class="empty-icon">💰</div>
     <h4 class="mb-3">No Invoices Yet</h4>
-    <p class="mb-4 text-muted">Create your first invoice to start tracking payments.</p>
-    <a href="/invoices/create" class="btn-base btn-accent btn-lg">✨ Create First Invoice</a>
+    <p class="mb-4 text-muted">Create your first invoice to start tracking payments and streamline your tennis coaching business.</p>
+    
+    <!-- Quick Start Actions -->
+    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+      <a href="/invoices/create" class="btn-base btn-accent btn-lg">✨ Create First Invoice</a>
+      <a href="/invoices/templates" class="btn-base btn-outline-accent">📋 Set Up Templates</a>
+    </div>
+    
+    <!-- Quick Tips -->
+    <div class="mt-4 pt-4" style="border-top: 1px solid var(--light-border);">
+      <div class="row g-3 text-start">
+        <div class="col-md-4">
+          <div class="d-flex align-items-start">
+            <div class="me-2" style="font-size: 1.25rem;">💡</div>
+            <div>
+              <div class="small font-medium">Use Templates</div>
+              <div class="small text-muted">Create templates for common services</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start">
+            <div class="me-2" style="font-size: 1.25rem;">📱</div>
+            <div>
+              <div class="small font-medium">Share Easily</div>
+              <div class="small text-muted">Send invoices via WhatsApp or copy to clipboard</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-start">
+            <div class="me-2" style="font-size: 1.25rem;">📊</div>
+            <div>
+              <div class="small font-medium">Track Payments</div>
+              <div class="small text-muted">Monitor outstanding and received payments</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endif %}
 
-<!-- Toast container for notifications -->
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+<!-- Toast Container -->
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1055;"></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Search and filter functionality
+  // Global variables
   let allInvoices = [];
   
   document.addEventListener('DOMContentLoaded', function() {
-    // Initialize invoice search functionality
     initializeSearch();
   });
   
+  // Initialize search and filter functionality
   function initializeSearch() {
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
@@ -307,21 +437,25 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
     allInvoices = Array.from(document.querySelectorAll('.invoice-card'));
     
     // Add event listeners
-    searchInput.addEventListener('input', performSearch);
-    statusFilter.addEventListener('change', performSearch);
-    sortBy.addEventListener('change', performSearch);
+    if (searchInput) {
+      searchInput.addEventListener('input', performSearch);
+      searchInput.addEventListener('input', function() {
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) {
+          clearBtn.style.display = this.value ? 'block' : 'none';
+        }
+      });
+    }
     
-    // Clear search button
-    searchInput.addEventListener('input', function() {
-      const clearBtn = document.getElementById('clearSearchBtn');
-      clearBtn.style.display = this.value ? 'block' : 'none';
-    });
+    if (statusFilter) statusFilter.addEventListener('change', performSearch);
+    if (sortBy) sortBy.addEventListener('change', performSearch);
   }
   
+  // Perform search and filter
   function performSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    const statusFilter = document.getElementById('statusFilter').value;
-    const sortOrder = document.getElementById('sortBy').value;
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const sortOrder = document.getElementById('sortBy')?.value || 'newest';
     
     let visibleInvoices = allInvoices.filter(invoice => {
       // Text search
@@ -348,21 +482,24 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
     
     // Hide all invoices first
     allInvoices.forEach(invoice => {
-      invoice.closest('.col-lg-6').style.display = 'none';
+      const col = invoice.closest('.col-lg-6');
+      if (col) col.style.display = 'none';
     });
     
     // Show filtered invoices
     visibleInvoices.forEach(invoice => {
-      invoice.closest('.col-lg-6').style.display = 'block';
+      const col = invoice.closest('.col-lg-6');
+      if (col) col.style.display = 'block';
     });
     
-    // Update sections visibility
+    // Update section visibility
     updateSectionVisibility(visibleInvoices);
     
     // Update results summary
     updateSearchResults(searchTerm, statusFilter, visibleInvoices.length);
   }
   
+  // Sort invoices
   function sortInvoices(invoices, sortOrder) {
     return invoices.sort((a, b) => {
       switch (sortOrder) {
@@ -381,38 +518,32 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
     });
   }
   
+  // Update section visibility based on filtered results
   function updateSectionVisibility(visibleInvoices) {
-    // Check if we have visible unpaid invoices
     const hasVisibleUnpaid = visibleInvoices.some(invoice => 
-      invoice.dataset.section === 'unpaid'
+      invoice.closest('[data-section="unpaid"]')
     );
-    
-    // Check if we have visible paid invoices
     const hasVisiblePaid = visibleInvoices.some(invoice => 
-      invoice.dataset.section === 'paid'
+      invoice.closest('[data-section="paid"]')
     );
     
-    // Show/hide section headers
-    const unpaidSection = document.querySelector('h4:contains("💸 Unpaid Invoices")');
-    const paidSection = document.querySelector('h4:contains("✅ Paid Invoices")');
+    const unpaidSection = document.getElementById('unpaidSection');
+    const paidSection = document.getElementById('paidSection');
     
-    // Find sections by looking for their parent card-base elements
-    const sections = document.querySelectorAll('.card-base');
-    sections.forEach(section => {
-      const header = section.querySelector('h4');
-      if (header) {
-        if (header.textContent.includes('💸 Unpaid Invoices')) {
-          section.style.display = hasVisibleUnpaid ? 'block' : 'none';
-        } else if (header.textContent.includes('✅ Paid Invoices')) {
-          section.style.display = hasVisiblePaid ? 'block' : 'none';
-        }
-      }
-    });
+    if (unpaidSection) {
+      unpaidSection.style.display = hasVisibleUnpaid ? 'block' : 'none';
+    }
+    if (paidSection) {
+      paidSection.style.display = hasVisiblePaid ? 'block' : 'none';
+    }
   }
   
+  // Update search results summary
   function updateSearchResults(searchTerm, statusFilter, count) {
     const resultsDiv = document.getElementById('searchResults');
     const resultsText = document.getElementById('resultsText');
+    
+    if (!resultsDiv || !resultsText) return;
     
     if (searchTerm || statusFilter !== 'all') {
       let text = `Found ${count} invoice${count !== 1 ? 's' : ''}`;
@@ -432,22 +563,34 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
     }
   }
   
+  // Clear search
   function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('clearSearchBtn').style.display = 'none';
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) searchInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    
     performSearch();
   }
   
+  // Clear all filters
   function clearAllFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = 'all';
-    document.getElementById('sortBy').value = 'newest';
-    document.getElementById('clearSearchBtn').style.display = 'none';
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = 'all';
+    if (sortBy) sortBy.value = 'newest';
+    if (clearBtn) clearBtn.style.display = 'none';
+    
     performSearch();
   }
   
-  // Quick share via WhatsApp
-  function quickShareWhatsApp(invoiceId) {
+  // Quick share functionality
+  function quickShare(invoiceId, method) {
     const invoiceData = document.getElementById(`invoice-${invoiceId}`);
     if (!invoiceData) {
       showToast('❌ Invoice data not found', 'danger');
@@ -455,30 +598,25 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
     }
     
     const invoiceText = invoiceData.textContent.trim();
-    const encodedText = encodeURIComponent(invoiceText);
-    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
     
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank');
-    showToast('📱 Opening WhatsApp...', 'info');
+    if (method === 'whatsapp') {
+      const encodedText = encodeURIComponent(invoiceText);
+      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+      window.open(whatsappUrl, '_blank');
+      showToast('📱 Opening WhatsApp...', 'info');
+    } else if (method === 'copy') {
+      copyToClipboard(invoiceText);
+    }
   }
   
-  // Quick copy to clipboard
-  async function quickCopy(invoiceId) {
-    const invoiceData = document.getElementById(`invoice-${invoiceId}`);
-    if (!invoiceData) {
-      showToast('❌ Invoice data not found', 'danger');
-      return;
-    }
-    
-    const invoiceText = invoiceData.textContent.trim();
-    
+  // Copy to clipboard
+  async function copyToClipboard(text) {
     try {
-      await navigator.clipboard.writeText(invoiceText);
+      await navigator.clipboard.writeText(text);
       showToast('✅ Invoice copied to clipboard!', 'success');
     } catch (err) {
       // Fallback for older browsers
-      fallbackCopyTextToClipboard(invoiceText);
+      fallbackCopyTextToClipboard(text);
     }
   }
   
@@ -506,13 +644,15 @@ Paid Date: {{ invoice.paid_date if invoice.paid_date else "?" }}
   // Show toast notification
   function showToast(message, type = 'info') {
     const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
     
     const toast = document.createElement('div');
     toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in`;
     toast.style.cssText = `
-      max-width: 300px;
+      max-width: 320px;
       margin-bottom: 10px;
       box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
+      border-radius: 8px;
     `;
     
     toast.innerHTML = `

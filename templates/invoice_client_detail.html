@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}👤 {{ client_name }}{% endblock %}
+
+{% block content %}
+<div class="page-title-container">
+  <h1 class="page-title">👤 {{ client_name }}</h1>
+  <div class="title-nav-buttons">
+    <a href="/invoices/clients" class="btn-base btn-outline-accent">← Back to Clients</a>
+    <a href="/invoices/clients/{{ client_name }}/create" class="btn-base btn-accent">➕ New Invoice</a>
+  </div>
+</div>
+
+<!-- Client Summary -->
+<div class="card-base">
+  <div class="row text-center g-3">
+    <div class="col-md-3 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_outstanding) }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Outstanding</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">£{{ "%.0f"|format(total_paid) }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Total Paid</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">{{ overdue_count }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Overdue</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="summary-card" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white; padding: 1rem; border-radius: 12px;">
+        <div class="h3 mb-0 font-bold">{{ invoices|length }}</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Total Invoices</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+{% if total_outstanding > 0 %}
+<div class="card-base">
+  <h4 class="section-title">⚡ Quick Actions</h4>
+  
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05);">
+        <h6 class="mb-2">💬 Send Payment Reminder</h6>
+        <p class="text-sm text-muted mb-3">Quick WhatsApp message about outstanding balance</p>
+        <button onclick="sendPaymentReminder()" class="btn-base btn-accent w-100">
+          📱 Send WhatsApp Reminder
+        </button>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card-border-left" style="background-color: rgba(52, 152, 219, 0.05);">
+        <h6 class="mb-2">📋 Copy Outstanding Summary</h6>
+        <p class="text-sm text-muted mb-3">Copy text summary of unpaid invoices</p>
+        <button onclick="copyOutstandingSummary()" class="btn-base btn-outline-accent w-100">
+          📋 Copy Summary
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Invoice History -->
+<div class="card-base">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="section-title mb-0">📄 Invoice History</h4>
+    
+    <!-- Filter Tabs -->
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="invoiceFilter" id="allInvoices" autocomplete="off" checked>
+      <label class="btn btn-outline-secondary btn-sm" for="allInvoices">All ({{ invoices|length }})</label>
+
+      <input type="radio" class="btn-check" name="invoiceFilter" id="unpaidInvoices" autocomplete="off">
+      <label class="btn btn-outline-secondary btn-sm" for="unpaidInvoices">Unpaid ({{ unpaid_count }})</label>
+
+      <input type="radio" class="btn-check" name="invoiceFilter" id="paidInvoices" autocomplete="off">
+      <label class="btn btn-outline-secondary btn-sm" for="paidInvoices">Paid ({{ invoices|length - unpaid_count }})</label>
+    </div>
+  </div>
+
+  <!-- Timeline View -->
+  <div class="timeline-container">
+    {% for invoice in invoices %}
+    <div class="timeline-item invoice-item" 
+         data-status="{{ invoice.status }}"
+         data-paid="{{ 'true' if invoice.status == 'paid' else 'false' }}">
+      
+      <!-- Timeline Marker -->
+      <div class="timeline-marker" 
+           style="background-color: {% if invoice.status == 'paid' %}var(--success){% elif invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};">
+        {% if invoice.status == 'paid' %}✓{% elif invoice.status == 'overdue' %}!{% else %}•{% endif %}
+      </div>
+      
+      <!-- Invoice Card -->
+      <div class="timeline-content">
+        <div class="card-border-left" 
+             style="border-left-color: {% if invoice.status == 'paid' %}var(--success){% elif invoice.status == 'overdue' %}var(--danger){% else %}var(--warning){% endif %};">
+          
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="mb-1 font-medium">{{ invoice.invoice_number }}</h6>
+              <div class="text-sm text-muted">{{ invoice.issue_date }}</div>
+            </div>
+            <div class="text-end">
+              <span class="badge-base status-{{ 'success' if invoice.status == 'paid' else 'warning' if invoice.status == 'unpaid' else 'danger' }}">
+                {{ invoice.status.upper() }}
+              </span>
+              <div class="font-bold text-lg mt-1">£{{ "%.2f"|format(invoice.amount) }}</div>
+            </div>
+          </div>
+          
+          <!-- Description -->
+          <p class="text-sm mb-2">{{ invoice.description }}</p>
+          
+          <!-- Dates -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="text-xs text-muted">
+                <strong>Due:</strong> {{ invoice.due_date }}
+              </div>
+            </div>
+            {% if invoice.status == 'paid' and invoice.paid_date %}
+            <div class="col-6">
+              <div class="text-xs text-success">
+                <strong>Paid:</strong> {{ invoice.paid_date }}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- Actions -->
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">
+              👁️ View
+            </a>
+            
+            {% if invoice.status != 'paid' %}
+            <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="d-inline">
+              <button type="submit" class="btn-base btn-success btn-sm">✅ Mark Paid</button>
+            </form>
+            {% endif %}
+            
+            <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary btn-sm">
+              🔄 Duplicate
+            </a>
+            
+            <button onclick="quickShareInvoice('{{ invoice.id }}')" class="btn-base btn-outline-secondary btn-sm">
+              📱 Share
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  
+  {% if not invoices %}
+  <div class="text-center py-4">
+    <div class="empty-state">
+      <div class="empty-icon">📄</div>
+      <p>No invoices found for this client</p>
+      <a href="/invoices/clients/{{ client_name }}/create" class="btn-base btn-accent">
+        Create First Invoice
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Hidden data for sharing -->
+<div id="clientSummaryData" style="display: none;">
+💰 OUTSTANDING SUMMARY - {{ client_name }}
+
+{% for invoice in invoices %}{% if invoice.status != 'paid' %}
+• Invoice {{ invoice.invoice_number }}: £{{ "%.2f"|format(invoice.amount) }} (Due: {{ invoice.due_date }})
+{% endif %}{% endfor %}
+
+Total Outstanding: £{{ "%.2f"|format(total_outstanding) }}
+
+Thank you!
+- Generated by Coaches Hub
+</div>
+
+<div id="paymentReminderData" style="display: none;">
+Hi {{ client_name }},
+
+Hope you're well! Just a friendly reminder about your outstanding invoices:
+
+{% for invoice in invoices %}{% if invoice.status != 'paid' %}
+• Invoice {{ invoice.invoice_number }}: £{{ "%.2f"|format(invoice.amount) }} (Due: {{ invoice.due_date }})
+{% endif %}{% endfor %}
+
+Total: £{{ "%.2f"|format(total_outstanding) }}
+
+If you've already made payment, please ignore this message. Otherwise, please let me know if you need any details.
+
+Thanks!
+{{ current_user.username|title if current_user.username else "Your Coach" }}
+</div>
+
+<!-- Individual invoice data for sharing -->
+{% for invoice in invoices %}
+<div class="invoice-share-data" id="invoice-share-{{ invoice.id }}" style="display: none;">
+🎾 INVOICE {{ invoice.invoice_number }}
+
+From: {{ current_user.username|title if current_user.username else "Your Coach" }} (Tennis Coach)
+To: {{ client_name }}
+
+Service: {{ invoice.description }}
+Amount: £{{ "%.2f"|format(invoice.amount) }}
+
+Issue Date: {{ invoice.issue_date }}
+Due Date: {{ invoice.due_date }}
+{% if invoice.status == 'paid' and invoice.paid_date %}✅ PAID on {{ invoice.paid_date }}{% else %}Status: {{ invoice.status.upper() }}{% endif %}
+
+{% if invoice.notes %}Notes: {{ invoice.notes }}
+
+{% endif %}Thank you!
+- Generated by Coaches Hub
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Timeline Styles */
+  .timeline-container {
+    position: relative;
+    margin-left: 20px;
+  }
+  
+  .timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 40px;
+  }
+  
+  .timeline-marker {
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 28px;
+    bottom: -30px;
+    width: 2px;
+    background-color: var(--light-border);
+    z-index: 1;
+  }
+  
+  .timeline-content {
+    transition: transform 0.2s ease;
+  }
+  
+  .timeline-item:hover .timeline-content {
+    transform: translateX(5px);
+  }
+  
+  /* Hide filtered items */
+  .timeline-item.hidden {
+    display: none;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 576px) {
+    .timeline-container {
+      margin-left: 15px;
+    }
+    
+    .timeline-item {
+      padding-left: 30px;
+    }
+    
+    .timeline-marker {
+      left: -6px;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Filter functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('input[name="invoiceFilter"]');
+    
+    filterButtons.forEach(button => {
+      button.addEventListener('change', function() {
+        filterInvoices(this.id);
+      });
+    });
+  });
+  
+  function filterInvoices(filterId) {
+    const allItems = document.querySelectorAll('.invoice-item');
+    
+    allItems.forEach(item => {
+      const isPaid = item.dataset.paid === 'true';
+      let shouldShow = false;
+      
+      switch (filterId) {
+        case 'allInvoices':
+          shouldShow = true;
+          break;
+        case 'unpaidInvoices':
+          shouldShow = !isPaid;
+          break;
+        case 'paidInvoices':
+          shouldShow = isPaid;
+          break;
+      }
+      
+      item.classList.toggle('hidden', !shouldShow);
+    });
+  }
+  
+  // Send payment reminder via WhatsApp
+  function sendPaymentReminder() {
+    const reminderText = document.getElementById('paymentReminderData').textContent.trim();
+    const encodedText = encodeURIComponent(reminderText);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    
+    window.open(whatsappUrl, '_blank');
+    showToast('📱 Opening WhatsApp with payment reminder...', 'info');
+  }
+  
+  // Copy outstanding summary
+  async function copyOutstandingSummary() {
+    const summaryText = document.getElementById('clientSummaryData').textContent.trim();
+    
+    try {
+      await navigator.clipboard.writeText(summaryText);
+      showToast('✅ Outstanding summary copied to clipboard!', 'success');
+    } catch (err) {
+      fallbackCopyTextToClipboard(summaryText);
+    }
+  }
+  
+  // Quick share individual invoice
+  function quickShareInvoice(invoiceId) {
+    const invoiceData = document.getElementById(`invoice-share-${invoiceId}`);
+    if (!invoiceData) {
+      showToast('❌ Invoice data not found', 'danger');
+      return;
+    }
+    
+    const invoiceText = invoiceData.textContent.trim();
+    const encodedText = encodeURIComponent(invoiceText);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+    
+    window.open(whatsappUrl, '_blank');
+    showToast('📱 Opening WhatsApp with invoice...', 'info');
+  }
+  
+  // Fallback copy method
+  function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      showToast(successful ? '✅ Summary copied!' : '❌ Copy failed', successful ? 'success' : 'danger');
+    } catch (err) {
+      showToast('❌ Copy not supported', 'warning');
+    }
+    
+    document.body.removeChild(textArea);
+  }
+  
+  // Show toast notification
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in position-fixed`;
+    toast.style.cssText = `
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      max-width: 300px;
+      box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
+    `;
+    
+    toast.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.remove();
+          }
+        }, 300);
+      }
+    }, 3000);
+  }
+</script>
+{% endblock %}

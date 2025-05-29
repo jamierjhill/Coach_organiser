@@ -340,3 +340,142 @@ def duplicate_invoice(invoice_id):
     except Exception as e:
         flash(f"❌ Error duplicating invoice: {str(e)}", "danger")
         return redirect(url_for("invoice.invoice_list"))
+    
+    # Add these new routes to your existing blueprints/invoice.py file
+
+@invoice_bp.route("/invoices/clients")
+@login_required
+def clients_dashboard():
+    """Display all clients with their outstanding balances and summary info."""
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        invoices = [normalize_invoice_data(inv) for inv in invoices]
+        
+        # Group invoices by client
+        clients = {}
+        for invoice in invoices:
+            client_name = invoice.get("client_name", "Unknown Client")
+            
+            if client_name not in clients:
+                clients[client_name] = {
+                    "name": client_name,
+                    "total_invoices": 0,
+                    "total_outstanding": 0,
+                    "total_paid": 0,
+                    "total_overdue": 0,
+                    "unpaid_invoices": [],
+                    "paid_invoices": [],
+                    "last_invoice_date": None,
+                    "last_payment_date": None
+                }
+            
+            client = clients[client_name]
+            client["total_invoices"] += 1
+            
+            invoice_amount = float(invoice.get("total_amount", 0))
+            invoice_date = invoice.get("issue_date", "")
+            
+            if invoice.get("status") == "paid":
+                client["total_paid"] += invoice_amount
+                client["paid_invoices"].append(invoice)
+                
+                paid_date = invoice.get("paid_date", invoice_date)
+                if not client["last_payment_date"] or paid_date > client["last_payment_date"]:
+                    client["last_payment_date"] = paid_date
+            else:
+                client["total_outstanding"] += invoice_amount
+                client["unpaid_invoices"].append(invoice)
+                
+                # Check if overdue
+                if invoice.get("status") == "overdue":
+                    client["total_overdue"] += invoice_amount
+            
+            # Track last invoice date
+            if not client["last_invoice_date"] or invoice_date > client["last_invoice_date"]:
+                client["last_invoice_date"] = invoice_date
+        
+        # Sort clients by outstanding amount (highest first)
+        sorted_clients = sorted(clients.values(), 
+                              key=lambda x: x["total_outstanding"], 
+                              reverse=True)
+        
+        # Calculate summary stats
+        total_clients = len(clients)
+        clients_with_outstanding = sum(1 for c in clients.values() if c["total_outstanding"] > 0)
+        total_outstanding_all = sum(c["total_outstanding"] for c in clients.values())
+        
+        return render_template(
+            "invoice_clients.html",
+            clients=sorted_clients,
+            total_clients=total_clients,
+            clients_with_outstanding=clients_with_outstanding,
+            total_outstanding_all=total_outstanding_all
+        )
+        
+    except Exception as e:
+        flash(f"❌ Error loading clients: {str(e)}", "danger")
+        return render_template("invoice_clients.html", clients=[])
+
+@invoice_bp.route("/invoices/clients/<client_name>")
+@login_required
+def client_detail(client_name):
+    """Display detailed view for a specific client."""
+    try:
+        invoices = load_json_feature(INVOICES_DIR, current_user.username)
+        invoices = [normalize_invoice_data(inv) for inv in invoices]
+        
+        # Filter invoices for this client
+        client_invoices = [inv for inv in invoices if inv.get("client_name") == client_name]
+        
+        if not client_invoices:
+            flash(f"❌ No invoices found for client: {client_name}", "warning")
+            return redirect(url_for("invoice.clients_dashboard"))
+        
+        # Sort by date (newest first)
+        client_invoices.sort(key=lambda x: x.get("issue_date", ""), reverse=True)
+        
+        # Calculate client summary
+        total_outstanding = sum(float(inv.get("total_amount", 0)) 
+                              for inv in client_invoices 
+                              if inv.get("status") != "paid")
+        
+        total_paid = sum(float(inv.get("total_amount", 0)) 
+                        for inv in client_invoices 
+                        if inv.get("status") == "paid")
+        
+        unpaid_count = sum(1 for inv in client_invoices if inv.get("status") != "paid")
+        overdue_count = sum(1 for inv in client_invoices if inv.get("status") == "overdue")
+        
+        return render_template(
+            "invoice_client_detail.html",
+            client_name=client_name,
+            invoices=client_invoices,
+            total_outstanding=total_outstanding,
+            total_paid=total_paid,
+            unpaid_count=unpaid_count,
+            overdue_count=overdue_count
+        )
+        
+    except Exception as e:
+        flash(f"❌ Error loading client details: {str(e)}", "danger")
+        return redirect(url_for("invoice.clients_dashboard"))
+
+@invoice_bp.route("/invoices/clients/<client_name>/create")
+@login_required
+def create_invoice_for_client(client_name):
+    """Create a new invoice pre-filled with client name."""
+    # Get templates for quick selection
+    templates = load_json_feature(TEMPLATES_DIR, current_user.username)
+    default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    
+    # Create a mock invoice object with just client name
+    prefill_data = {"client_name": client_name}
+    
+    return render_template(
+        "invoice_create.html", 
+        due_date=default_due_date,
+        duplicate_from=prefill_data,
+        is_duplicate=False,
+        templates=templates,
+        prefill_client=client_name
+    )
