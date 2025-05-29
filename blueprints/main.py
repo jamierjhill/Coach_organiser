@@ -306,3 +306,66 @@ def record_consent():
 def marketing_page():
     """Serve the marketing/landing page for the app."""
     return render_template("marketing.html")
+
+# Add this route to blueprints/main.py
+
+@main_bp.route("/access-codes", methods=["GET", "POST"])
+@login_required
+def access_codes():
+    """Display and manage player access codes."""
+    session["last_form_page"] = "/access-codes"
+    
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if not title:
+            flash("❌ Please enter a title for the access code.", "danger")
+            return redirect("/access-codes")
+        
+        # Generate a unique 6-character code
+        import string
+        import random
+        
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        
+        # Ensure code is unique
+        codes_file = "data/session_codes.json"
+        os.makedirs("data", exist_ok=True)
+        
+        existing_codes = {}
+        if os.path.exists(codes_file):
+            with open(codes_file, "r") as f:
+                existing_codes = json.load(f)
+        
+        # Keep generating until we get a unique code
+        while code in existing_codes:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        
+        # Save the new code
+        new_code_data = {
+            "title": title,
+            "created_by": current_user.username,
+            "created_at": datetime.now().strftime("%Y-%m-%d")
+        }
+        
+        existing_codes[code] = new_code_data
+        
+        with open(codes_file, "w") as f:
+            json.dump(existing_codes, f, indent=2)
+        
+        flash("✅ Access code created successfully!", "success")
+        return redirect("/access-codes")
+    
+    # Load existing codes for this user
+    codes_file = "data/session_codes.json"
+    user_codes = {}
+    
+    if os.path.exists(codes_file):
+        with open(codes_file, "r") as f:
+            all_codes = json.load(f)
+            # Filter codes created by current user
+            user_codes = {
+                code: data for code, data in all_codes.items() 
+                if data.get("created_by") == current_user.username
+            }
+    
+    return render_template("access_codes.html", codes=user_codes)

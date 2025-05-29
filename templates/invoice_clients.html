@@ -1,13 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}👥 Clients{% endblock %}
+{% block title %}👥 Clients{% block extra_css %}
+<style>
+  /* Page-specific styles that can't be in global CSS */
+  .client-item[data-has-outstanding="true"] {
+    border-left: 3px solid var(--warning);
+  }
+  
+  .client-item[data-has-overdue="true"] {
+    border-left: 3px solid var(--danger);
+  }
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Page-specific styles that can't be in global CSS */
+  .client-item[data-has-outstanding="true"] {
+    border-left: 3px solid var(--warning);
+  }
+  
+  .client-item[data-has-overdue="true"] {
+    border-left: 3px solid var(--danger);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="page-title-container">
   <h1 class="page-title">👥 Clients</h1>
   <div class="title-nav-buttons">
     <a href="/invoices" class="btn-base btn-outline-accent btn-sm">← Invoices</a>
-    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ Create Invoice</a>
+    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ New Invoice</a>
   </div>
 </div>
 
@@ -19,25 +43,36 @@
   </div>
   <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
     <div class="summary-amount">{{ clients_with_outstanding }}</div>
-    <div class="summary-label">With Unpaid</div>
+    <div class="summary-label">Outstanding</div>
   </div>
   <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white;">
     <div class="summary-amount">£{{ "%.0f"|format(total_outstanding_all) }}</div>
-    <div class="summary-label">Outstanding</div>
+    <div class="summary-label">Total Due</div>
   </div>
 </div>
 
+<!-- Search & Filter -->
+<div class="card-base mb-4">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-8">
+      <label class="form-label">Search Clients</label>
+      <input type="text" id="clientSearch" class="input-base" placeholder="Search by name...">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Filter</label>
+      <select id="clientFilter" class="input-base">
+        <option value="all">All Clients</option>
+        <option value="outstanding">With Outstanding</option>
+        <option value="paid-up">Paid Up</option>
+        <option value="overdue">Overdue</option>
+      </select>
+    </div>
+  </div>
+</div>
 
 <!-- Client List -->
 {% if clients %}
 <div class="card-base">
-    <!-- Search & Filter -->
-      <div class="row g-2">
-        <div class="col-8">
-          <input type="text" id="clientSearch" class="input-base" placeholder="Search clients...">
-        </div>
-    
-    </div>
   <div id="clientsList">
     {% for client in clients %}
     <div class="client-item" 
@@ -47,34 +82,37 @@
       
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="flex-grow-1">
-          <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
             <h6 class="client-name mb-0">{{ client.name }}</h6>
             {% if client.total_overdue > 0 %}
-              <span class="badge-compact badge-danger">OVERDUE</span>
+              <span class="badge-base status-danger">OVERDUE</span>
             {% elif client.total_outstanding > 0 %}
-              <span class="badge-compact badge-warning">UNPAID</span>
+              <span class="badge-base status-warning">UNPAID</span>
             {% else %}
-              <span class="badge-compact badge-success">PAID</span>
+              <span class="badge-base status-success">PAID UP</span>
             {% endif %}
           </div>
           
           <div class="client-stats">
             {% if client.total_outstanding > 0 %}
-              <span class="outstanding-amount">£{{ "%.0f"|format(client.total_outstanding) }} unpaid</span>
+              <span class="outstanding-amount">£{{ "%.0f"|format(client.total_outstanding) }} outstanding</span>
             {% endif %}
             {% if client.total_paid > 0 %}
               <span class="text-muted"> • £{{ "%.0f"|format(client.total_paid) }} paid</span>
             {% endif %}
             <span class="text-muted"> • {{ client.total_invoices }} invoice{{ 's' if client.total_invoices != 1 else '' }}</span>
+            {% if client.email %}
+              <span class="text-muted"> • 📧</span>
+            {% endif %}
           </div>
         </div>
         
-        <div class="d-flex gap-1">
-          <a href="/invoices/clients/{{ client.name }}" class="btn-base btn-accent btn-xs">View</a>
-          <a href="/invoices/clients/{{ client.name }}/create" class="btn-base btn-outline-accent btn-xs">+</a>
+        <div class="client-actions">
+          <a href="/invoices/clients/{{ client.name }}" class="btn-base btn-accent btn-sm">View</a>
+          <a href="/invoices/clients/{{ client.name }}/create" class="btn-base btn-outline-accent btn-sm">+ Invoice</a>
           {% if client.total_outstanding > 0 %}
           <button onclick="shareReminder('{{ client.name }}', {{ client.total_outstanding }})" 
-                  class="btn-base btn-outline-secondary btn-xs" title="Send reminder">📱</button>
+                  class="btn-base btn-outline-secondary btn-sm" title="Send reminder">📱</button>
           {% endif %}
         </div>
       </div>
@@ -83,18 +121,16 @@
   </div>
   
   <!-- No results message -->
-  <div id="noClientsMessage" style="display: none;" class="text-center py-4">
-    <div class="text-muted">
-      <div style="font-size: 2rem; margin-bottom: 1rem;">🔍</div>
-      <p class="mb-2">No clients match your search</p>
-      <button onclick="clearFilters()" class="btn-base btn-outline-accent btn-sm">Clear Filters</button>
-    </div>
+  <div id="noClientsMessage" style="display: none;" class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <p class="mb-2">No clients match your search</p>
+    <button onclick="clearFilters()" class="btn-base btn-outline-accent btn-sm">Clear Filters</button>
   </div>
 </div>
 
 {% else %}
 <!-- Empty State -->
-<div class="card-base text-center p-4">
+<div class="card-base">
   <div class="empty-state">
     <div class="empty-icon">👥</div>
     <h4 class="mb-2">No Clients Yet</h4>
@@ -103,115 +139,9 @@
   </div>
 </div>
 {% endif %}
-
-
 {% endblock %}
 
-{% block extra_css %}
-<style>
-  /* Client Items */
-  .client-item {
-    padding: 12px;
-    border-bottom: 1px solid var(--light-border);
-    transition: background-color 0.2s ease;
-  }
-  
-  .client-item:hover {
-    background-color: rgba(0, 160, 126, 0.05);
-  }
-  
-  .client-item:last-child {
-    border-bottom: none;
-  }
-  
-  .client-name {
-    font-weight: 600;
-    color: var(--navy);
-    font-size: 0.9rem;
-  }
-  
-  .client-stats {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-  }
-  
-  .outstanding-amount {
-    font-weight: 600;
-    color: var(--warning);
-  }
-  
-  .badge-compact {
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-  
-  .badge-warning {
-    background: rgba(247, 201, 72, 0.2);
-    color: var(--warning);
-  }
-  
-  .badge-success {
-    background: rgba(0, 160, 126, 0.2);
-    color: var(--success);
-  }
-  
-  .badge-danger {
-    background: rgba(231, 76, 60, 0.2);
-    color: var(--danger);
-  }
-  
-  .btn-xs {
-    padding: 4px 8px;
-    font-size: 0.75rem;
-    border-radius: 4px;
-  }
-  
-  /* Mobile optimizations */
-  @media (max-width: 576px) {
-    .summary-grid {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-    
-    .summary-card {
-      padding: 12px;
-    }
-    
-    .summary-amount {
-      font-size: 1.3rem;
-    }
-    
-    .client-item {
-      padding: 10px;
-    }
-    
-    .client-name {
-      font-size: 0.85rem;
-    }
-    
-    .client-stats {
-      font-size: 0.75rem;
-    }
-    
-    .btn-xs {
-      padding: 3px 6px;
-      font-size: 0.7rem;
-    }
-    
-    .d-flex.gap-1 {
-      flex-direction: column;
-      gap: 4px !important;
-    }
-    
-    .d-flex.gap-1 .btn-xs {
-      width: 100%;
-    }
-  }
-</style>
-{% endblock %}
+
 
 {% block extra_js %}
 <script>
@@ -297,7 +227,7 @@ Thanks!
   
   function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-info';
+    toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-info animate-fade-in';
     toast.style.zIndex = '1050';
     toast.textContent = message;
     document.body.appendChild(toast);
