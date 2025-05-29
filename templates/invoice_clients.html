@@ -1,17 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}👥 Clients{% block extra_css %}
-<style>
-  /* Page-specific styles that can't be in global CSS */
-  .client-item[data-has-outstanding="true"] {
-    border-left: 3px solid var(--warning);
-  }
-  
-  .client-item[data-has-overdue="true"] {
-    border-left: 3px solid var(--danger);
-  }
-</style>
-{% endblock %}
+{% block title %}👥 Clients{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -140,8 +129,6 @@
 </div>
 {% endif %}
 {% endblock %}
-
-
 
 {% block extra_js %}
 <script>

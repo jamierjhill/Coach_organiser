@@ -1,4 +1,4 @@
-# Enhanced invoice.py with proper email functionality
+# Enhanced invoice.py with proper email functionality - FIXED SYNTAX ERROR
 import os
 import json
 from datetime import datetime, timedelta
@@ -55,11 +55,18 @@ def send_invoice_email(invoice, coach_name):
         
         subject = f"🎾 Invoice #{invoice['invoice_number']} from {coach_name}"
         
-        # Fix the f-string issue by moving the replace operation outside
-        payment_method = invoice.get('payment_method', '')
-        payment_method_display = payment_method.replace('_', ' ').title() if payment_method else ""
+        # Create payment method line (FIXED: moved outside f-string)
+        payment_method_line = ""
+        if invoice.get('payment_method'):
+            payment_method = invoice.get('payment_method', '').replace('_', ' ').title()
+            payment_method_line = f"Payment Method: {payment_method}"
         
-        # Create email body
+        # Create notes section (FIXED: moved outside f-string)
+        notes_section = ""
+        if invoice.get('notes'):
+            notes_section = "Additional Notes:\n" + invoice['notes'] + "\n"
+        
+        # Create email body (FIXED: no nested f-strings with backslashes)
         body = f"""Hi {invoice['client_name']},
 
 I hope this email finds you well. Please find your tennis coaching invoice below:
@@ -73,9 +80,9 @@ Issue Date: {invoice['issue_date']}
 Due Date: {invoice['due_date']}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-{f"Payment Method: {payment_method_display}" if payment_method_display else ""}
+{payment_method_line}
 
-{f"Additional Notes:\n{invoice['notes']}\n" if invoice.get('notes') else ""}
+{notes_section}
 
 If you have any questions about this invoice or need to discuss payment arrangements, please don't hesitate to contact me.
 

@@ -310,25 +310,7 @@
   </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="quick-actions-grid">
-  <a href="/invoices/create" class="quick-action">
-    <span class="quick-action-icon">➕</span>
-    <div>New Invoice</div>
-  </a>
-  <a href="/invoices/clients" class="quick-action">
-    <span class="quick-action-icon">👥</span>
-    <div>Clients</div>
-  </a>
-  <a href="/invoices/templates" class="quick-action">
-    <span class="quick-action-icon">📋</span>
-    <div>Templates</div>
-  </a>
-  <a href="#" class="quick-action" onclick="generateReport()">
-    <span class="quick-action-icon">📊</span>
-    <div>Reports</div>
-  </a>
-</div>
+
 
 <!-- Search and Filters -->
 <div class="card-base">
@@ -431,44 +413,46 @@ Thank you!
 
 <!-- Paid Invoices Tab -->
 <div id="paid-tab" class="tab-content" style="display: none;">
-  {% if paid_invoices %}
-    {% for invoice in paid_invoices|reverse %}
-    <div class="invoice-item paid" 
-         data-status="{{ invoice.status }}"
-         data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
-      
-      <div class="card-border-left">
-        <div class="invoice-header">
-          <div class="flex-grow-1">
-            <div class="invoice-client">{{ invoice.client_name }}</div>
-            <div class="invoice-meta">
-              <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
-              Paid: {{ invoice.paid_date if invoice.paid_date else "Recently" }}
+  <div class="container py-3">
+    {% if paid_invoices %}
+      {% for invoice in paid_invoices|reverse %}
+      <div class="invoice-item paid mb-4"
+           data-status="{{ invoice.status }}"
+           data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
+
+        <div class="card border-left border-success shadow-sm p-3">
+          <div class="row align-items-center">
+            <div class="col-md-9">
+              <div class="invoice-client fw-bold">{{ invoice.client_name }}</div>
+              <div class="invoice-meta text-muted">
+                <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
+                Paid: {{ invoice.paid_date if invoice.paid_date else "Recently" }}
+              </div>
+            </div>
+            <div class="col-md-3 text-md-end mt-2 mt-md-0">
+              <div class="invoice-amount text-success fw-bold fs-5">£{{ "%.0f"|format(invoice.amount) }}</div>
+              <span class="badge bg-success">PAID</span>
             </div>
           </div>
-          
-          <div class="text-end">
-            <div class="invoice-amount paid">£{{ "%.0f"|format(invoice.amount) }}</div>
-            <span class="badge-base status-success">PAID</span>
+
+          <div class="invoice-actions mt-3 d-flex flex-wrap gap-2">
+            <a href="/invoices/view/{{ invoice.id }}" class="btn btn-outline-primary btn-sm">👁️ View</a>
+            <a href="/invoices/duplicate/{{ invoice.id }}" class="btn btn-outline-secondary btn-sm">🔄 Copy</a>
+            <button onclick="quickShare('{{ invoice.id }}')" class="btn btn-outline-secondary btn-sm">📱</button>
           </div>
         </div>
-        
-        <div class="invoice-actions">
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">👁️ View</a>
-          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary btn-sm">🔄 Copy</a>
-          <button onclick="quickShare('{{ invoice.id }}')" class="btn-base btn-outline-secondary btn-sm">📱</button>
-        </div>
       </div>
-    </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">💰</div>
-      <h5>No Paid Invoices</h5>
-      <p class="text-muted">Paid invoices will appear here.</p>
-    </div>
-  {% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon display-4">💰</div>
+        <h5>No Paid Invoices</h5>
+        <p class="text-muted">Paid invoices will appear here.</p>
+      </div>
+    {% endif %}
+  </div>
 </div>
+
 
 <!-- Empty State for New Users -->
 {% if not unpaid_invoices and not paid_invoices %}
