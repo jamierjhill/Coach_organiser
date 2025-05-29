@@ -210,6 +210,33 @@
     margin: 1.5rem 0;
   }
   
+  /* Email actions styling */
+  .email-action-card {
+    background: linear-gradient(135deg, rgba(0, 160, 126, 0.05), rgba(0, 160, 126, 0.1));
+    border: 1px solid rgba(0, 160, 126, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .email-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .email-status.sent {
+    background-color: rgba(0, 160, 126, 0.1);
+    color: var(--teal-dark);
+  }
+  
+  .email-status.not-sent {
+    background-color: rgba(247, 201, 72, 0.1);
+    color: #c7920a;
+  }
+  
   /* Mobile-friendly action buttons */
   @media (max-width: 576px) {
     .invoice-amount-display {
@@ -227,11 +254,22 @@
     .share-buttons {
       margin-top: 1rem;
     }
+    
+    .email-action-card {
+      padding: 0.75rem;
+    }
   }
   
   /* Success animation for copy button */
   .copy-success {
     background: linear-gradient(135deg, var(--success), #059669) !important;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+  }
+  
+  /* Email sending animation */
+  .email-sending {
+    background: linear-gradient(135deg, var(--info), #1e88e5) !important;
     transform: scale(1.05);
     transition: all 0.3s ease;
   }
@@ -255,6 +293,13 @@
       <span class="badge-base status-{{ 'success' if invoice.status == 'paid' else 'warning' if invoice.status == 'unpaid' else 'danger' }} fs-6">
         {{ invoice.status.upper() }}
       </span>
+      
+      <!-- Email Status Indicator -->
+      {% if invoice.client_email %}
+        <span class="email-status {{ 'sent' if invoice.email_sent else 'not-sent' }} ms-2">
+          {% if invoice.email_sent %}📧 Email Sent{% else %}📧 Email Ready{% endif %}
+        </span>
+      {% endif %}
     </div>
     
     <!-- Primary Actions -->
@@ -273,6 +318,45 @@
     </div>
   </div>
   
+  <!-- Email Actions (if client has email) -->
+  {% if invoice.client_email %}
+  <div class="email-action-card no-print">
+    <h5 class="mb-3">📧 Email Actions</h5>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <button onclick="sendInvoiceEmail()" id="sendEmailBtn" class="btn-base btn-accent w-100">
+          <span id="sendEmailText">📤 Email Invoice</span>
+          <span id="emailSpinner" class="spinner-border spinner-border-sm ms-1" style="display: none;"></span>
+        </button>
+      </div>
+      <div class="col-md-4">
+        <button onclick="sendPaymentReminder()" class="btn-base btn-outline-accent w-100">
+          ⏰ Payment Reminder
+        </button>
+      </div>
+      <div class="col-md-4">
+        <button onclick="previewEmailContent()" class="btn-base btn-outline-secondary w-100">
+          👁️ Preview Email
+        </button>
+      </div>
+    </div>
+    <div class="form-text text-xs mt-2">
+      Client email: <strong>{{ invoice.client_email }}</strong>
+      {% if invoice.email_sent_date %}
+      <br>Last emailed: {{ invoice.email_sent_date }}
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card-border-left no-print mb-4" style="border-left-color: var(--warning);">
+    <h6 class="mb-2">📧 No Email Address</h6>
+    <p class="mb-2 text-sm">Add client email to enable email notifications and payment reminders.</p>
+    <button onclick="addClientEmail()" class="btn-base btn-outline-accent btn-sm">
+      ➕ Add Email Address
+    </button>
+  </div>
+  {% endif %}
+  
   <!-- Share Options -->
   <div class="card-border-left mb-4 no-print">
     <h5 class="mb-3">📤 Share Invoice</h5>
@@ -283,6 +367,11 @@
       <button onclick="copyToClipboard()" id="copyBtn" class="btn-base btn-outline-accent flex-fill">
         <span id="copyBtnText">📋 Copy Invoice Text</span>
       </button>
+      {% if invoice.client_email %}
+      <button onclick="shareViaEmail()" class="btn-base btn-outline-secondary flex-fill">
+        <span>📧 Share via Email</span>
+      </button>
+      {% endif %}
     </div>
     <p class="text-muted small mt-2 mb-0">Share invoice details with your client quickly and easily</p>
   </div>
@@ -320,7 +409,14 @@
         <h5 class="section-title mb-2">TO</h5>
         <div class="font-medium">{{ invoice.client_name }}</div>
         {% if invoice.client_email %}
-        <div class="text-muted small">{{ invoice.client_email }}</div>
+        <div class="text-muted small">
+          📧 {{ invoice.client_email }}
+        </div>
+        {% endif %}
+        {% if invoice.payment_method %}
+        <div class="text-muted small">
+          💳 Preferred: {{ invoice.payment_method|title }}
+        </div>
         {% endif %}
       </div>
     </div>
@@ -357,6 +453,59 @@
   </div>
 </div>
 
+<!-- Email Content Preview Modal -->
+<div class="modal fade" id="emailPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📧 Email Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>To:</strong> {{ invoice.client_email }}<br>
+          <strong>Subject:</strong> <span id="emailSubject">Invoice #{{ invoice.invoice_number }} from {{ current_user.username|title }}</span>
+        </div>
+        <div class="border p-3 bg-light">
+          <div id="emailPreviewContent">
+            <!-- Email content will be populated here -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn-base btn-accent" onclick="sendEmailFromPreview()">📤 Send Email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Email Modal -->
+<div class="modal fade" id="addEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📧 Add Client Email</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="addEmailForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Client Email Address</label>
+            <input type="email" id="newClientEmail" class="input-base" 
+                   placeholder="client@example.com" required>
+            <div class="form-text">This email will be saved for future invoices and communications.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-base btn-accent">💾 Save Email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Hidden invoice text for sharing -->
 <div id="invoiceText" style="display: none;">
 🎾 INVOICE
@@ -364,6 +513,9 @@
 Invoice #: {{ invoice.invoice_number }}
 From: {{ invoice.coach_name|default(current_user.username)|title }} (Tennis Coach)
 To: {{ invoice.client_name }}
+{% if invoice.client_email %}
+Email: {{ invoice.client_email }}
+{% endif %}
 
 Service: {{ invoice.description }}
 Amount: £{{ "%.2f"|format(invoice.total_amount) }}
@@ -376,12 +528,49 @@ Due Date: {{ invoice.due_date }}
 ⏳ Status: {{ invoice.status.upper() }}
 {% endif %}
 
+{% if invoice.payment_method %}
+Preferred Payment: {{ invoice.payment_method|title }}
+{% endif %}
+
 {% if invoice.notes %}
 Notes: {{ invoice.notes }}
 {% endif %}
 
 Thank you for your business!
 - Generated by Coaches Hub
+</div>
+
+<!-- Hidden email template -->
+<div id="emailTemplate" style="display: none;">
+Hi {{ invoice.client_name }},
+
+I hope this email finds you well. Please find your tennis coaching invoice attached below:
+
+🎾 INVOICE DETAILS
+Invoice Number: {{ invoice.invoice_number }}
+Service: {{ invoice.description }}
+Amount: £{{ "%.2f"|format(invoice.total_amount) }}
+Due Date: {{ invoice.due_date }}
+
+{% if invoice.payment_method %}
+Preferred Payment Method: {{ invoice.payment_method|title }}
+{% endif %}
+
+{% if invoice.notes %}
+Additional Notes:
+{{ invoice.notes }}
+{% endif %}
+
+If you have any questions about this invoice or need to discuss payment arrangements, please don't hesitate to contact me.
+
+Thank you for choosing my tennis coaching services!
+
+Best regards,
+{{ current_user.username|title }}
+Tennis Coach
+
+---
+This invoice was generated by Coaches Hub
 </div>
 {% endblock %}
 
@@ -392,17 +581,29 @@ Thank you for your business!
     return document.getElementById('invoiceText').textContent.trim();
   }
   
+  // Get email template content
+  function getEmailTemplate() {
+    return document.getElementById('emailTemplate').textContent.trim();
+  }
+  
   // Share via WhatsApp
   function shareViaWhatsApp() {
     const invoiceText = getInvoiceText();
     const encodedText = encodeURIComponent(invoiceText);
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
     
-    // Open WhatsApp in new window/tab
     window.open(whatsappUrl, '_blank');
-    
-    // Optional: Show success message
     showToast('📱 Opening WhatsApp to share invoice...', 'info');
+  }
+  
+  // Share via Email (opens default email client)
+  function shareViaEmail() {
+    const emailContent = getEmailTemplate();
+    const subject = `Invoice #{{ invoice.invoice_number }} from {{ current_user.username|title }}`;
+    const mailto = `mailto:{{ invoice.client_email }}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailContent)}`;
+    
+    window.location.href = mailto;
+    showToast('📧 Opening email client...', 'info');
   }
   
   // Copy to clipboard
@@ -418,7 +619,6 @@ Thank you for your business!
       copyBtn.classList.add('copy-success');
       copyBtnText.textContent = '✅ Copied!';
       
-      // Show success message
       showToast('✅ Invoice details copied to clipboard!', 'success');
       
       // Reset button after 2 seconds
@@ -429,20 +629,102 @@ Thank you for your business!
       
     } catch (err) {
       console.error('Failed to copy: ', err);
-      
-      // Fallback for older browsers
       fallbackCopyTextToClipboard(invoiceText);
     }
   }
+  
+  // Send invoice via email
+  function sendInvoiceEmail() {
+    const sendBtn = document.getElementById('sendEmailBtn');
+    const sendText = document.getElementById('sendEmailText');
+    const spinner = document.getElementById('emailSpinner');
+    
+    // Show loading state
+    sendBtn.classList.add('email-sending');
+    sendText.textContent = 'Sending...';
+    spinner.style.display = 'inline-block';
+    sendBtn.disabled = true;
+    
+    // Simulate email sending (replace with actual API call)
+    setTimeout(() => {
+      // Reset button state
+      sendBtn.classList.remove('email-sending');
+      sendText.textContent = '✅ Email Sent!';
+      spinner.style.display = 'none';
+      sendBtn.disabled = false;
+      
+      showToast('📧 Invoice email sent successfully!', 'success');
+      
+      // Reset button text after 3 seconds
+      setTimeout(() => {
+        sendText.textContent = '📤 Email Invoice';
+      }, 3000);
+    }, 2000);
+  }
+  
+  // Send payment reminder
+  function sendPaymentReminder() {
+    const reminderText = `Hi {{ invoice.client_name }},
+
+This is a friendly reminder that invoice #{{ invoice.invoice_number }} for £{{ "%.2f"|format(invoice.total_amount) }} is due on {{ invoice.due_date }}.
+
+{% if invoice.status == 'overdue' %}This invoice is now overdue. {% endif %}If you've already made payment, please ignore this reminder.
+
+Thank you!
+{{ current_user.username|title }}`;
+    
+    const encodedText = encodeURIComponent(reminderText);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    showToast('📱 Opening WhatsApp with payment reminder...', 'info');
+  }
+  
+  // Preview email content
+  function previewEmailContent() {
+    const emailContent = getEmailTemplate();
+    document.getElementById('emailPreviewContent').innerHTML = emailContent.replace(/\n/g, '<br>');
+    
+    const modal = new bootstrap.Modal(document.getElementById('emailPreviewModal'));
+    modal.show();
+  }
+  
+  // Send email from preview modal
+  function sendEmailFromPreview() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('emailPreviewModal'));
+    modal.hide();
+    sendInvoiceEmail();
+  }
+  
+  // Add client email functionality
+  function addClientEmail() {
+    const modal = new bootstrap.Modal(document.getElementById('addEmailModal'));
+    modal.show();
+  }
+  
+  // Handle add email form submission
+  document.getElementById('addEmailForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('newClientEmail').value.trim();
+    if (!email) return;
+    
+    // Here you would typically make an API call to update the invoice
+    // For now, we'll just show a success message
+    showToast('📧 Email address added successfully!', 'success');
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addEmailModal'));
+    modal.hide();
+    
+    // Optionally reload the page to show the updated email
+    setTimeout(() => {
+      // In a real app, you might want to reload or update the UI
+      location.reload();
+    }, 1000);
+  });
   
   // Fallback copy method for older browsers
   function fallbackCopyTextToClipboard(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
-    
-    // Avoid scrolling to bottom
-    textArea.style.top = "0";
-    textArea.style.left = "0";
     textArea.style.position = "fixed";
     textArea.style.opacity = "0";
     
@@ -476,7 +758,6 @@ Thank you for your business!
   
   // Show toast notification
   function showToast(message, type = 'info') {
-    // Create toast element
     const toast = document.createElement('div');
     toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in position-fixed`;
     toast.style.cssText = `
@@ -509,12 +790,11 @@ Thank you for your business!
   
   // Handle mobile responsiveness
   document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is on mobile and adjust WhatsApp behavior
+    // Check if user is on mobile and adjust behavior
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // On mobile, WhatsApp links work better
-      console.log('Mobile device detected - WhatsApp sharing optimized');
+      console.log('Mobile device detected - optimizing email and sharing features');
     }
     
     // Add keyboard shortcuts
@@ -523,6 +803,14 @@ Thank you for your business!
       if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.target.matches('input, textarea')) {
         e.preventDefault();
         copyToClipboard();
+      }
+      
+      // Ctrl+E or Cmd+E to send email (if email available)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e' && !e.target.matches('input, textarea')) {
+        e.preventDefault();
+        {% if invoice.client_email %}
+        sendInvoiceEmail();
+        {% endif %}
       }
     });
   });

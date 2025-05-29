@@ -9,10 +9,12 @@ invoice_bp = Blueprint("invoice", __name__)
 
 INVOICES_DIR = "data/invoices"
 TEMPLATES_DIR = "data/invoice_templates"
+CLIENTS_DIR = "data/clients"
 
 # Ensure directories exist
 os.makedirs(INVOICES_DIR, exist_ok=True)
 os.makedirs(TEMPLATES_DIR, exist_ok=True)
+os.makedirs(CLIENTS_DIR, exist_ok=True)
 
 def generate_invoice_number():
     """Generate a simple invoice number based on date and random digits."""
@@ -31,12 +33,52 @@ def normalize_invoice_data(invoice):
     
     invoice.setdefault("status", "unpaid")
     invoice.setdefault("client_name", "Unknown Client")
+    invoice.setdefault("client_email", "")
     invoice.setdefault("description", "")
     invoice.setdefault("notes", "")
     invoice.setdefault("issue_date", datetime.now().strftime("%Y-%m-%d"))
     invoice.setdefault("due_date", datetime.now().strftime("%Y-%m-%d"))
     
     return invoice
+
+def save_or_update_client(client_name, client_email=""):
+    """Save or update client information."""
+    if not client_name.strip():
+        return
+    
+    try:
+        clients = load_json_feature(CLIENTS_DIR, current_user.username)
+        
+        # Find existing client or create new one
+        client = next((c for c in clients if c.get("name", "").lower() == client_name.lower()), None)
+        
+        if client:
+            # Update existing client email if provided and different
+            if client_email and client_email != client.get("email", ""):
+                client["email"] = client_email
+                client["updated_at"] = datetime.now().isoformat()
+        else:
+            # Create new client
+            new_client = {
+                "name": client_name,
+                "email": client_email,
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }
+            clients.append(new_client)
+        
+        save_json_feature(CLIENTS_DIR, current_user.username, clients)
+    except Exception as e:
+        print(f"Error saving client: {e}")
+
+def get_client_email(client_name):
+    """Get email for a client if it exists."""
+    try:
+        clients = load_json_feature(CLIENTS_DIR, current_user.username)
+        client = next((c for c in clients if c.get("name", "").lower() == client_name.lower()), None)
+        return client.get("email", "") if client else ""
+    except:
+        return ""
 
 # === TEMPLATE MANAGEMENT ===
 
@@ -123,7 +165,7 @@ def get_templates_api():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
-# === EXISTING INVOICE ROUTES (Updated) ===
+# === INVOICE ROUTES (Updated with Email Support) ===
 
 @invoice_bp.route("/invoices")
 @login_required
@@ -178,9 +220,10 @@ def invoice_list():
 @invoice_bp.route("/invoices/create", methods=["GET", "POST"])
 @login_required
 def create_invoice():
-    """Create a new invoice with template support."""
+    """Create a new invoice with template and email support."""
     if request.method == "POST":
         client_name = request.form.get("client_name", "").strip()
+        client_email = request.form.get("client_email", "").strip()
         description = request.form.get("description", "").strip()
         amount = request.form.get("amount", "0").strip()
         due_date = request.form.get("due_date", "")
@@ -188,6 +231,11 @@ def create_invoice():
         
         if not client_name or not description or not amount:
             flash("❌ Please fill in all required fields.", "danger")
+            return redirect(url_for("invoice.create_invoice"))
+        
+        # Validate email format if provided
+        if client_email and "@" not in client_email:
+            flash("❌ Please enter a valid email address.", "danger")
             return redirect(url_for("invoice.create_invoice"))
         
         try:
@@ -205,10 +253,14 @@ def create_invoice():
             flash("❌ Please provide a valid due date.", "danger")
             return redirect(url_for("invoice.create_invoice"))
         
+        # Save or update client information
+        save_or_update_client(client_name, client_email)
+        
         new_invoice = {
             "id": str(datetime.now().timestamp()).replace(".", ""),
             "invoice_number": generate_invoice_number(),
             "client_name": client_name,
+            "client_email": client_email,
             "description": description,
             "amount": amount,
             "total_amount": amount,
@@ -235,6 +287,7 @@ def create_invoice():
     # Handle duplicate functionality
     duplicate_from = None
     is_duplicate = False
+    prefill_client = request.args.get("client")
     
     if request.args.get("duplicate"):
         try:
@@ -243,6 +296,13 @@ def create_invoice():
             is_duplicate = True
         except:
             duplicate_from = None
+    
+    # If prefilling client, get their email
+    prefill_email = ""
+    if prefill_client:
+        prefill_email = get_client_email(prefill_client)
+    elif duplicate_from:
+        prefill_email = duplicate_from.get("client_email", "")
     
     # Load templates for quick selection
     templates = load_json_feature(TEMPLATES_DIR, current_user.username)
@@ -254,7 +314,9 @@ def create_invoice():
         due_date=default_due_date,
         duplicate_from=duplicate_from,
         is_duplicate=is_duplicate,
-        templates=templates
+        templates=templates,
+        prefill_client=prefill_client,
+        prefill_email=prefill_email
     )
 
 @invoice_bp.route("/invoices/view/<invoice_id>")
@@ -340,13 +402,13 @@ def duplicate_invoice(invoice_id):
     except Exception as e:
         flash(f"❌ Error duplicating invoice: {str(e)}", "danger")
         return redirect(url_for("invoice.invoice_list"))
-    
-    # Add these new routes to your existing blueprints/invoice.py file
+
+# === CLIENT MANAGEMENT ROUTES (Updated) ===
 
 @invoice_bp.route("/invoices/clients")
 @login_required
 def clients_dashboard():
-    """Display all clients with their outstanding balances and summary info."""
+    """Display all clients with their outstanding balances and email addresses."""
     try:
         invoices = load_json_feature(INVOICES_DIR, current_user.username)
         invoices = [normalize_invoice_data(inv) for inv in invoices]
@@ -355,10 +417,12 @@ def clients_dashboard():
         clients = {}
         for invoice in invoices:
             client_name = invoice.get("client_name", "Unknown Client")
+            client_email = invoice.get("client_email", "")
             
             if client_name not in clients:
                 clients[client_name] = {
                     "name": client_name,
+                    "email": client_email,
                     "total_invoices": 0,
                     "total_outstanding": 0,
                     "total_paid": 0,
@@ -371,6 +435,10 @@ def clients_dashboard():
             
             client = clients[client_name]
             client["total_invoices"] += 1
+            
+            # Update email if we have one and don't have one stored
+            if client_email and not client["email"]:
+                client["email"] = client_email
             
             invoice_amount = float(invoice.get("total_amount", 0))
             invoice_date = invoice.get("issue_date", "")
@@ -434,6 +502,13 @@ def client_detail(client_name):
         # Sort by date (newest first)
         client_invoices.sort(key=lambda x: x.get("issue_date", ""), reverse=True)
         
+        # Get client email from most recent invoice
+        client_email = ""
+        for invoice in client_invoices:
+            if invoice.get("client_email"):
+                client_email = invoice.get("client_email")
+                break
+        
         # Calculate client summary
         total_outstanding = sum(float(inv.get("total_amount", 0)) 
                               for inv in client_invoices 
@@ -449,6 +524,7 @@ def client_detail(client_name):
         return render_template(
             "invoice_client_detail.html",
             client_name=client_name,
+            client_email=client_email,
             invoices=client_invoices,
             total_outstanding=total_outstanding,
             total_paid=total_paid,
@@ -463,19 +539,16 @@ def client_detail(client_name):
 @invoice_bp.route("/invoices/clients/<client_name>/create")
 @login_required
 def create_invoice_for_client(client_name):
-    """Create a new invoice pre-filled with client name."""
-    # Get templates for quick selection
-    templates = load_json_feature(TEMPLATES_DIR, current_user.username)
-    default_due_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
-    
-    # Create a mock invoice object with just client name
-    prefill_data = {"client_name": client_name}
-    
-    return render_template(
-        "invoice_create.html", 
-        due_date=default_due_date,
-        duplicate_from=prefill_data,
-        is_duplicate=False,
-        templates=templates,
-        prefill_client=client_name
-    )
+    """Create a new invoice pre-filled with client name and email."""
+    return redirect(url_for("invoice.create_invoice", client=client_name))
+
+# API endpoint for client email lookup
+@invoice_bp.route("/invoices/api/client-email/<client_name>")
+@login_required
+def get_client_email_api(client_name):
+    """API endpoint to get client email for autocomplete."""
+    try:
+        email = get_client_email(client_name)
+        return jsonify({"success": True, "email": email})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
