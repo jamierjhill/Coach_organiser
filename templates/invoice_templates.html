@@ -11,147 +11,136 @@
 </div>
 
 <!-- Create New Template -->
-<div class="card-base p-4 mb-4">
-  <h4 class="section-title mb-4">➕ Create New Template</h4>
+<div class="card-base">
+  <h4 class="section-title">➕ Create New Template</h4>
   <form method="POST" action="/invoices/templates/create">
     
-    <div class="row g-3 mb-3">
-      <div class="col-md-6">
+    <div class="flex flex-wrap mb-3" style="gap: 1rem;">
+      <div style="flex: 1; min-width: 200px;">
         <label class="form-label">Template Name *</label>
-        <input type="text" name="name" class="input-base form-control"
+        <input type="text" name="name" class="input-base"
                placeholder="e.g. Private Lesson, Group Session" required>
       </div>
-      <div class="col-md-6">
+      <div style="flex: 1; min-width: 200px;">
         <label class="form-label">Amount (£) *</label>
-        <input type="number" name="amount" class="input-base form-control"
+        <input type="number" name="amount" class="input-base"
                placeholder="0.00" step="0.01" min="0" required>
       </div>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Service Description *</label>
-      <input type="text" name="description" class="input-base form-control"
+      <input type="text" name="description" class="input-base"
              placeholder="e.g. 1-hour private tennis lesson" required>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Notes (optional)</label>
-      <textarea name="notes" class="input-base form-control" rows="2"
+      <textarea name="notes" class="input-base" rows="2"
                 placeholder="e.g. Payment due within 7 days"></textarea>
     </div>
 
-    <div class="mt-4">
-      <button type="submit" class="btn-base btn-accent">
-        ✅ Create Template
-      </button>
-    </div>
+    <button type="submit" class="btn-base btn-accent">
+      ✅ Create Template
+    </button>
     
   </form>
 </div>
-
 
 <!-- Existing Templates -->
 <div class="card-base">
   <h4 class="section-title">Your Templates ({{ templates|length }})</h4>
   
   {% if templates %}
-    <div class="row g-3">
+    <div class="summary-grid">
       {% for template in templates %}
-        <div class="col-lg-6">
-          <div class="card-border-left hover-subtle">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div class="flex-grow-1">
-                <h5 class="mb-1 font-medium">{{ template.name }}</h5>
-                <p class="text-sm text-muted mb-2">{{ template.description }}</p>
-                {% if template.notes %}
-                  <p class="text-xs text-muted mb-2">{{ template.notes }}</p>
-                {% endif %}
-              </div>
-              <div class="text-end">
-                <div class="h5 mb-1" style="color: var(--navy);">£{{ "%.2f"|format(template.amount) }}</div>
-                <form action="/invoices/templates/delete/{{ template.id }}" method="POST" 
-                      onsubmit="return confirm('Delete this template?')" class="d-inline">
-                  <button type="submit" class="btn-base btn-outline-danger btn-sm">
-                    🗑️
-                  </button>
-                </form>
-              </div>
+        <div class="card-border-left hover-subtle">
+          <div class="flex flex-between align-items-start mb-2">
+            <div class="flex-grow-1">
+              <h5 class="font-medium mb-1">{{ template.name }}</h5>
+              <p class="text-sm text-muted mb-2">{{ template.description }}</p>
+              {% if template.notes %}
+                <p class="text-xs text-muted mb-2">{{ template.notes }}</p>
+              {% endif %}
             </div>
-            
-            <!-- Quick Actions -->
-            <div class="d-flex gap-2">
-              <a href="/invoices/create?template={{ template.id }}" class="btn-base btn-accent btn-sm flex-fill">
-                📝 Use Template
-              </a>
-              <button onclick="copyTemplate('{{ template.name }}', '{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')" 
-                      class="btn-base btn-outline-accent btn-sm">
-                📋 Copy
-              </button>
+            <div class="text-right">
+              <div class="text-xl font-bold mb-1" style="color: var(--navy);">£{{ "%.2f"|format(template.amount) }}</div>
+              <form action="/invoices/templates/delete/{{ template.id }}" method="POST" 
+                    onsubmit="return confirm('Delete this template?')" class="d-inline">
+                <button type="submit" class="btn-base btn-outline-danger btn-sm">
+                  🗑️
+                </button>
+              </form>
             </div>
+          </div>
+          
+          <!-- Quick Actions -->
+          <div class="flex" style="gap: 0.5rem;">
+            <a href="/invoices/create?template={{ template.id }}" class="btn-base btn-accent btn-sm" style="flex: 1;">
+              📝 Use Template
+            </a>
+            <button onclick="copyTemplate('{{ template.name }}', '{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')" 
+                    class="btn-base btn-outline-accent btn-sm">
+              📋 Copy
+            </button>
           </div>
         </div>
       {% endfor %}
     </div>
     
     <!-- Quick Stats -->
-    <div class="mt-4 pt-3" style="border-top: 1px solid var(--light-border);">
-      <div class="row text-center g-3">
-        <div class="col-4">
-          <div class="h5 mb-1" style="color: var(--navy);">{{ templates|length }}</div>
+    <div class="card-border-left" style="margin-top: 1.5rem;">
+      <div class="flex text-center" style="gap: 2rem;">
+        <div style="flex: 1;">
+          <div class="text-xl font-bold" style="color: var(--navy);">{{ templates|length }}</div>
           <div class="text-xs text-muted">Templates</div>
         </div>
-        <div class="col-4">
-          <div class="h5 mb-1" style="color: var(--teal);">£{{ "%.0f"|format(templates|sum(attribute='amount')) }}</div>
+        <div style="flex: 1;">
+          <div class="text-xl font-bold" style="color: var(--teal);">£{{ "%.0f"|format(templates|sum(attribute='amount')) }}</div>
           <div class="text-xs text-muted">Total Value</div>
         </div>
-        <div class="col-4">
-          <div class="h5 mb-1" style="color: var(--navy);">£{{ "%.0f"|format((templates|sum(attribute='amount')) / (templates|length)) }}</div>
+        <div style="flex: 1;">
+          <div class="text-xl font-bold" style="color: var(--navy);">£{{ "%.0f"|format((templates|sum(attribute='amount')) / (templates|length)) }}</div>
           <div class="text-xs text-muted">Average</div>
         </div>
       </div>
     </div>
   {% else %}
-    <div class="text-center" style="padding: 40px 20px;">
-      <div style="font-size: 48px; margin-bottom: 15px;">📋</div>
-      <h5 class="mb-3">No Templates Yet</h5>
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h5>No Templates Yet</h5>
       <p class="text-muted mb-4">Create templates for your common services to speed up invoice creation!</p>
       
       <!-- Sample Template Suggestions -->
-      <div class="row g-2 mb-4">
-        <div class="col-md-4">
-          <div class="card-border-left text-start" style="background-color: rgba(0, 160, 126, 0.05);">
-            <div class="font-medium mb-1">Private Lesson</div>
-            <div class="text-sm text-muted mb-2">1-hour private tennis lesson</div>
-            <div class="text-sm font-medium">£40</div>
-            <button onclick="fillSampleTemplate('Private Lesson', '1-hour private tennis lesson', 40)" 
-                    class="btn-base btn-outline-accent btn-sm mt-2 w-100">
-              Use This Sample
-            </button>
-          </div>
+      <div class="summary-grid mb-4">
+        <div class="card-border-left hover-subtle" style="background-color: rgba(0, 160, 126, 0.05);">
+          <div class="font-medium mb-1">Private Lesson</div>
+          <div class="text-sm text-muted mb-2">1-hour private tennis lesson</div>
+          <div class="text-sm font-medium mb-2">£40</div>
+          <button onclick="fillSampleTemplate('Private Lesson', '1-hour private tennis lesson', 40)" 
+                  class="btn-base btn-outline-accent btn-sm w-100">
+            Use This Sample
+          </button>
         </div>
         
-        <div class="col-md-4">
-          <div class="card-border-left text-start" style="background-color: rgba(0, 160, 126, 0.05);">
-            <div class="font-medium mb-1">Group Session</div>
-            <div class="text-sm text-muted mb-2">1-hour group coaching (4 players)</div>
-            <div class="text-sm font-medium">£100</div>
-            <button onclick="fillSampleTemplate('Group Session', '1-hour group coaching (4 players)', 100)" 
-                    class="btn-base btn-outline-accent btn-sm mt-2 w-100">
-              Use This Sample
-            </button>
-          </div>
+        <div class="card-border-left hover-subtle" style="background-color: rgba(0, 160, 126, 0.05);">
+          <div class="font-medium mb-1">Group Session</div>
+          <div class="text-sm text-muted mb-2">1-hour group coaching (4 players)</div>
+          <div class="text-sm font-medium mb-2">£100</div>
+          <button onclick="fillSampleTemplate('Group Session', '1-hour group coaching (4 players)', 100)" 
+                  class="btn-base btn-outline-accent btn-sm w-100">
+            Use This Sample
+          </button>
         </div>
         
-        <div class="col-md-4">
-          <div class="card-border-left text-start" style="background-color: rgba(0, 160, 126, 0.05);">
-            <div class="font-medium mb-1">Court Rental</div>
-            <div class="text-sm text-muted mb-2">2-hour court rental</div>
-            <div class="text-sm font-medium">£60</div>
-            <button onclick="fillSampleTemplate('Court Rental', '2-hour court rental', 60)" 
-                    class="btn-base btn-outline-accent btn-sm mt-2 w-100">
-              Use This Sample
-            </button>
-          </div>
+        <div class="card-border-left hover-subtle" style="background-color: rgba(0, 160, 126, 0.05);">
+          <div class="font-medium mb-1">Court Rental</div>
+          <div class="text-sm text-muted mb-2">2-hour court rental</div>
+          <div class="text-sm font-medium mb-2">£60</div>
+          <button onclick="fillSampleTemplate('Court Rental', '2-hour court rental', 60)" 
+                  class="btn-base btn-outline-accent btn-sm w-100">
+            Use This Sample
+          </button>
         </div>
       </div>
     </div>
@@ -159,20 +148,20 @@
 </div>
 
 <!-- Tips -->
-<div class="card-base" style="background-color: rgba(0, 160, 126, 0.05); border: 1px solid rgba(0, 160, 126, 0.2);">
-  <h5 class="mb-3">💡 Template Tips</h5>
-  <ul class="mb-0" style="padding-left: 1.2rem;">
+<div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05); border-left-color: var(--teal);">
+  <h5 class="section-title">💡 Template Tips</h5>
+  <ul class="mb-0">
     <li class="mb-2">Create templates for your most common services to save time</li>
     <li class="mb-2">Include clear descriptions so clients understand what they're paying for</li>
     <li class="mb-2">Use templates as starting points - you can always modify before sending</li>
     <li class="mb-0">Add payment terms in the notes section (e.g., "Payment due within 7 days")</li>
   </ul>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Fill sample template data into the form
   function fillSampleTemplate(name, description, amount) {
     document.querySelector('input[name="name"]').value = name;
     document.querySelector('input[name="description"]').value = description;
@@ -183,9 +172,16 @@
     
     // Focus on name field
     document.querySelector('input[name="name"]').focus();
+    
+    // Visual feedback
+    const form = document.querySelector('form');
+    form.style.transform = 'scale(1.02)';
+    form.style.transition = 'transform 0.2s ease';
+    setTimeout(() => {
+      form.style.transform = 'scale(1)';
+    }, 200);
   }
   
-  // Copy template data to form (for editing)
   function copyTemplate(name, description, amount, notes) {
     document.querySelector('input[name="name"]').value = name + ' (Copy)';
     document.querySelector('input[name="description"]').value = description;

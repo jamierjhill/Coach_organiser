@@ -2,284 +2,6 @@
 
 {% block title %}💰 Invoices{% endblock %}
 
-{% block extra_css %}
-<style>
-  /* Mobile-first invoice optimizations */
-  .invoice-item {
-    border-left: 4px solid var(--warning);
-    transition: all 0.2s ease;
-    margin-bottom: 1rem;
-  }
-  
-  .invoice-item.paid {
-    border-left-color: var(--success);
-  }
-  
-  .invoice-item.overdue {
-    border-left-color: var(--danger);
-  }
-  
-  .invoice-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.75rem;
-    gap: 1rem;
-  }
-  
-  .invoice-client {
-    font-weight: 600;
-    color: var(--navy);
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-  }
-  
-  .invoice-meta {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.3;
-  }
-  
-  .invoice-amount {
-    font-size: 1.3rem;
-    font-weight: bold;
-    text-align: right;
-    white-space: nowrap;
-  }
-  
-  .invoice-amount.unpaid {
-    color: var(--warning);
-  }
-  
-  .invoice-amount.overdue {
-    color: var(--danger);
-  }
-  
-  .invoice-amount.paid {
-    color: var(--success);
-  }
-  
-  .invoice-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 0.75rem;
-  }
-  
-  .fab-create {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(145deg, var(--teal), var(--teal-dark));
-    color: white;
-    border: none;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    z-index: 1000;
-    transition: transform 0.2s ease;
-  }
-  
-  .fab-create:hover {
-    transform: scale(1.1);
-  }
-  
-  .quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .quick-action {
-    background: var(--white);
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    text-decoration: none;
-    color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-  }
-  
-  .quick-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    text-decoration: none;
-    color: var(--text-primary);
-  }
-  
-  .quick-action-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-  
-  .tab-nav {
-    display: flex;
-    background: var(--light);
-    border-radius: 12px;
-    padding: 0.25rem;
-    margin-bottom: 1rem;
-  }
-  
-  .tab-btn {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    color: var(--text-secondary);
-  }
-  
-  .tab-btn.active {
-    background: var(--white);
-    color: var(--teal);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .search-container {
-    position: relative;
-    margin-bottom: 1rem;
-  }
-  
-  .search-input {
-    padding-left: 2.5rem;
-    width: 100%;
-  }
-  
-  .search-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-    pointer-events: none;
-  }
-  
-  /* Mobile Optimizations */
-  @media (max-width: 768px) {
-    .title-nav-buttons {
-      display: none; /* Hide on mobile, use FAB instead */
-    }
-    
-    .page-title {
-      font-size: 1.75rem;
-    }
-    
-    .summary-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-    
-    .summary-card {
-      padding: 1rem 0.75rem;
-    }
-    
-    .summary-amount {
-      font-size: 1.3rem;
-    }
-    
-    .invoice-item .card-border-left {
-      padding: 1rem;
-    }
-    
-    .invoice-header {
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    .invoice-amount {
-      text-align: left;
-      font-size: 1.2rem;
-    }
-    
-    .invoice-actions {
-      gap: 0.5rem;
-    }
-    
-    .invoice-actions .btn-base {
-      font-size: 0.8rem;
-      padding: 0.5rem 0.75rem;
-      min-height: 36px;
-    }
-    
-    .quick-actions-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-    }
-    
-    .quick-action {
-      padding: 0.75rem 0.5rem;
-    }
-    
-    .quick-action-icon {
-      font-size: 1.2rem;
-    }
-    
-    .tab-btn {
-      padding: 0.6rem 0.5rem;
-      font-size: 0.9rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .invoice-actions {
-      justify-content: center;
-    }
-    
-    .invoice-actions .btn-base {
-      flex: 1;
-      min-width: 70px;
-    }
-  }
-  
-  /* Animation for new items */
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .animate-in {
-    animation: slideInUp 0.3s ease;
-  }
-  
-  /* Status indicators */
-  .status-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-  }
-  
-  .status-indicator.unpaid {
-    background: var(--warning);
-  }
-  
-  .status-indicator.overdue {
-    background: var(--danger);
-  }
-  
-  .status-indicator.paid {
-    background: var(--success);
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="page-title-container">
   <h1 class="page-title">💰 Invoices</h1>
@@ -288,11 +10,6 @@
     <a href="/invoices/create" class="btn-base btn-accent">➕ Create</a>
   </div>
 </div>
-
-<!-- Mobile FAB -->
-<button class="fab-create d-md-none" onclick="window.location.href='/invoices/create'" title="Create Invoice">
-  ➕
-</button>
 
 <!-- Financial Summary -->
 <div class="summary-grid">
@@ -304,89 +21,73 @@
     <div class="summary-amount">£{{ "%.0f"|format(total_paid) }}</div>
     <div class="summary-label">Received</div>
   </div>
-  <div class="summary-card d-none d-md-block" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white;">
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white;">
     <div class="summary-amount">{{ num_overdue }}</div>
     <div class="summary-label">Overdue</div>
   </div>
 </div>
 
-
-
 <!-- Search and Filters -->
 <div class="card-base">
-  <div class="search-container">
-    <div class="search-icon">🔍</div>
-    <input type="text" id="searchInput" class="input-base search-input" placeholder="Search invoices...">
-  </div>
-  
-  <div class="d-flex gap-2">
-    <select id="statusFilter" class="input-base" style="flex: 1;">
+  <div class="flex flex-between mb-3">
+    <input type="text" id="searchInput" class="input-base" placeholder="🔍 Search invoices..." style="flex: 1; margin-right: 1rem;">
+    <select id="statusFilter" class="input-base" style="width: auto;">
       <option value="all">All Status</option>
       <option value="unpaid">Unpaid</option>
       <option value="overdue">Overdue</option>
       <option value="paid">Paid</option>
     </select>
-    <button onclick="clearFilters()" class="btn-base btn-outline-secondary">Clear</button>
   </div>
+  <button onclick="clearFilters()" class="btn-base btn-outline-secondary btn-sm">Clear Filters</button>
 </div>
 
-<!-- Tabs for different invoice views -->
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('unpaid', this)">
-    <span class="status-indicator unpaid"></span>
-    Unpaid ({{ unpaid_invoices|length + num_overdue }})
-  </button>
-  <button class="tab-btn" onclick="switchTab('paid', this)">
-    <span class="status-indicator paid"></span>
-    Paid ({{ paid_invoices|length }})
-  </button>
-</div>
-
-<!-- Unpaid Invoices Tab -->
-<div id="unpaid-tab" class="tab-content">
-  {% if unpaid_invoices %}
-    {% for invoice in unpaid_invoices %}
-    <div class="invoice-item {{ invoice.status }}" 
-         data-status="{{ invoice.status }}" 
-         data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
-      
-      <div class="card-border-left">
-        <div class="invoice-header">
-          <div class="flex-grow-1">
-            <div class="invoice-client">{{ invoice.client_name }}</div>
-            <div class="invoice-meta">
-              <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
-              Due: {{ invoice.due_date }}
-              {% if invoice.client_email and invoice.email_sent %}
-              • <span style="color: var(--info);">📧 Sent</span>
-              {% endif %}
-              {% if invoice.status == 'overdue' %}
-              • <span style="color: var(--danger); font-weight: 600;">⚠️ {{ (invoice.due_date|strptime('%Y-%m-%d') - today|strptime('%Y-%m-%d')).days|abs }} days overdue</span>
-              {% endif %}
-            </div>
-          </div>
-          
-          <div class="text-end">
-            <div class="invoice-amount {{ invoice.status }}">£{{ "%.0f"|format(invoice.amount) }}</div>
-            <span class="badge-base status-{{ 'danger' if invoice.status == 'overdue' else 'warning' }}">
-              {{ invoice.status.upper() }}
-            </span>
-          </div>
+<!-- Unpaid Invoices Section -->
+{% if unpaid_invoices %}
+<div class="card-base">
+  <h4 class="section-title">⚠️ Unpaid Invoices ({{ unpaid_invoices|length }})</h4>
+  
+  {% for invoice in unpaid_invoices %}
+  <div class="invoice-item card-border-left hover-subtle mb-3" 
+       data-status="{{ invoice.status }}" 
+       data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
+    
+    <div class="flex flex-between align-items-center mb-2">
+      <div class="flex-grow-1">
+        <div class="flex align-items-center mb-1">
+          <h6 class="font-medium mb-0">{{ invoice.client_name }}</h6>
+          <span class="badge-base status-{{ 'danger' if invoice.status == 'overdue' else 'warning' }} ml-2">
+            {{ invoice.status.upper() }}
+          </span>
         </div>
-        
-        <div class="invoice-actions">
-          <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn-base btn-success btn-sm">✅ Paid</button>
-          </form>
-          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">👁️ View</a>
-          <button onclick="quickShare('{{ invoice.id }}')" class="btn-base btn-outline-secondary btn-sm">📱</button>
-          {% if invoice.client_email %}
-          <button onclick="quickEmail('{{ invoice.id }}')" class="btn-base btn-info btn-sm">📧</button>
+        <div class="text-sm text-muted">
+          <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
+          Due: {{ invoice.due_date }}
+          {% if invoice.client_email and invoice.email_sent %}
+          • <span class="text-info">📧 Sent</span>
           {% endif %}
         </div>
-        
-        <!-- Hidden sharing data -->
-        <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
+      </div>
+      
+      <div class="text-right">
+        <div class="text-xl font-bold" style="color: {{ 'var(--danger)' if invoice.status == 'overdue' else 'var(--warning)' }};">
+          £{{ "%.0f"|format(invoice.amount) }}
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex flex-wrap" style="gap: 0.5rem;">
+      <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" style="display: inline;">
+        <button type="submit" class="btn-base btn-success btn-sm">✅ Paid</button>
+      </form>
+      <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">👁️ View</a>
+      <button onclick="quickShare('{{ invoice.id }}')" class="btn-base btn-outline-secondary btn-sm">📱 Share</button>
+      {% if invoice.client_email %}
+      <button onclick="quickEmail('{{ invoice.id }}')" class="btn-base btn-info btn-sm">📧 Email</button>
+      {% endif %}
+    </div>
+    
+    <!-- Hidden sharing data -->
+    <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
 🎾 INVOICE {{ invoice.invoice_number }}
 
 From: {{ current_user.username|title }} (Tennis Coach)
@@ -397,167 +98,86 @@ Due: {{ invoice.due_date }}
 Status: {{ invoice.status.upper() }}
 
 Thank you!
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Paid Invoices Section -->
+{% if paid_invoices %}
+<div class="card-base">
+  <h4 class="section-title">✅ Paid Invoices ({{ paid_invoices|length }})</h4>
+  
+  {% for invoice in paid_invoices[:10] %}
+  <div class="invoice-item card-border-left hover-subtle mb-3"
+       data-status="{{ invoice.status }}"
+       data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
+    
+    <div class="flex flex-between align-items-center">
+      <div class="flex-grow-1">
+        <div class="flex align-items-center mb-1">
+          <h6 class="font-medium mb-0">{{ invoice.client_name }}</h6>
+          <span class="badge-base status-success ml-2">PAID</span>
+        </div>
+        <div class="text-sm text-muted">
+          <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
+          Paid: {{ invoice.paid_date if invoice.paid_date else "Recently" }}
+        </div>
+      </div>
+      
+      <div class="text-right">
+        <div class="text-xl font-bold text-success">£{{ "%.0f"|format(invoice.amount) }}</div>
+        <div class="flex" style="gap: 0.5rem; margin-top: 0.5rem;">
+          <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">👁️ View</a>
+          <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary btn-sm">🔄 Copy</a>
         </div>
       </div>
     </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">✅</div>
-      <h5>All caught up!</h5>
-      <p class="text-muted">No unpaid invoices at the moment.</p>
-      <a href="/invoices/create" class="btn-base btn-accent">Create New Invoice</a>
-    </div>
+  </div>
+  {% endfor %}
+  
+  {% if paid_invoices|length > 10 %}
+  <div class="text-center">
+    <p class="text-muted">Showing 10 of {{ paid_invoices|length }} paid invoices</p>
+  </div>
   {% endif %}
 </div>
+{% endif %}
 
-<!-- Paid Invoices Tab -->
-<div id="paid-tab" class="tab-content" style="display: none;">
-  <div class="container py-3">
-    {% if paid_invoices %}
-      {% for invoice in paid_invoices|reverse %}
-      <div class="invoice-item paid mb-4"
-           data-status="{{ invoice.status }}"
-           data-search="{{ (invoice.client_name + ' ' + invoice.invoice_number + ' ' + invoice.description)|lower }}">
-
-        <div class="card border-left border-success shadow-sm p-3">
-          <div class="row align-items-center">
-            <div class="col-md-9">
-              <div class="invoice-client fw-bold">{{ invoice.client_name }}</div>
-              <div class="invoice-meta text-muted">
-                <strong>{{ invoice.invoice_number }}</strong> • {{ invoice.description }}<br>
-                Paid: {{ invoice.paid_date if invoice.paid_date else "Recently" }}
-              </div>
-            </div>
-            <div class="col-md-3 text-md-end mt-2 mt-md-0">
-              <div class="invoice-amount text-success fw-bold fs-5">£{{ "%.0f"|format(invoice.amount) }}</div>
-              <span class="badge bg-success">PAID</span>
-            </div>
-          </div>
-
-          <div class="invoice-actions mt-3 d-flex flex-wrap gap-2">
-            <a href="/invoices/view/{{ invoice.id }}" class="btn btn-outline-primary btn-sm">👁️ View</a>
-            <a href="/invoices/duplicate/{{ invoice.id }}" class="btn btn-outline-secondary btn-sm">🔄 Copy</a>
-            <button onclick="quickShare('{{ invoice.id }}')" class="btn btn-outline-secondary btn-sm">📱</button>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="empty-state text-center py-5">
-        <div class="empty-icon display-4">💰</div>
-        <h5>No Paid Invoices</h5>
-        <p class="text-muted">Paid invoices will appear here.</p>
-      </div>
-    {% endif %}
-  </div>
-</div>
-
-
-<!-- Empty State for New Users -->
+<!-- Empty State -->
 {% if not unpaid_invoices and not paid_invoices %}
 <div class="card-base">
   <div class="empty-state">
     <div class="empty-icon">💰</div>
     <h4>Welcome to Invoices!</h4>
-    <p class="text-muted mb-4">Start managing your tennis coaching payments professionally.</p>
+    <p>Start managing your tennis coaching payments professionally.</p>
     
-    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+    <div class="flex flex-column" style="gap: 1rem; align-items: center; margin-top: 1.5rem;">
       <a href="/invoices/create" class="btn-base btn-accent">Create First Invoice</a>
       <a href="/invoices/templates" class="btn-base btn-outline-accent">Set Up Templates</a>
-    </div>
-    
-    <!-- Quick Start Tips -->
-    <div class="mt-4 p-3" style="background: rgba(0, 160, 126, 0.05); border-radius: 8px; text-align: left;">
-      <h6 class="text-center mb-3">💡 Getting Started</h6>
-      <ul style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; padding-left: 1.2rem;">
-        <li>Create templates for common services (private lessons, group sessions)</li>
-        <li>Add client email addresses for automatic invoice delivery</li>
-        <li>Use sharing features to send via WhatsApp or copy to clipboard</li>
-        <li>Track payments and send reminders easily</li>
-      </ul>
     </div>
   </div>
 </div>
 {% endif %}
-
-<!-- Results Counter -->
-<div id="resultsCounter" class="text-center mt-3" style="display: none;">
-  <div class="text-muted small">
-    Showing <span id="visibleCount">0</span> of <span id="totalCount">{{ (unpaid_invoices|length + paid_invoices|length) }}</span> invoices
-  </div>
-</div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
   let allInvoiceItems = [];
-  let currentTab = 'unpaid';
   
   document.addEventListener('DOMContentLoaded', function() {
     allInvoiceItems = Array.from(document.querySelectorAll('.invoice-item'));
-    updateResultsCounter();
     
     // Initialize search and filter
     document.getElementById('searchInput')?.addEventListener('input', performSearch);
     document.getElementById('statusFilter')?.addEventListener('change', performSearch);
-    
-    // Mobile optimizations
-    if (window.innerWidth <= 768) {
-      optimizeForMobile();
-    }
-    
-    // Auto-update overdue status
-    checkOverdueInvoices();
   });
   
-  function optimizeForMobile() {
-    // Ensure buttons are touch-friendly
-    const buttons = document.querySelectorAll('.btn-sm');
-    buttons.forEach(btn => {
-      btn.style.minHeight = '36px';
-    });
-    
-    // Prevent zoom on iOS
-    const inputs = document.querySelectorAll('input, select');
-    inputs.forEach(input => {
-      input.style.fontSize = '16px';
-    });
-  }
-  
-  // Tab switching with improved UX
-  function switchTab(tabId, buttonEl) {
-    currentTab = tabId;
-    
-    // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    buttonEl.classList.add('active');
-    
-    // Show/hide tab content with animation
-    document.querySelectorAll('.tab-content').forEach(content => {
-      content.style.display = 'none';
-    });
-    
-    const targetTab = document.getElementById(tabId + '-tab');
-    targetTab.style.display = 'block';
-    targetTab.classList.add('animate-in');
-    
-    setTimeout(() => {
-      targetTab.classList.remove('animate-in');
-    }, 300);
-    
-    updateResultsCounter();
-  }
-  
-  // Enhanced search and filter
   function performSearch() {
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
     const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-    
-    let visibleCount = 0;
     
     allInvoiceItems.forEach(item => {
       const searchContent = item.dataset.search || '';
@@ -565,53 +185,20 @@ Thank you!
       
       const matchesSearch = !searchTerm || searchContent.includes(searchTerm);
       const matchesFilter = statusFilter === 'all' || status === statusFilter;
-      const inCurrentTab = (currentTab === 'unpaid' && status !== 'paid') || 
-                          (currentTab === 'paid' && status === 'paid');
       
-      const shouldShow = matchesSearch && matchesFilter && inCurrentTab;
-      item.style.display = shouldShow ? 'block' : 'none';
-      
-      if (shouldShow) visibleCount++;
+      item.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
     });
-    
-    updateResultsCounter();
-    
-    // Show results counter when filtering
-    const hasFilters = searchTerm || statusFilter !== 'all';
-    document.getElementById('resultsCounter').style.display = hasFilters ? 'block' : 'none';
   }
   
   function clearFilters() {
-    const search = document.getElementById('searchInput');
-    const filter = document.getElementById('statusFilter');
-    
-    if (search) search.value = '';
-    if (filter) filter.value = 'all';
-    
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
     performSearch();
-    document.getElementById('resultsCounter').style.display = 'none';
   }
   
-  function updateResultsCounter() {
-    const visibleCountEl = document.getElementById('visibleCount');
-    const totalCountEl = document.getElementById('totalCount');
-    
-    if (!visibleCountEl || !totalCountEl) return;
-    
-    const visibleItems = allInvoiceItems.filter(item => 
-      item.style.display !== 'none' && item.offsetParent !== null
-    );
-    
-    visibleCountEl.textContent = visibleItems.length;
-  }
-  
-  // Quick share with native sharing support
   function quickShare(invoiceId) {
     const invoiceData = document.getElementById(`invoice-${invoiceId}`);
-    if (!invoiceData) {
-      showToast('❌ Invoice data not found', 'danger');
-      return;
-    }
+    if (!invoiceData) return;
     
     const text = invoiceData.textContent.trim();
     
@@ -619,23 +206,16 @@ Thank you!
       navigator.share({
         title: 'Tennis Invoice',
         text: text
-      }).catch(() => fallbackShare(text));
+      });
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
-        showToast('✅ Invoice copied to clipboard!', 'success');
-      }).catch(() => fallbackShare(text));
+        showToast('✅ Invoice copied to clipboard!');
+      });
     } else {
-      fallbackShare(text);
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
   }
   
-  function fallbackShare(text) {
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, '_blank');
-    showToast('📱 Opening WhatsApp...', 'info');
-  }
-  
-  // Quick email with loading state
   function quickEmail(invoiceId) {
     const button = event.target;
     const originalText = button.innerHTML;
@@ -650,155 +230,26 @@ Thank you!
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        showToast('📧 Email sent successfully!', 'success');
+        showToast('📧 Email sent successfully!');
         button.innerHTML = '✅';
-        
-        // Update UI to show email sent
-        const invoiceItem = button.closest('.invoice-item');
-        const meta = invoiceItem.querySelector('.invoice-meta');
-        if (meta && !meta.textContent.includes('📧 Sent')) {
-          meta.innerHTML += ' • <span style="color: var(--info);">📧 Sent</span>';
-        }
       } else {
-        showToast(`❌ ${data.error}`, 'danger');
+        showToast(`❌ ${data.error}`);
         button.innerHTML = originalText;
       }
     })
-    .catch(error => {
-      console.error('Error:', error);
-      showToast('❌ Failed to send email', 'danger');
-      button.innerHTML = originalText;
-    })
     .finally(() => {
       button.disabled = false;
-      if (button.innerHTML === '✅') {
-        setTimeout(() => {
-          button.innerHTML = originalText;
-        }, 2000);
-      }
+      setTimeout(() => button.innerHTML = originalText, 2000);
     });
   }
   
-  // Check for overdue invoices and update UI
-  function checkOverdueInvoices() {
-    const today = new Date().toISOString().split('T')[0];
-    const unpaidItems = document.querySelectorAll('.invoice-item[data-status="unpaid"]');
-    
-    unpaidItems.forEach(item => {
-      const dueDateText = item.querySelector('.invoice-meta').textContent;
-      const dueDateMatch = dueDateText.match(/Due: (\d{4}-\d{2}-\d{2})/);
-      
-      if (dueDateMatch && dueDateMatch[1] < today) {
-        // Visual update for overdue status
-        item.classList.add('overdue');
-        item.classList.remove('unpaid');
-        item.dataset.status = 'overdue';
-        
-        const badge = item.querySelector('.badge-base');
-        const amount = item.querySelector('.invoice-amount');
-        const card = item.querySelector('.card-border-left');
-        
-        if (badge) {
-          badge.className = badge.className.replace('status-warning', 'status-danger');
-          badge.textContent = 'OVERDUE';
-        }
-        if (amount) {
-          amount.classList.remove('unpaid');
-          amount.classList.add('overdue');
-        }
-        if (card) {
-          card.style.borderLeftColor = 'var(--danger)';
-        }
-      }
-    });
-  }
-  
-  // Generate report (placeholder)
-  function generateReport() {
-    showToast('📊 Report generation coming soon!', 'info');
-  }
-  
-  // Mobile-optimized toast notifications
-  function showToast(message, type = 'info') {
+  function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'position-fixed top-0 start-50 translate-middle-x mt-3';
-    toast.style.cssText = `
-      background: ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--info)'};
-      color: white;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      z-index: 1050;
-      font-size: 0.875rem;
-      max-width: 90%;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      animation: slideDown 0.3s ease;
-    `;
-    
+    toast.className = 'alert alert-success position-fixed animate-fade-in';
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
     toast.textContent = message;
     document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.animation = 'slideUp 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
   }
-  
-  // Keyboard shortcuts for power users
-  document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey || e.metaKey) {
-      switch(e.key) {
-        case 'n':
-          e.preventDefault();
-          window.location.href = '/invoices/create';
-          break;
-        case 'f':
-          e.preventDefault();
-          document.getElementById('searchInput')?.focus();
-          break;
-      }
-    }
-  });
-  
-  // Touch gestures for mobile navigation
-  let startX, startY;
-  
-  document.addEventListener('touchstart', function(e) {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  });
-  
-  document.addEventListener('touchend', function(e) {
-    if (!startX || !startY) return;
-    
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-    const deltaX = startX - endX;
-    const deltaY = startY - endY;
-    
-    // Horizontal swipe to switch tabs
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      const tabs = document.querySelectorAll('.tab-btn');
-      if (deltaX > 0 && currentTab === 'unpaid') {
-        // Swipe left: unpaid -> paid
-        tabs[1].click();
-      } else if (deltaX < 0 && currentTab === 'paid') {
-        // Swipe right: paid -> unpaid
-        tabs[0].click();
-      }
-    }
-  });
 </script>
-
-<style>
-@keyframes slideDown {
-  from { transform: translate(-50%, -100%); opacity: 0; }
-  to { transform: translate(-50%, 0); opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translate(-50%, 0); opacity: 1; }
-  to { transform: translate(-50%, -100%); opacity: 0; }
-}
-</style>
 {% endblock %}

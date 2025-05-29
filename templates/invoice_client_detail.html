@@ -12,7 +12,7 @@
 </div>
 
 <!-- Client Summary -->
-<div class="summary-grid mb-4">
+<div class="summary-grid">
   <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
     <div class="summary-amount">£{{ "%.0f"|format(total_outstanding) }}</div>
     <div class="summary-label">Outstanding</div>
@@ -33,9 +33,9 @@
 
 <!-- Quick Actions -->
 {% if total_outstanding > 0 %}
-<div class="card-base mb-4">
+<div class="card-base">
   <h5 class="section-title">⚡ Quick Actions</h5>
-  <div class="d-flex gap-2 flex-wrap">
+  <div class="flex flex-wrap" style="gap: 0.5rem;">
     <button onclick="sendPaymentReminder()" class="btn-base btn-accent">
       📱 Send Reminder
     </button>
@@ -53,22 +53,25 @@
 
 <!-- Invoice History -->
 <div class="card-base">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div class="flex flex-between align-items-center mb-4">
     <h4 class="section-title mb-0">📄 Invoice History</h4>
     
     <!-- Filter Tabs -->
-    <div class="btn-group" role="group">
-      <input type="radio" class="btn-check" name="invoiceFilter" id="allInvoices" autocomplete="off" checked>
-      <label class="btn btn-outline-secondary btn-sm" for="allInvoices">All ({{ invoices|length }})</label>
-
+    <div class="flex" style="gap: 0.5rem;">
+      <button class="btn-base btn-sm" id="allInvoices" onclick="filterInvoices('all')" style="background: var(--teal); color: white;">
+        All ({{ invoices|length }})
+      </button>
+      
       {% if unpaid_count > 0 %}
-      <input type="radio" class="btn-check" name="invoiceFilter" id="unpaidInvoices" autocomplete="off">
-      <label class="btn btn-outline-secondary btn-sm" for="unpaidInvoices">Unpaid ({{ unpaid_count }})</label>
+      <button class="btn-base btn-outline-secondary btn-sm" id="unpaidInvoices" onclick="filterInvoices('unpaid')">
+        Unpaid ({{ unpaid_count }})
+      </button>
       {% endif %}
 
       {% if (invoices|length - unpaid_count) > 0 %}
-      <input type="radio" class="btn-check" name="invoiceFilter" id="paidInvoices" autocomplete="off">
-      <label class="btn btn-outline-secondary btn-sm" for="paidInvoices">Paid ({{ invoices|length - unpaid_count }})</label>
+      <button class="btn-base btn-outline-secondary btn-sm" id="paidInvoices" onclick="filterInvoices('paid')">
+        Paid ({{ invoices|length - unpaid_count }})
+      </button>
       {% endif %}
     </div>
   </div>
@@ -76,33 +79,36 @@
   <!-- Invoice List -->
   <div class="invoice-history">
     {% for invoice in invoices %}
-    <div class="invoice-item" 
+    <div class="invoice-item card-border-left hover-subtle mb-3" 
          data-status="{{ invoice.status }}"
-         data-paid="{{ 'true' if invoice.status == 'paid' else 'false' }}">
+         data-paid="{{ 'true' if invoice.status == 'paid' else 'false' }}"
+         style="border-left-color: {{ 'var(--success)' if invoice.status == 'paid' else 'var(--danger)' if invoice.status == 'overdue' else 'var(--warning)' }};">
       
-      <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+      <div class="flex flex-between align-items-start mb-2">
         <div class="flex-grow-1">
-          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-            <h6 class="invoice-number mb-0">{{ invoice.invoice_number }}</h6>
-            <span class="badge-base status-{{ 'success' if invoice.status == 'paid' else 'warning' if invoice.status == 'unpaid' else 'danger' }}">
+          <div class="flex align-items-center flex-wrap mb-1" style="gap: 0.5rem;">
+            <h6 class="font-medium mb-0">{{ invoice.invoice_number }}</h6>
+            <span class="badge-base status-{{ 'success' if invoice.status == 'paid' else 'danger' if invoice.status == 'overdue' else 'warning' }}">
               {{ invoice.status.upper() }}
             </span>
           </div>
           
-          <p class="invoice-description mb-1">{{ invoice.description }}</p>
+          <p class="text-sm mb-1">{{ invoice.description }}</p>
           
-          <div class="invoice-meta">
-            <span class="text-muted">{{ invoice.issue_date }}</span>
-            <span class="text-muted"> • Due: {{ invoice.due_date }}</span>
+          <div class="text-sm text-muted">
+            <span>{{ invoice.issue_date }}</span>
+            <span> • Due: {{ invoice.due_date }}</span>
             {% if invoice.status == 'paid' and invoice.paid_date %}
             <span class="text-success"> • Paid: {{ invoice.paid_date }}</span>
             {% endif %}
           </div>
         </div>
         
-        <div class="invoice-actions">
-          <div class="invoice-amount mb-2">£{{ "%.2f"|format(invoice.amount) }}</div>
-          <div class="d-flex gap-1 flex-wrap">
+        <div class="text-right">
+          <div class="text-xl font-bold mb-2" style="color: {{ 'var(--success)' if invoice.status == 'paid' else 'var(--danger)' if invoice.status == 'overdue' else 'var(--warning)' }};">
+            £{{ "%.2f"|format(invoice.amount) }}
+          </div>
+          <div class="flex flex-wrap" style="gap: 0.25rem;">
             <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-sm">
               👁️ View
             </a>
@@ -134,21 +140,7 @@
   {% endif %}
 </div>
 
-{% block extra_css %}
-<style>
-  /* Filter functionality - page specific */
-  .invoice-item.hidden {
-    display: none;
-  }
-  
-  .invoice-amount {
-    font-weight: 700;
-    color: var(--navy);
-    font-size: 1.1rem;
-    text-align: right;
-  }
-</style>
-{% endblock %}
+<!-- Hidden data for sharing -->
 <div id="clientSummaryData" style="display: none;">
 💰 OUTSTANDING SUMMARY - {{ client_name }}
 
@@ -200,69 +192,69 @@ Due Date: {{ invoice.due_date }}
 - Generated by Coaches Hub
 </div>
 {% endfor %}
+
 {% endblock %}
-
-
 
 {% block extra_js %}
 <script>
-  // Filter functionality
-  document.addEventListener('DOMContentLoaded', function() {
-    const filterButtons = document.querySelectorAll('input[name="invoiceFilter"]');
-    
-    filterButtons.forEach(button => {
-      button.addEventListener('change', function() {
-        filterInvoices(this.id);
-      });
-    });
-  });
+  let currentFilter = 'all';
   
   function filterInvoices(filterId) {
+    currentFilter = filterId;
     const allItems = document.querySelectorAll('.invoice-item');
+    
+    // Update button styles
+    document.querySelectorAll('[id$="Invoices"]').forEach(btn => {
+      btn.className = btn.className.replace('btn-accent', 'btn-outline-secondary');
+      btn.style.background = '';
+      btn.style.color = '';
+    });
+    
+    const activeBtn = document.getElementById(filterId + 'Invoices');
+    activeBtn.className = activeBtn.className.replace('btn-outline-secondary', 'btn-accent');
+    activeBtn.style.background = 'var(--teal)';
+    activeBtn.style.color = 'white';
     
     allItems.forEach(item => {
       const isPaid = item.dataset.paid === 'true';
       let shouldShow = false;
       
       switch (filterId) {
-        case 'allInvoices':
+        case 'all':
           shouldShow = true;
           break;
-        case 'unpaidInvoices':
+        case 'unpaid':
           shouldShow = !isPaid;
           break;
-        case 'paidInvoices':
+        case 'paid':
           shouldShow = isPaid;
           break;
       }
       
-      item.classList.toggle('hidden', !shouldShow);
+      item.style.display = shouldShow ? 'block' : 'none';
     });
   }
   
-  // Send payment reminder via WhatsApp
   function sendPaymentReminder() {
     const reminderText = document.getElementById('paymentReminderData').textContent.trim();
     const encodedText = encodeURIComponent(reminderText);
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
     
     window.open(whatsappUrl, '_blank');
-    showToast('📱 Opening WhatsApp with payment reminder...', 'info');
+    showToast('📱 Opening WhatsApp with payment reminder...');
   }
   
-  // Copy outstanding summary
   async function copyOutstandingSummary() {
     const summaryText = document.getElementById('clientSummaryData').textContent.trim();
     
     try {
       await navigator.clipboard.writeText(summaryText);
-      showToast('✅ Outstanding summary copied to clipboard!', 'success');
+      showToast('✅ Outstanding summary copied to clipboard!');
     } catch (err) {
       fallbackCopyTextToClipboard(summaryText);
     }
   }
   
-  // Share via email
   function shareViaEmail() {
     const summaryText = document.getElementById('clientSummaryData').textContent.trim();
     const subject = `Outstanding Invoice Summary - {{ client_name }}`;
@@ -273,14 +265,13 @@ Due Date: {{ invoice.due_date }}
     {% endif %}
     
     window.location.href = mailto;
-    showToast('📧 Opening email client...', 'info');
+    showToast('📧 Opening email client...');
   }
   
-  // Quick share individual invoice
   function quickShareInvoice(invoiceId) {
     const invoiceData = document.getElementById(`invoice-share-${invoiceId}`);
     if (!invoiceData) {
-      showToast('❌ Invoice data not found', 'danger');
+      showToast('❌ Invoice data not found');
       return;
     }
     
@@ -296,10 +287,9 @@ Due Date: {{ invoice.due_date }}
       window.open(`https://wa.me/?text=${encodedText}`, '_blank');
     }
     
-    showToast('📱 Sharing invoice...', 'info');
+    showToast('📱 Sharing invoice...');
   }
   
-  // Fallback copy method
   function fallbackCopyTextToClipboard(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -312,44 +302,21 @@ Due Date: {{ invoice.due_date }}
     
     try {
       const successful = document.execCommand('copy');
-      showToast(successful ? '✅ Summary copied!' : '❌ Copy failed', successful ? 'success' : 'danger');
+      showToast(successful ? '✅ Summary copied!' : '❌ Copy failed');
     } catch (err) {
-      showToast('❌ Copy not supported', 'warning');
+      showToast('❌ Copy not supported');
     }
     
     document.body.removeChild(textArea);
   }
   
-  // Show toast notification
-  function showToast(message, type = 'info') {
+  function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in position-fixed`;
-    toast.style.cssText = `
-      top: 20px;
-      right: 20px;
-      z-index: 1050;
-      max-width: 300px;
-      box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
-    `;
-    
-    toast.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close"></button>
-    `;
-    
+    toast.className = 'alert alert-success position-fixed animate-fade-in';
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
+    toast.textContent = message;
     document.body.appendChild(toast);
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          if (toast.parentNode) {
-            toast.remove();
-          }
-        }, 300);
-      }
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
   }
 </script>
 {% endblock %}
