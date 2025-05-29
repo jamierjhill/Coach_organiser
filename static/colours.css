@@ -131,7 +131,7 @@
   
   /* For backwards compatibility - use card-base going forward */
   .tennis-card, .card-section, .section-card, 
-  .chat-container, .whats-new-container, .admin-card {
+  .chat-container, .admin-card {
     background-color: var(--white);
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
