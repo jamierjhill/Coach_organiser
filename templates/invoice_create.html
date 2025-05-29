@@ -2,19 +2,261 @@
 
 {% block title %}Create Invoice{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Enhanced form alignment and mobile responsiveness */
+  .form-section {
+    background: var(--white);
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+  
+  .form-col {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .form-col-auto {
+    flex: 0 0 auto;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 0.9rem;
+  }
+  
+  .input-base, .btn-base {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .input-base {
+    padding: 0 1rem;
+    border: 1px solid var(--light-border);
+    background: var(--white);
+    transition: all 0.2s ease;
+  }
+  
+  .input-base:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0, 160, 126, 0.1);
+    outline: none;
+  }
+  
+  .btn-base {
+    padding: 0 1.5rem;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+  }
+  
+  /* Template buttons */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .template-card {
+    background: var(--light);
+    border: 1px solid var(--light-border);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  
+  .template-card:hover {
+    background: rgba(0, 160, 126, 0.05);
+    border-color: var(--teal);
+    transform: translateY(-2px);
+  }
+  
+  .template-name {
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+  }
+  
+  .template-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .template-amount {
+    font-weight: 600;
+    color: var(--teal);
+    font-size: 1rem;
+  }
+  
+  /* Step indicators */
+  .step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--light-border);
+  }
+  
+  .step-number {
+    background: var(--teal);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.75rem;
+  }
+  
+  .step-title {
+    color: var(--navy);
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  /* Submit section */
+  .submit-section {
+    background: linear-gradient(135deg, rgba(0, 160, 126, 0.05), rgba(0, 160, 126, 0.1));
+    border: 2px dashed rgba(0, 160, 126, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  .submit-btn {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 160, 126, 0.3);
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .form-section {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .template-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    
+    .template-card {
+      padding: 0.75rem;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .title-nav-buttons {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .title-nav-buttons .btn-base {
+      width: 100%;
+    }
+    
+    .submit-section {
+      padding: 1.5rem 1rem;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 0.875rem 1rem;
+    }
+  }
+  
+  /* Loading states */
+  .btn-loading {
+    position: relative;
+    color: transparent;
+  }
+  
+  .btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-title-container">
   <h1 class="page-title">📝 {% if is_duplicate %}Duplicate{% else %}Create{% endif %} Invoice</h1>
   <div class="title-nav-buttons">
-    <a href="/invoices" class="btn-base btn-outline-accent">Back to Invoices</a>
+    <a href="/invoices" class="btn-base btn-outline-accent">← Back</a>
     <a href="/invoices/templates" class="btn-base btn-outline-secondary">📋 Templates</a>
   </div>
 </div>
 
-<div class="container-md">
+<div class="container" style="max-width: 800px;">
 
   {% if is_duplicate %}
-  <div class="card-base p-3 mb-4" style="background-color: rgba(0, 160, 126, 0.1); border: 1px solid var(--teal);">
+  <div class="card-base mb-4" style="background-color: rgba(0, 160, 126, 0.1); border: 1px solid var(--teal);">
     <div class="d-flex align-items-center">
       <div class="me-3" style="font-size: 24px;">📋</div>
       <div>
@@ -26,27 +268,25 @@
   {% endif %}
 
   {% if templates and not is_duplicate %}
-  <div class="card-base p-4 mb-4">
-    <h4 class="section-title">⚡ Quick Templates</h4>
-    <p class="text-sm text-muted mb-3">Click a template to auto-fill the form below</p>
+  <div class="form-section">
+    <div class="step-header">
+      <div class="step-number">⚡</div>
+      <h4 class="step-title">Quick Templates</h4>
+    </div>
+    <p class="text-sm text-muted mb-3">Click a template to auto-fill the form</p>
     
-    <div class="row g-2">
+    <div class="template-grid">
       {% for template in templates[:6] %}
-      <div class="col-lg-4 col-md-6">
-        <button type="button" 
-                onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')"
-                class="w-100 text-start" 
-                style="background: var(--light); border: 1px solid var(--light-border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease;">
-          <div class="font-medium mb-1">{{ template.name }}</div>
-          <div class="text-xs text-muted mb-1">{{ template.description[:30] }}{% if template.description|length > 30 %}...{% endif %}</div>
-          <div class="text-sm font-semibold" style="color: var(--teal);">£{{ "%.0f"|format(template.amount) }}</div>
-        </button>
+      <div class="template-card" onclick="useTemplate('{{ template.description }}', {{ template.amount }}, '{{ template.notes }}')">
+        <div class="template-name">{{ template.name }}</div>
+        <div class="template-description">{{ template.description[:40] }}{% if template.description|length > 40 %}...{% endif %}</div>
+        <div class="template-amount">£{{ "%.0f"|format(template.amount) }}</div>
       </div>
       {% endfor %}
     </div>
     
     {% if templates|length > 6 %}
-    <div class="text-center mt-3">
+    <div class="text-center">
       <a href="/invoices/templates" class="btn-base btn-outline-accent btn-sm">
         View All {{ templates|length }} Templates
       </a>
@@ -56,61 +296,78 @@
   {% endif %}
 
   <!-- Invoice Form -->
-  <div class="card-base p-4 my-4" style="max-width: 700px; margin: 0 auto;">
-    <form method="POST" action="/invoices/create" id="invoiceForm">
+  <form method="POST" action="/invoices/create" id="invoiceForm">
+    
+    <!-- Step 1: Client Information -->
+    <div class="form-section">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <h4 class="step-title">Client Information</h4>
+      </div>
       
-      <!-- Step 1: Client Information -->
-      <div class="mb-4">
-        <h4 class="section-title">1. Client Information</h4>
-        
-        <div class="row g-3">
-          <div class="col-md-6">
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
             <label class="form-label">Client Name *</label>
             <input type="text" name="client_name" class="input-base" 
                    placeholder="Enter client name" 
                    value="{{ duplicate_from.client_name if duplicate_from else '' }}" 
                    required autofocus>
           </div>
-          <div class="col-md-6">
+        </div>
+        <div class="form-col">
+          <div class="form-group">
             <label class="form-label">Client Email</label>
             <input type="email" name="client_email" class="input-base" 
-                   placeholder="client@example.com (optional)" 
+                   placeholder="client@example.com" 
                    value="{{ duplicate_from.client_email if duplicate_from else '' }}">
-            <div class="form-text text-xs">
-              💡 Email will be saved for future invoices and payment reminders
-            </div>
           </div>
         </div>
       </div>
       
-      <!-- Step 2: Service & Amount -->
-      <div class="mb-4">
-        <h4 class="section-title">2. Service & Amount</h4>
-        
-        <div class="mb-3">
-          <label class="form-label">Service Description *</label>
-          <input type="text" name="description" class="input-base" id="descriptionField"
-                 placeholder="e.g. Tennis Lessons (4 sessions), Court Rental" 
-                 value="{{ duplicate_from.description if duplicate_from else '' }}" required>
-        </div>
-        
-        <div class="mb-3">
-          <label class="form-label">Total Amount (£) *</label>
-          <input type="number" name="amount" class="input-base" id="amountField"
-                 placeholder="0.00" step="0.01" min="0" 
-                 value="{{ duplicate_from.amount if duplicate_from else '' }}" required>
-        </div>
+      <div class="text-xs text-muted">
+        💡 Email will be saved for future invoices and payment reminders
+      </div>
+    </div>
+    
+    <!-- Step 2: Service & Amount -->
+    <div class="form-section">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <h4 class="step-title">Service & Amount</h4>
       </div>
       
-      <!-- Step 3: Payment Details -->
-      <div class="mb-4">
-        <h4 class="section-title">3. Payment Details</h4>
-        <div class="row g-3">
-          <div class="col-md-6">
+      <div class="form-group">
+        <label class="form-label">Service Description *</label>
+        <input type="text" name="description" class="input-base" id="descriptionField"
+               placeholder="e.g. Tennis Lessons (4 sessions), Court Rental" 
+               value="{{ duplicate_from.description if duplicate_from else '' }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Total Amount (£) *</label>
+        <input type="number" name="amount" class="input-base" id="amountField"
+               placeholder="0.00" step="0.01" min="0" 
+               value="{{ duplicate_from.amount if duplicate_from else '' }}" required>
+      </div>
+    </div>
+    
+    <!-- Step 3: Payment Details -->
+    <div class="form-section">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <h4 class="step-title">Payment Details</h4>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-col">
+          <div class="form-group">
             <label class="form-label">Due Date *</label>
             <input type="date" name="due_date" class="input-base" value="{{ due_date }}" required>
           </div>
-          <div class="col-md-6">
+        </div>
+        <div class="form-col">
+          <div class="form-group">
             <label class="form-label">Payment Method</label>
             <select name="payment_method" class="input-base">
               <option value="">Select method (optional)</option>
@@ -122,57 +379,51 @@
             </select>
           </div>
         </div>
-        
-        <div class="mt-3">
-          <label class="form-label">Payment Notes (optional)</label>
-          <textarea name="notes" class="input-base" rows="3" id="notesField"
-                    placeholder="e.g. Bank transfer preferred, Payment due within 7 days, Account details: ..."
-                    >{{ duplicate_from.notes if duplicate_from else '' }}</textarea>
-        </div>
       </div>
       
-      <!-- Step 4: Email Options -->
-      <div class="mb-4">
-        <h4 class="section-title">4. Email Notification</h4>
-        <div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05);">
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="sendEmailNotification" name="send_email">
-            <label class="form-check-label" for="sendEmailNotification">
-              📧 Send invoice via email to client
-            </label>
-          </div>
-          <div class="form-text text-xs">
-            ℹ️ If enabled, an email with invoice details will be sent to the client's email address
-          </div>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Payment Notes (optional)</label>
+        <textarea name="notes" class="input-base" rows="3" id="notesField" style="height: auto; min-height: 80px; resize: vertical;"
+                  placeholder="e.g. Payment due within 7 days, Bank details: ..."
+                  >{{ duplicate_from.notes if duplicate_from else '' }}</textarea>
       </div>
-      
-      <!-- Step 5: Create Invoice -->
-      <div class="card-base p-4 mt-4" style="background-color: var(--light-bg, #f8f9fa); border: 2px dashed var(--accent-color, #007bff);">
-        <div class="text-center">
-          <h5 class="mb-3">Create Your Invoice</h5>
-          <button type="submit" class="btn-base btn-accent" style="padding: 15px 40px; font-size: 1.1rem; font-weight: 600;">
-            {% if is_duplicate %}🔄 Create Duplicate Invoice{% else %}✅ Create Invoice{% endif %}
-          </button>
-          <p class="text-muted mt-2 mb-0" style="font-size: 0.9rem;">
-            Invoice will be saved and numbered automatically
-          </p>
-        </div>
-      </div>
-      
-    </form>
-  </div>
-
-  <!-- Client Email History (if this is a repeat client) -->
-  <div id="clientEmailHistory" class="card-base" style="display: none;">
-    <h5 class="section-title">📧 Previous Client Emails</h5>
-    <div id="emailHistoryContent">
-      <!-- Will be populated via JavaScript -->
     </div>
-  </div>
+    
+    <!-- Step 4: Email Options -->
+    <div class="form-section">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <h4 class="step-title">Email Notification</h4>
+      </div>
+      
+      <div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05);">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="sendEmailNotification" name="send_email">
+          <label class="form-check-label" for="sendEmailNotification">
+            📧 Send invoice via email to client
+          </label>
+        </div>
+        <div class="text-xs text-muted">
+          ℹ️ If enabled, an email with invoice details will be sent to the client's email address
+        </div>
+      </div>
+    </div>
+    
+    <!-- Submit Section -->
+    <div class="submit-section">
+      <h5 class="mb-3">Create Your Invoice</h5>
+      <button type="submit" class="submit-btn" id="submitBtn">
+        {% if is_duplicate %}🔄 Create Duplicate Invoice{% else %}✅ Create Invoice{% endif %}
+      </button>
+      <p class="text-muted mt-2 mb-0 text-sm">
+        Invoice will be saved and numbered automatically
+      </p>
+    </div>
+    
+  </form>
 
   {% if not templates and not is_duplicate %}
-  <div class="card-base text-center p-4 my-4" style="background-color: rgba(0, 160, 126, 0.05); border: 1px dashed rgba(0, 160, 126, 0.3);">
+  <div class="card-base text-center p-4 mt-4" style="background-color: rgba(0, 160, 126, 0.05); border: 1px dashed rgba(0, 160, 126, 0.3);">
     <div>
       <div style="font-size: 32px; margin-bottom: 10px;">💡</div>
       <h5 class="mb-2">Speed Up Invoice Creation</h5>
@@ -187,7 +438,7 @@
 
 {% block extra_js %}
 <script>
-  // Enhanced template usage with email support
+  // Enhanced template usage
   function useTemplate(description, amount, notes) {
     document.getElementById('descriptionField').value = description;
     document.getElementById('amountField').value = amount;
@@ -195,62 +446,73 @@
     
     // Visual feedback
     const form = document.getElementById('invoiceForm');
-    form.style.transform = 'scale(1.02)';
+    form.style.transform = 'scale(1.01)';
     form.style.transition = 'transform 0.2s ease';
     setTimeout(() => {
       form.style.transform = 'scale(1)';
     }, 200);
     
     // Scroll and focus
-    form.scrollIntoView({ behavior: 'smooth' });
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setTimeout(() => {
       document.querySelector('input[name="client_name"]').focus();
     }, 300);
   }
 
-  // Client email lookup functionality
+  // Enhanced form handling
   document.addEventListener('DOMContentLoaded', function() {
     const clientNameInput = document.querySelector('input[name="client_name"]');
     const clientEmailInput = document.querySelector('input[name="client_email"]');
-    const emailHistoryDiv = document.getElementById('clientEmailHistory');
+    const emailCheckbox = document.getElementById('sendEmailNotification');
     
     // Auto-suggest client email based on name
     clientNameInput?.addEventListener('blur', function() {
       const clientName = this.value.trim();
       if (clientName && !clientEmailInput.value) {
-        // Check if we have this client's email from previous invoices
         checkExistingClientEmail(clientName);
       }
     });
     
     // Enable/disable email checkbox based on email presence
-    clientEmailInput?.addEventListener('input', function() {
-      const emailCheckbox = document.getElementById('sendEmailNotification');
-      const hasEmail = this.value.trim() !== '';
-      
+    function updateEmailCheckbox() {
+      const hasEmail = clientEmailInput?.value.trim() !== '';
       if (!hasEmail) {
         emailCheckbox.checked = false;
         emailCheckbox.disabled = true;
       } else {
         emailCheckbox.disabled = false;
       }
-    });
-    
-    // Initial check for email checkbox state
-    const emailCheckbox = document.getElementById('sendEmailNotification');
-    const hasInitialEmail = clientEmailInput?.value.trim() !== '';
-    if (!hasInitialEmail) {
-      emailCheckbox.disabled = true;
     }
+    
+    clientEmailInput?.addEventListener('input', updateEmailCheckbox);
+    updateEmailCheckbox(); // Initial check
+    
+    // Form submission with loading state
+    document.getElementById('invoiceForm')?.addEventListener('submit', function(e) {
+      const sendEmail = emailCheckbox.checked;
+      const clientEmail = clientEmailInput?.value.trim();
+      
+      if (sendEmail && !clientEmail) {
+        e.preventDefault();
+        alert('📧 Please enter a client email address to send email notification.');
+        clientEmailInput.focus();
+        return false;
+      }
+      
+      // Show loading state
+      const submitBtn = document.getElementById('submitBtn');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '✨ Creating Invoice...';
+      submitBtn.classList.add('btn-loading');
+      submitBtn.disabled = true;
+      
+      // Note: Form will submit normally, this is just for UX
+    });
   });
   
-  // Check for existing client email (mock function - would call API in real app)
+  // Mock function for existing client email check
   function checkExistingClientEmail(clientName) {
-    // In a real implementation, this would make an API call to check existing client data
-    // For now, we'll just show a placeholder
-    console.log(`Checking for existing email for client: ${clientName}`);
-    
-    // Mock data for demonstration
+    // In a real implementation, this would make an API call
     const mockClientEmails = {
       'john smith': 'john.smith@example.com',
       'sarah wilson': 'sarah.wilson@gmail.com',
@@ -271,7 +533,6 @@
     }
   }
   
-  // Show email suggestion notification
   function showEmailSuggestion(clientName, email) {
     const notification = document.createElement('div');
     notification.className = 'alert alert-info alert-dismissible fade show animate-fade-in mt-2';
@@ -283,55 +544,12 @@
     const clientEmailInput = document.querySelector('input[name="client_email"]');
     clientEmailInput.parentNode.appendChild(notification);
     
-    // Auto-remove after 4 seconds
     setTimeout(() => {
       if (notification.parentNode) {
         notification.classList.remove('show');
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.remove();
-          }
-        }, 300);
+        setTimeout(() => notification.remove(), 300);
       }
     }, 4000);
   }
-
-  // Hover effects for template buttons
-  document.addEventListener('DOMContentLoaded', function() {
-    const templateButtons = document.querySelectorAll('button[onclick^="useTemplate"]');
-    templateButtons.forEach(button => {
-      button.addEventListener('mouseenter', function() {
-        this.style.backgroundColor = 'rgba(0, 160, 126, 0.1)';
-        this.style.borderColor = 'var(--teal)';
-        this.style.transform = 'translateY(-2px)';
-      });
-      button.addEventListener('mouseleave', function() {
-        this.style.backgroundColor = 'var(--light)';
-        this.style.borderColor = 'var(--light-border)';
-        this.style.transform = 'translateY(0)';
-      });
-    });
-  });
-
-  // Form validation enhancement
-  document.getElementById('invoiceForm')?.addEventListener('submit', function(e) {
-    const sendEmail = document.getElementById('sendEmailNotification').checked;
-    const clientEmail = document.querySelector('input[name="client_email"]').value.trim();
-    
-    if (sendEmail && !clientEmail) {
-      e.preventDefault();
-      alert('📧 Please enter a client email address to send email notification.');
-      document.querySelector('input[name="client_email"]').focus();
-      return false;
-    }
-    
-    // Show loading state
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Invoice...';
-    submitBtn.disabled = true;
-    
-    // Note: Form will submit normally, this is just for UX
-  });
 </script>
 {% endblock %}

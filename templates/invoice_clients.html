@@ -3,119 +3,79 @@
 {% block title %}👥 Clients{% endblock %}
 
 {% block content %}
-<div class="page-title-container" style="padding: 1rem;">
-  <h1 class="page-title" style="font-size: 1.75rem; margin-bottom: 0.5rem;">👥 Clients</h1>
+<div class="page-title-container">
+  <h1 class="page-title">👥 Clients</h1>
   <div class="title-nav-buttons">
     <a href="/invoices" class="btn-base btn-outline-accent btn-sm">← Invoices</a>
-    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ New</a>
+    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ Create Invoice</a>
   </div>
 </div>
 
-<!-- Compact Summary & Search -->
-<div class="card-base" style="padding: 1rem; margin-bottom: 1rem;">
-  <!-- Summary Stats Row -->
-  <div class="row g-2 mb-3">
-    <div class="col-3">
-      <div class="text-center p-2" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white; border-radius: 8px;">
-        <div class="h6 mb-0 font-bold">{{ total_clients }}</div>
-        <div style="font-size: 0.7rem; opacity: 0.9;">Clients</div>
-      </div>
-    </div>
-    <div class="col-3">
-      <div class="text-center p-2" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white; border-radius: 8px;">
-        <div class="h6 mb-0 font-bold">{{ clients_with_outstanding }}</div>
-        <div style="font-size: 0.7rem; opacity: 0.9;">Unpaid</div>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="text-center p-2" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white; border-radius: 8px;">
-        <div class="h6 mb-0 font-bold">£{{ "%.0f"|format(total_outstanding_all) }}</div>
-        <div style="font-size: 0.7rem; opacity: 0.9;">Outstanding</div>
-      </div>
-    </div>
+<!-- Summary Stats -->
+<div class="summary-grid mb-4">
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white;">
+    <div class="summary-amount">{{ total_clients }}</div>
+    <div class="summary-label">Total Clients</div>
   </div>
-  
-  <!-- Compact Search -->
-  <div class="row g-2">
-    <div class="col-8">
-      <div class="position-relative">
-        <input type="text" id="clientSearch" class="input-base" 
-               placeholder="Search clients..." 
-               style="padding: 8px 12px; font-size: 0.9rem;">
-        <button onclick="clearClientSearch()" id="clearClientSearchBtn" 
-                class="btn-base btn-outline-secondary btn-sm position-absolute" 
-                style="right: 4px; top: 50%; transform: translateY(-50%); display: none; padding: 2px 6px; font-size: 0.7rem;">
-          ✕
-        </button>
-      </div>
-    </div>
-    <div class="col-4">
-      <select id="clientFilter" class="input-base" style="padding: 8px 12px; font-size: 0.9rem;">
-        <option value="all">All</option>
-        <option value="outstanding">Unpaid</option>
-        <option value="paid-up">Paid Up</option>
-        <option value="overdue">Overdue</option>
-      </select>
-    </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
+    <div class="summary-amount">{{ clients_with_outstanding }}</div>
+    <div class="summary-label">With Unpaid</div>
+  </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(total_outstanding_all) }}</div>
+    <div class="summary-label">Outstanding</div>
   </div>
 </div>
 
-<!-- Compact Client List -->
+
+<!-- Client List -->
 {% if clients %}
-<div class="card-base" style="padding: 1rem;">
-  <div class="row g-2" id="clientsList">
+<div class="card-base">
+    <!-- Search & Filter -->
+      <div class="row g-2">
+        <div class="col-8">
+          <input type="text" id="clientSearch" class="input-base" placeholder="Search clients...">
+        </div>
+    
+    </div>
+  <div id="clientsList">
     {% for client in clients %}
-    <div class="col-12 client-card" 
+    <div class="client-item" 
          data-client-name="{{ client.name|lower }}"
          data-has-outstanding="{{ 'true' if client.total_outstanding > 0 else 'false' }}"
          data-has-overdue="{{ 'true' if client.total_overdue > 0 else 'false' }}">
       
-      <div class="card-border-left hover-subtle" 
-           style="border-left-color: {% if client.total_overdue > 0 %}var(--danger){% elif client.total_outstanding > 0 %}var(--warning){% else %}var(--success){% endif %}; padding: 12px; margin-bottom: 8px;">
-        
-        <!-- Mobile-First Layout -->
-        <div class="d-flex align-items-center justify-content-between">
-          <!-- Client Info -->
-          <div class="flex-grow-1 me-2">
-            <div class="d-flex align-items-center mb-1">
-              <h6 class="mb-0 font-medium me-2" style="font-size: 0.95rem;">{{ client.name }}</h6>
-              {% if client.total_overdue > 0 %}
-                <span class="badge-base status-danger" style="font-size: 0.6rem; padding: 2px 6px;">OVERDUE</span>
-              {% elif client.total_outstanding > 0 %}
-                <span class="badge-base status-warning" style="font-size: 0.6rem; padding: 2px 6px;">UNPAID</span>
-              {% else %}
-                <span class="badge-base status-success" style="font-size: 0.6rem; padding: 2px 6px;">PAID</span>
-              {% endif %}
-            </div>
-            
-            <!-- Financial Summary -->
-            <div class="d-flex align-items-center gap-2 text-sm">
-              {% if client.total_outstanding > 0 %}
-                <span class="font-bold" style="color: var(--warning); font-size: 0.9rem;">£{{ "%.0f"|format(client.total_outstanding) }}</span>
-                <span class="text-muted" style="font-size: 0.75rem;">unpaid</span>
-              {% endif %}
-              {% if client.total_paid > 0 %}
-                <span class="text-muted" style="font-size: 0.75rem;">• £{{ "%.0f"|format(client.total_paid) }} paid</span>
-              {% endif %}
-              <span class="text-muted" style="font-size: 0.75rem;">• {{ client.total_invoices }} invoice{{ 's' if client.total_invoices != 1 else '' }}</span>
-            </div>
-          </div>
-          
-          <!-- Action Buttons -->
-          <div class="d-flex gap-1">
-            <a href="/invoices/clients/{{ client.name }}" class="btn-base btn-accent btn-sm" style="padding: 6px 10px; font-size: 0.8rem;">
-              View
-            </a>
-            <a href="/invoices/clients/{{ client.name }}/create" class="btn-base btn-outline-accent btn-sm" style="padding: 6px 8px; font-size: 0.8rem;">
-              +
-            </a>
-            {% if client.total_outstanding > 0 %}
-            <button onclick="shareOutstandingReminder('{{ client.name }}', {{ client.total_outstanding }})" 
-                    class="btn-base btn-outline-secondary btn-sm" style="padding: 6px 8px; font-size: 0.8rem;" title="Send reminder">
-              📱
-            </button>
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <h6 class="client-name mb-0">{{ client.name }}</h6>
+            {% if client.total_overdue > 0 %}
+              <span class="badge-compact badge-danger">OVERDUE</span>
+            {% elif client.total_outstanding > 0 %}
+              <span class="badge-compact badge-warning">UNPAID</span>
+            {% else %}
+              <span class="badge-compact badge-success">PAID</span>
             {% endif %}
           </div>
+          
+          <div class="client-stats">
+            {% if client.total_outstanding > 0 %}
+              <span class="outstanding-amount">£{{ "%.0f"|format(client.total_outstanding) }} unpaid</span>
+            {% endif %}
+            {% if client.total_paid > 0 %}
+              <span class="text-muted"> • £{{ "%.0f"|format(client.total_paid) }} paid</span>
+            {% endif %}
+            <span class="text-muted"> • {{ client.total_invoices }} invoice{{ 's' if client.total_invoices != 1 else '' }}</span>
+          </div>
+        </div>
+        
+        <div class="d-flex gap-1">
+          <a href="/invoices/clients/{{ client.name }}" class="btn-base btn-accent btn-xs">View</a>
+          <a href="/invoices/clients/{{ client.name }}/create" class="btn-base btn-outline-accent btn-xs">+</a>
+          {% if client.total_outstanding > 0 %}
+          <button onclick="shareReminder('{{ client.name }}', {{ client.total_outstanding }})" 
+                  class="btn-base btn-outline-secondary btn-xs" title="Send reminder">📱</button>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -123,72 +83,157 @@
   </div>
   
   <!-- No results message -->
-  <div id="noClientsMessage" style="display: none;" class="text-center py-3">
-    <div class="text-muted" style="font-size: 0.9rem;">
-      <div style="font-size: 1.5rem; margin-bottom: 8px;">🔍</div>
+  <div id="noClientsMessage" style="display: none;" class="text-center py-4">
+    <div class="text-muted">
+      <div style="font-size: 2rem; margin-bottom: 1rem;">🔍</div>
       <p class="mb-2">No clients match your search</p>
-      <button onclick="clearAllClientFilters()" class="btn-base btn-outline-accent btn-sm">
-        Clear Filters
-      </button>
+      <button onclick="clearFilters()" class="btn-base btn-outline-accent btn-sm">Clear Filters</button>
     </div>
   </div>
 </div>
 
 {% else %}
-<!-- Compact Empty State -->
-<div class="card-base text-center" style="padding: 2rem 1rem;">
-  <div style="font-size: 2.5rem; margin-bottom: 1rem;">👥</div>
-  <h4 class="mb-2" style="font-size: 1.2rem;">No Clients Yet</h4>
-  <p class="mb-3 text-muted" style="font-size: 0.9rem;">Create your first invoice to start building your client base.</p>
-  <a href="/invoices/create" class="btn-base btn-accent">✨ Create First Invoice</a>
+<!-- Empty State -->
+<div class="card-base text-center p-4">
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <h4 class="mb-2">No Clients Yet</h4>
+    <p class="text-muted mb-3">Create your first invoice to start building your client base.</p>
+    <a href="/invoices/create" class="btn-base btn-accent">✨ Create First Invoice</a>
+  </div>
 </div>
 {% endif %}
 
-<!-- Collapsible Tips -->
-<div class="card-base" style="padding: 1rem;">
-  <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#tips" style="cursor: pointer;">
-    <h6 class="mb-0" style="font-size: 0.9rem;">💡 Quick Tips</h6>
-    <span style="font-size: 0.8rem; color: var(--text-secondary);">▼</span>
-  </div>
-  <div class="collapse" id="tips">
-    <div class="mt-2 pt-2" style="border-top: 1px solid var(--light-border); font-size: 0.8rem; line-height: 1.4;">
-      <div class="row g-2">
-        <div class="col-12 col-md-4">• Click client name to see full history</div>
-        <div class="col-12 col-md-4">• Use 📱 for payment reminders</div>
-        <div class="col-12 col-md-4">• Red = overdue, yellow = unpaid</div>
-      </div>
-    </div>
-  </div>
-</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Client Items */
+  .client-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--light-border);
+    transition: background-color 0.2s ease;
+  }
+  
+  .client-item:hover {
+    background-color: rgba(0, 160, 126, 0.05);
+  }
+  
+  .client-item:last-child {
+    border-bottom: none;
+  }
+  
+  .client-name {
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 0.9rem;
+  }
+  
+  .client-stats {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  
+  .outstanding-amount {
+    font-weight: 600;
+    color: var(--warning);
+  }
+  
+  .badge-compact {
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .badge-warning {
+    background: rgba(247, 201, 72, 0.2);
+    color: var(--warning);
+  }
+  
+  .badge-success {
+    background: rgba(0, 160, 126, 0.2);
+    color: var(--success);
+  }
+  
+  .badge-danger {
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--danger);
+  }
+  
+  .btn-xs {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 576px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    
+    .summary-card {
+      padding: 12px;
+    }
+    
+    .summary-amount {
+      font-size: 1.3rem;
+    }
+    
+    .client-item {
+      padding: 10px;
+    }
+    
+    .client-name {
+      font-size: 0.85rem;
+    }
+    
+    .client-stats {
+      font-size: 0.75rem;
+    }
+    
+    .btn-xs {
+      padding: 3px 6px;
+      font-size: 0.7rem;
+    }
+    
+    .d-flex.gap-1 {
+      flex-direction: column;
+      gap: 4px !important;
+    }
+    
+    .d-flex.gap-1 .btn-xs {
+      width: 100%;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // Compact search functionality
-  let allClientCards = [];
+  let allClientItems = [];
   
   document.addEventListener('DOMContentLoaded', function() {
-    allClientCards = Array.from(document.querySelectorAll('.client-card'));
+    allClientItems = Array.from(document.querySelectorAll('.client-item'));
     
-    document.getElementById('clientSearch').addEventListener('input', performClientSearch);
-    document.getElementById('clientFilter').addEventListener('change', performClientSearch);
-    
-    document.getElementById('clientSearch').addEventListener('input', function() {
-      const clearBtn = document.getElementById('clearClientSearchBtn');
-      clearBtn.style.display = this.value ? 'block' : 'none';
-    });
+    document.getElementById('clientSearch')?.addEventListener('input', performSearch);
+    document.getElementById('clientFilter')?.addEventListener('change', performSearch);
   });
   
-  function performClientSearch() {
-    const searchTerm = document.getElementById('clientSearch').value.toLowerCase().trim();
-    const filterValue = document.getElementById('clientFilter').value;
+  function performSearch() {
+    const searchTerm = document.getElementById('clientSearch')?.value.toLowerCase().trim() || '';
+    const filterValue = document.getElementById('clientFilter')?.value || 'all';
     
     let visibleCount = 0;
     
-    allClientCards.forEach(card => {
-      const clientName = card.dataset.clientName || '';
-      const hasOutstanding = card.dataset.hasOutstanding === 'true';
-      const hasOverdue = card.dataset.hasOverdue === 'true';
+    allClientItems.forEach(item => {
+      const clientName = item.dataset.clientName || '';
+      const hasOutstanding = item.dataset.hasOutstanding === 'true';
+      const hasOverdue = item.dataset.hasOverdue === 'true';
       
       const matchesSearch = !searchTerm || clientName.includes(searchTerm);
       
@@ -206,28 +251,28 @@
       }
       
       const shouldShow = matchesSearch && matchesFilter;
-      card.style.display = shouldShow ? 'block' : 'none';
+      item.style.display = shouldShow ? 'block' : 'none';
       
       if (shouldShow) visibleCount++;
     });
     
-    document.getElementById('noClientsMessage').style.display = visibleCount === 0 ? 'block' : 'none';
+    const noResults = document.getElementById('noClientsMessage');
+    if (noResults) {
+      noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
   }
   
-  function clearClientSearch() {
-    document.getElementById('clientSearch').value = '';
-    document.getElementById('clearClientSearchBtn').style.display = 'none';
-    performClientSearch();
+  function clearFilters() {
+    const search = document.getElementById('clientSearch');
+    const filter = document.getElementById('clientFilter');
+    
+    if (search) search.value = '';
+    if (filter) filter.value = 'all';
+    
+    performSearch();
   }
   
-  function clearAllClientFilters() {
-    document.getElementById('clientSearch').value = '';
-    document.getElementById('clientFilter').value = 'all';
-    document.getElementById('clearClientSearchBtn').style.display = 'none';
-    performClientSearch();
-  }
-  
-  function shareOutstandingReminder(clientName, outstandingAmount) {
+  function shareReminder(clientName, outstandingAmount) {
     const message = `Hi ${clientName},
 
 Hope you're well! Just a friendly reminder that you have an outstanding balance of £${outstandingAmount.toFixed(2)} for tennis coaching.
@@ -235,41 +280,28 @@ Hope you're well! Just a friendly reminder that you have an outstanding balance 
 If you've already made payment, please ignore this message. Otherwise, please let me know if you need any details.
 
 Thanks!
-- ${getCurrentCoachName()}`;
+- {{ current_user.username|title if current_user.username else "Your Coach" }}`;
     
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-    showToast('📱 Opening WhatsApp...', 'info');
+    if (navigator.share) {
+      navigator.share({
+        title: 'Payment Reminder',
+        text: message
+      });
+    } else {
+      const encodedMessage = encodeURIComponent(message);
+      window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+    }
+    
+    showToast('📱 Payment reminder ready to share');
   }
   
-  function getCurrentCoachName() {
-    return '{{ current_user.username|title if current_user.username else "Your Coach" }}';
-  }
-  
-  function showToast(message, type = 'info') {
+  function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show animate-fade-in position-fixed`;
-    toast.style.cssText = `
-      top: 20px;
-      right: 20px;
-      z-index: 1050;
-      max-width: 280px;
-      font-size: 0.85rem;
-      box-shadow: 0 4px 12px rgba(0, 34, 62, 0.15);
-    `;
-    
-    toast.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close btn-close-sm" onclick="this.parentElement.remove()"></button>
-    `;
-    
+    toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-info';
+    toast.style.zIndex = '1050';
+    toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }
-    }, 3000);
+    setTimeout(() => toast.remove(), 2000);
   }
 </script>
 {% endblock %}

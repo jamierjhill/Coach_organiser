@@ -1563,3 +1563,242 @@
     display: block;
   }
 }
+<style>
+  /* Enhanced form alignment and mobile responsiveness */
+  .form-section {
+    background: var(--white);
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+  
+  .form-col {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .form-col-auto {
+    flex: 0 0 auto;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 0.9rem;
+  }
+  
+  .input-base, .btn-base {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .input-base {
+    padding: 0 1rem;
+    border: 1px solid var(--light-border);
+    background: var(--white);
+    transition: all 0.2s ease;
+  }
+  
+  .input-base:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(0, 160, 126, 0.1);
+    outline: none;
+  }
+  
+  .btn-base {
+    padding: 0 1.5rem;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+  }
+  
+  /* Template buttons */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .template-card {
+    background: var(--light);
+    border: 1px solid var(--light-border);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  
+  .template-card:hover {
+    background: rgba(0, 160, 126, 0.05);
+    border-color: var(--teal);
+    transform: translateY(-2px);
+  }
+  
+  .template-name {
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+  }
+  
+  .template-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .template-amount {
+    font-weight: 600;
+    color: var(--teal);
+    font-size: 1rem;
+  }
+  
+  /* Step indicators */
+  .step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--light-border);
+  }
+  
+  .step-number {
+    background: var(--teal);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.75rem;
+  }
+  
+  .step-title {
+    color: var(--navy);
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  /* Submit section */
+  .submit-section {
+    background: linear-gradient(135deg, rgba(0, 160, 126, 0.05), rgba(0, 160, 126, 0.1));
+    border: 2px dashed rgba(0, 160, 126, 0.3);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  .submit-btn {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    color: white;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 160, 126, 0.3);
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .form-section {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .template-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    
+    .template-card {
+      padding: 0.75rem;
+    }
+    
+    .page-title {
+      font-size: 1.5rem;
+    }
+    
+    .title-nav-buttons {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .title-nav-buttons .btn-base {
+      width: 100%;
+    }
+    
+    .submit-section {
+      padding: 1.5rem 1rem;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 0.875rem 1rem;
+    }
+  }
+  
+  /* Loading states */
+  .btn-loading {
+    position: relative;
+    color: transparent;
+  }
+  
+  .btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

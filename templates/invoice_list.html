@@ -7,104 +7,63 @@
   <h1 class="page-title">💰 Invoices</h1>
   <div class="title-nav-buttons">
     <a href="/invoices/clients" class="btn-base btn-outline-accent btn-sm">👥 Clients</a>
-    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ New</a>
+    <a href="/invoices/create" class="btn-base btn-accent btn-sm">➕ Create Invoice</a>
   </div>
 </div>
 
-<!-- Compact Financial Summary -->
-<div class="row g-2 mb-4">
-  <div class="col-4">
-    <div class="card-base p-3 text-center" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
-      <div class="h5 mb-0 font-bold">£{{ "%.0f"|format(total_unpaid) }}</div>
-      <div class="text-xs">Outstanding</div>
-    </div>
+<!-- Financial Summary -->
+<div class="summary-grid mb-4">
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(total_unpaid) }}</div>
+    <div class="summary-label">Outstanding</div>
   </div>
-  <div class="col-4">
-    <div class="card-base p-3 text-center" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white;">
-      <div class="h5 mb-0 font-bold">£{{ "%.0f"|format(total_paid) }}</div>
-      <div class="text-xs">Received</div>
-    </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(total_paid) }}</div>
+    <div class="summary-label">Received</div>
   </div>
-  <div class="col-4">
-    <div class="card-base p-3 text-center" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white;">
-      <div class="h5 mb-0 font-bold">{{ num_overdue }}</div>
-      <div class="text-xs">Overdue</div>
-    </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--danger), #c0392b); color: white;">
+    <div class="summary-amount">{{ num_overdue }}</div>
+    <div class="summary-label">Overdue</div>
   </div>
 </div>
 
-<!-- Compact Search -->
-<div class="card-base p-3 mb-3">
-  <div class="row g-2 align-items-end">
-    <div class="col-8">
-      <input type="text" id="searchInput" class="input-base input-base-sm" 
-             placeholder="Search invoices...">
-    </div>
-    <div class="col-4">
-      <select id="statusFilter" class="input-base input-base-sm">
-        <option value="all">All</option>
-        <option value="unpaid">Unpaid</option>
-        <option value="paid">Paid</option>
-        <option value="overdue">Overdue</option>
-      </select>
-    </div>
-  </div>
-</div>
 
-<!-- Quick Actions -->
-<div class="row g-2 mb-3">
-  <div class="col-6">
-    <button onclick="toggleClientModal()" class="btn-base btn-outline-accent btn-sm w-100">
-      👥 View Clients
-    </button>
-  </div>
-  <div class="col-6">
-    <a href="/invoices/templates" class="btn-base btn-outline-secondary btn-sm w-100">
-      📋 Templates
-    </a>
-  </div>
-</div>
 
-<!-- Unpaid Invoices - Compact -->
+<!-- Unpaid Invoices -->
 {% if unpaid_invoices %}
-<div class="card-base p-3 mb-3" id="unpaidSection">
-  <h5 class="mb-3 d-flex align-items-center">
-    💸 Unpaid ({{ unpaid_invoices|length }})
-    <button class="btn-base btn-outline-secondary btn-sm ms-auto" onclick="toggleSection('unpaid')">
+<div class="card-base mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">💸 Unpaid ({{ unpaid_invoices|length }})</h5>
+    <button class="btn-base btn-outline-secondary btn-sm" onclick="toggleSection('unpaid')">
       <span id="unpaidToggle">−</span>
     </button>
-  </h5>
+  </div>
   
   <div id="unpaidList" class="invoice-list">
     {% for invoice in unpaid_invoices %}
-    <div class="invoice-item compact" 
-         data-client="{{ invoice.client_name|lower }}"
-         data-invoice-number="{{ invoice.invoice_number|lower }}"
-         data-description="{{ invoice.description|lower }}"
-         data-status="{{ invoice.status }}">
-      
-      <div class="invoice-item-header">
-        <div class="invoice-client">{{ invoice.client_name }}</div>
-        <div class="invoice-amount">£{{ "%.0f"|format(invoice.amount) }}</div>
-      </div>
-      
-      <div class="invoice-details">
-        <div class="invoice-description">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
-        <div class="invoice-meta">
-          <span class="invoice-number">{{ invoice.invoice_number }}</span>
-          <span class="invoice-due">Due {{ invoice.due_date }}</span>
-          <span class="badge-compact {% if invoice.status == 'overdue' %}badge-danger{% else %}badge-warning{% endif %}">
-            {{ invoice.status|upper }}
-          </span>
+    <div class="invoice-item" data-status="{{ invoice.status }}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div class="flex-grow-1">
+          <div class="invoice-client">{{ invoice.client_name }}</div>
+          <div class="invoice-description">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
+          <div class="invoice-meta">
+            <span class="invoice-number">{{ invoice.invoice_number }}</span>
+            <span class="invoice-due">Due {{ invoice.due_date }}</span>
+            <span class="badge-compact {% if invoice.status == 'overdue' %}badge-danger{% else %}badge-warning{% endif %}">
+              {{ invoice.status|upper }}
+            </span>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="invoice-amount">£{{ "%.0f"|format(invoice.amount) }}</div>
         </div>
       </div>
       
-      <div class="invoice-actions">
+      <div class="d-flex gap-1 flex-wrap">
         <form action="/invoices/mark-paid/{{ invoice.id }}" method="POST" class="d-inline">
           <button type="submit" class="btn-base btn-success btn-xs">✅ Paid</button>
         </form>
-        <button onclick="quickShare('{{ invoice.id }}', 'whatsapp')" class="btn-base btn-outline-accent btn-xs">📱</button>
-        <button onclick="quickShare('{{ invoice.id }}', 'copy')" class="btn-base btn-outline-accent btn-xs">📋</button>
+        <button onclick="shareInvoice('{{ invoice.id }}')" class="btn-base btn-outline-accent btn-xs">📱</button>
         <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-secondary btn-xs">👁️</a>
       </div>
       
@@ -127,55 +86,37 @@ Thank you!
 </div>
 {% endif %}
 
-<!-- Paid Invoices - Compact -->
+<!-- Paid Invoices -->
 {% if paid_invoices %}
-<div class="card-base p-3 mb-3" id="paidSection">
-  <h5 class="mb-3 d-flex align-items-center">
-    ✅ Paid ({{ paid_invoices|length }})
-    <button class="btn-base btn-outline-secondary btn-sm ms-auto" onclick="toggleSection('paid')">
+<div class="card-base mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">✅ Paid ({{ paid_invoices|length }})</h5>
+    <button class="btn-base btn-outline-secondary btn-sm" onclick="toggleSection('paid')">
       <span id="paidToggle">+</span>
     </button>
-  </h5>
+  </div>
   
   <div id="paidList" class="invoice-list" style="display: none;">
     {% for invoice in paid_invoices %}
-    <div class="invoice-item compact paid" 
-         data-client="{{ invoice.client_name|lower }}"
-         data-invoice-number="{{ invoice.invoice_number|lower }}"
-         data-description="{{ invoice.description|lower }}"
-         data-status="{{ invoice.status }}">
-      
-      <div class="invoice-item-header">
-        <div class="invoice-client">{{ invoice.client_name }}</div>
-        <div class="invoice-amount paid">£{{ "%.0f"|format(invoice.amount) }}</div>
-      </div>
-      
-      <div class="invoice-details">
-        <div class="invoice-description">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
-        <div class="invoice-meta">
-          <span class="invoice-number">{{ invoice.invoice_number }}</span>
-          <span class="invoice-paid">Paid {{ invoice.paid_date if invoice.paid_date else "?" }}</span>
-          <span class="badge-compact badge-success">PAID</span>
+    <div class="invoice-item paid" data-status="{{ invoice.status }}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div class="flex-grow-1">
+          <div class="invoice-client">{{ invoice.client_name }}</div>
+          <div class="invoice-description">{{ invoice.description[:40] }}{% if invoice.description|length > 40 %}...{% endif %}</div>
+          <div class="invoice-meta">
+            <span class="invoice-number">{{ invoice.invoice_number }}</span>
+            <span class="invoice-paid">Paid {{ invoice.paid_date if invoice.paid_date else "?" }}</span>
+            <span class="badge-compact badge-success">PAID</span>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="invoice-amount paid">£{{ "%.0f"|format(invoice.amount) }}</div>
         </div>
       </div>
       
-      <div class="invoice-actions">
-        <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-xs">👁️ View</a>
-        <button onclick="quickShare('{{ invoice.id }}', 'whatsapp')" class="btn-base btn-outline-secondary btn-xs">📱</button>
+      <div class="d-flex gap-1">
+        <a href="/invoices/view/{{ invoice.id }}" class="btn-base btn-outline-accent btn-xs">👁️</a>
         <a href="/invoices/duplicate/{{ invoice.id }}" class="btn-base btn-outline-secondary btn-xs">🔄</a>
-      </div>
-      
-      <!-- Hidden sharing data -->
-      <div class="invoice-data" id="invoice-{{ invoice.id }}" style="display: none;">
-🎾 INVOICE {{ invoice.invoice_number }} - PAID ✅
-
-From: {{ current_user.username|title }} (Tennis Coach)
-To: {{ invoice.client_name }}
-Service: {{ invoice.description }}
-Amount: £{{ "%.2f"|format(invoice.amount) }}
-Paid: {{ invoice.paid_date if invoice.paid_date else "?" }}
-
-Thank you!
       </div>
     </div>
     {% endfor %}
@@ -186,70 +127,61 @@ Thank you!
 <!-- Empty State -->
 {% if not unpaid_invoices and not paid_invoices %}
 <div class="card-base text-center p-4">
-  <div class="empty-icon mb-3">💰</div>
-  <h5 class="mb-2">No Invoices Yet</h5>
-  <p class="text-muted mb-3 small">Create your first invoice to start tracking payments</p>
-  <a href="/invoices/create" class="btn-base btn-accent">Create First Invoice</a>
-</div>
-{% endif %}
-
-<!-- Client Modal -->
-<div class="modal fade" id="clientModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">👥 Your Clients</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div id="clientList">Loading clients...</div>
-      </div>
-      <div class="modal-footer">
-        <a href="/invoices/clients" class="btn-base btn-accent">View Full Dashboard</a>
-        <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
+  <div class="empty-state">
+    <div class="empty-icon">💰</div>
+    <h5 class="mb-2">No Invoices Yet</h5>
+    <p class="text-muted mb-3">Create your first invoice to start tracking payments</p>
+    <a href="/invoices/create" class="btn-base btn-accent">Create First Invoice</a>
   </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-  /* Compact Invoice Items */
+  /* Streamlined Invoice Items */
   .invoice-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
   
-  .invoice-item.compact {
+  .invoice-item {
     background: var(--light);
     border-radius: 8px;
     padding: 12px;
     border-left: 3px solid var(--warning);
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease;
   }
   
-  .invoice-item.compact.paid {
+  .invoice-item.paid {
     border-left-color: var(--success);
   }
   
-  .invoice-item.compact:hover {
+  .invoice-item:hover {
     transform: translateX(3px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .invoice-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
   }
   
   .invoice-client {
     font-weight: 600;
     color: var(--navy);
     font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .invoice-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  
+  .invoice-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
   }
   
   .invoice-amount {
@@ -262,35 +194,6 @@ Thank you!
     color: var(--success);
   }
   
-  .invoice-details {
-    margin-bottom: 8px;
-  }
-  
-  .invoice-description {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-  }
-  
-  .invoice-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  
-  .invoice-number, .invoice-due, .invoice-paid {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-  
-  .invoice-actions {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  
-  /* Compact badges */
   .badge-compact {
     padding: 2px 6px;
     border-radius: 12px;
@@ -314,63 +217,29 @@ Thank you!
     color: var(--danger);
   }
   
-  /* Extra small buttons */
   .btn-xs {
     padding: 4px 8px;
     font-size: 0.75rem;
     border-radius: 4px;
   }
   
-  /* Compact input */
-  .input-base-sm {
-    padding: 6px 10px;
-    font-size: 0.875rem;
-  }
-  
-  /* Client modal content */
-  .client-compact {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: var(--light);
-    border-radius: 6px;
-    margin-bottom: 6px;
-    border-left: 3px solid var(--teal);
-  }
-  
-  .client-compact:hover {
-    background: rgba(0, 160, 126, 0.1);
-  }
-  
-  .client-info h6 {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--navy);
-  }
-  
-  .client-stats {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-  
-  .client-amount {
-    font-weight: 700;
-    color: var(--warning);
-  }
-  
-  .client-amount.paid-up {
-    color: var(--success);
-  }
-  
   /* Mobile optimizations */
   @media (max-width: 576px) {
-    .invoice-meta {
-      font-size: 0.7rem;
+    .summary-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
     }
     
-    .invoice-actions {
-      margin-top: 8px;
+    .summary-card {
+      padding: 12px;
+    }
+    
+    .summary-amount {
+      font-size: 1.3rem;
+    }
+    
+    .invoice-item {
+      padding: 10px;
     }
     
     .btn-xs {
@@ -378,13 +247,8 @@ Thank you!
       font-size: 0.7rem;
     }
     
-    .page-title {
-      font-size: 1.5rem;
-    }
-    
-    .title-nav-buttons .btn-base {
-      padding: 6px 12px;
-      font-size: 0.8rem;
+    .invoice-meta {
+      font-size: 0.7rem;
     }
   }
 </style>
@@ -404,46 +268,6 @@ Thank you!
       list.style.display = 'none';
       toggle.textContent = '+';
     }
-  }
-  
-  // Client modal
-  function toggleClientModal() {
-    const modal = new bootstrap.Modal(document.getElementById('clientModal'));
-    loadClients();
-    modal.show();
-  }
-  
-  // Load clients for modal
-  function loadClients() {
-    const clientList = document.getElementById('clientList');
-    clientList.innerHTML = 'Loading...';
-    
-    // Simulate loading client data (in real app, fetch from API)
-    setTimeout(() => {
-      clientList.innerHTML = `
-        <div class="client-compact">
-          <div class="client-info">
-            <h6>John Smith</h6>
-            <div class="client-stats">3 invoices • Last: 2024-01-15</div>
-          </div>
-          <div class="client-amount">£150</div>
-        </div>
-        <div class="client-compact">
-          <div class="client-info">
-            <h6>Sarah Wilson</h6>
-            <div class="client-stats">1 invoice • Last: 2024-01-10</div>
-          </div>
-          <div class="client-amount paid-up">£0</div>
-        </div>
-        <div class="client-compact">
-          <div class="client-info">
-            <h6>Mike Johnson</h6>
-            <div class="client-stats">2 invoices • Last: 2024-01-20</div>
-          </div>
-          <div class="client-amount">£80</div>
-        </div>
-      `;
-    }, 500);
   }
   
   // Search functionality
@@ -471,25 +295,32 @@ Thank you!
     });
   });
   
-  // Quick share functionality
-  function quickShare(invoiceId, method) {
+  // Share invoice
+  function shareInvoice(invoiceId) {
     const invoiceData = document.getElementById(`invoice-${invoiceId}`);
     if (!invoiceData) return;
     
     const text = invoiceData.textContent.trim();
     
-    if (method === 'whatsapp') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    } else if (method === 'copy') {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('✅ Copied!');
+    if (navigator.share) {
+      navigator.share({
+        title: 'Invoice',
+        text: text
       });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('✅ Copied to clipboard!');
+      });
+    } else {
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(whatsappUrl, '_blank');
     }
   }
   
   function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-success';
+    toast.style.zIndex = '1050';
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);

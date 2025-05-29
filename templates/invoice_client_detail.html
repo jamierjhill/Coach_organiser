@@ -41,34 +41,6 @@
   </div>
 </div>
 
-<!-- Quick Actions -->
-{% if total_outstanding > 0 %}
-<div class="card-base">
-  <h4 class="section-title">⚡ Quick Actions</h4>
-  
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card-border-left" style="background-color: rgba(0, 160, 126, 0.05);">
-        <h6 class="mb-2">💬 Send Payment Reminder</h6>
-        <p class="text-sm text-muted mb-3">Quick WhatsApp message about outstanding balance</p>
-        <button onclick="sendPaymentReminder()" class="btn-base btn-accent w-100">
-          📱 Send WhatsApp Reminder
-        </button>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="card-border-left" style="background-color: rgba(52, 152, 219, 0.05);">
-        <h6 class="mb-2">📋 Copy Outstanding Summary</h6>
-        <p class="text-sm text-muted mb-3">Copy text summary of unpaid invoices</p>
-        <button onclick="copyOutstandingSummary()" class="btn-base btn-outline-accent w-100">
-          📋 Copy Summary
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 <!-- Invoice History -->
 <div class="card-base">
