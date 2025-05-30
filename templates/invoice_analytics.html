@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block title %}📊 Revenue Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+  .period-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .period-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .revenue-amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--navy);
+  }
+  
+  .period-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .growth-indicator {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  
+  .growth-positive {
+    color: var(--success);
+  }
+  
+  .growth-negative {
+    color: var(--danger);
+  }
+  
+  .client-row {
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .client-row:hover {
+    background-color: rgba(0, 160, 126, 0.05);
+  }
+  
+  .client-rank {
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .client-rank.gold {
+    background: linear-gradient(135deg, #f1c40f, #f39c12);
+  }
+  
+  .client-rank.silver {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  }
+  
+  .client-rank.bronze {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+  }
+  
+  .filter-tabs {
+    display: flex;
+    background: var(--light);
+    border-radius: 12px;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .filter-tab {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+  
+  .filter-tab.active {
+    background: var(--white);
+    color: var(--teal);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chart-container {
+    height: 300px;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    background: var(--light);
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .chart-bar {
+    background: linear-gradient(to top, var(--teal), var(--teal-light));
+    border-radius: 4px 4px 0 0;
+    min-height: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    min-width: 30px;
+  }
+  
+  .chart-bar:hover {
+    opacity: 0.8;
+    transform: translateY(-5px);
+  }
+  
+  .bar-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  
+  .bar-label {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  @media (max-width: 768px) {
+    .revenue-amount {
+      font-size: 1.2rem;
+    }
+    
+    .summary-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    
+    .chart-container {
+      height: 200px;
+      padding: 0.75rem;
+    }
+    
+    .chart-bar {
+      min-width: 20px;
+    }
+    
+    .bar-value {
+      font-size: 0.6rem;
+      top: -20px;
+    }
+    
+    .bar-label {
+      font-size: 0.65rem;
+    }
+    
+    .client-row {
+      padding: 0.5rem;
+    }
+    
+    .client-rank {
+      width: 24px;
+      height: 24px;
+      font-size: 0.7rem;
+      margin-right: 0.75rem;
+    }
+    
+    .filter-tab {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.8rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title-container">
+  <h1 class="page-title">📊 Revenue Analytics</h1>
+  <div class="title-nav-buttons">
+    <a href="/invoices" class="btn-base btn-outline-accent">← Invoices</a>
+    <a href="/invoices/clients" class="btn-base btn-outline-secondary">👥 Clients</a>
+  </div>
+</div>
+
+<!-- Revenue Summary -->
+<div class="summary-grid mb-4">
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(total_revenue) }}</div>
+    <div class="summary-label">Total Revenue</div>
+  </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white;">
+    <div class="summary-amount">{{ total_clients }}</div>
+    <div class="summary-label">Paying Clients</div>
+  </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--warning), #e67e22); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(avg_revenue_per_client) }}</div>
+    <div class="summary-label">Avg per Client</div>
+  </div>
+  <div class="summary-card" style="background: linear-gradient(135deg, var(--info), #1e88e5); color: white;">
+    <div class="summary-amount">£{{ "%.0f"|format(current_month_revenue) }}</div>
+    <div class="summary-label">This Month</div>
+    {% if month_growth != 0 %}
+    <div class="growth-indicator {{ 'growth-positive' if month_growth > 0 else 'growth-negative' }}">
+      {{ "↗" if month_growth > 0 else "↘" }} {{ "%.1f"|format(month_growth|abs) }}%
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Period Analysis -->
+<div class="card-base">
+  <h4 class="section-title">📈 Revenue Trends</h4>
+  
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="showPeriod('months', this)">Monthly</button>
+    <button class="filter-tab" onclick="showPeriod('quarters', this)">Quarterly</button>
+    <button class="filter-tab" onclick="showPeriod('years', this)">Yearly</button>
+  </div>
+  
+  <!-- Monthly View -->
+  <div id="months-view" class="period-view">
+    {% if months_data %}
+    <div class="chart-container">
+      {% set max_revenue = months_data|map(attribute='revenue')|max %}
+      {% for month in months_data|reverse %}
+      <div class="chart-bar" 
+           style="height: {{ (month.revenue / max_revenue * 200)|round }}px;"
+           onclick="showPeriodDetail('{{ month.period }}', {{ month.revenue }})">
+        <div class="bar-value">£{{ "%.0f"|format(month.revenue) }}</div>
+        <div class="bar-label">{{ month.period.split()[0] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="row g-3">
+      {% for month in months_data %}
+      <div class="col-md-4 col-6">
+        <div class="period-card card-border-left" onclick="showPeriodDetail('{{ month.period }}', {{ month.revenue }})">
+          <div class="period-label">{{ month.period }}</div>
+          <div class="revenue-amount">£{{ "%.0f"|format(month.revenue) }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📈</div>
+      <p>No monthly revenue data yet. Start creating and completing invoices to see trends!</p>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Quarterly View -->
+  <div id="quarters-view" class="period-view" style="display: none;">
+    {% if quarters_data %}
+    <div class="chart-container">
+      {% set max_revenue = quarters_data|map(attribute='revenue')|max %}
+      {% for quarter in quarters_data|reverse %}
+      <div class="chart-bar" 
+           style="height: {{ (quarter.revenue / max_revenue * 200)|round }}px;"
+           onclick="showPeriodDetail('{{ quarter.period }}', {{ quarter.revenue }})">
+        <div class="bar-value">£{{ "%.0f"|format(quarter.revenue) }}</div>
+        <div class="bar-label">{{ quarter.period }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="row g-3">
+      {% for quarter in quarters_data %}
+      <div class="col-md-6 col-12">
+        <div class="period-card card-border-left" onclick="showPeriodDetail('{{ quarter.period }}', {{ quarter.revenue }})">
+          <div class="period-label">{{ quarter.period }}</div>
+          <div class="revenue-amount">£{{ "%.0f"|format(quarter.revenue) }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📊</div>
+      <p>No quarterly data available yet.</p>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Yearly View -->
+  <div id="years-view" class="period-view" style="display: none;">
+    {% if years_data %}
+    <div class="chart-container">
+      {% set max_revenue = years_data|map(attribute='revenue')|max %}
+      {% for year in years_data|reverse %}
+      <div class="chart-bar" 
+           style="height: {{ (year.revenue / max_revenue * 200)|round }}px;"
+           onclick="showPeriodDetail('{{ year.period }}', {{ year.revenue }})">
+        <div class="bar-value">£{{ "%.0f"|format(year.revenue) }}</div>
+        <div class="bar-label">{{ year.period }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="row g-3">
+      {% for year in years_data %}
+      <div class="col-md-4 col-6">
+        <div class="period-card card-border-left" onclick="showPeriodDetail('{{ year.period }}', {{ year.revenue }})">
+          <div class="period-label">{{ year.period }}</div>
+          <div class="revenue-amount">£{{ "%.0f"|format(year.revenue) }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <p>No yearly data available yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Top Clients Analysis -->
+<div class="card-base">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="section-title mb-0">🏆 Top Clients</h4>
+    <span class="badge-base status-info">By Revenue</span>
+  </div>
+  
+  {% if top_clients %}
+  <div class="top-clients-list">
+    {% for client in top_clients %}
+    <div class="client-row d-flex align-items-center">
+      <div class="client-rank {{ 'gold' if loop.index == 1 else 'silver' if loop.index == 2 else 'bronze' if loop.index == 3 else '' }}">
+        {{ loop.index }}
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start flex-wrap">
+          <div>
+            <h6 class="mb-1 font-medium">{{ client.name }}</h6>
+            <div class="text-muted small">
+              {{ client.invoice_count }} invoice{{ 's' if client.invoice_count != 1 else '' }}
+              • Avg £{{ "%.0f"|format(client.avg_invoice_value) }}
+              {% if client.email %}
+              • 📧
+              {% endif %}
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="revenue-amount">£{{ "%.0f"|format(client.total_revenue) }}</div>
+            <div class="text-muted small">{{ "%.1f"|format(client.total_revenue / total_revenue * 100) }}% of total</div>
+          </div>
+        </div>
+      </div>
+      <div class="ms-3">
+        <a href="/invoices/clients/{{ client.name }}" class="btn-base btn-outline-accent btn-sm">View</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Client Insights -->
+  <div class="card-border-left mt-4" style="background-color: rgba(0, 160, 126, 0.05);">
+    <h6 class="mb-2">💡 Client Insights</h6>
+    <div class="row g-3 small">
+      <div class="col-md-4">
+        <strong>Revenue Concentration:</strong><br>
+        Top 3 clients: {{ "%.1f"|format((top_clients[:3]|sum(attribute='total_revenue') / total_revenue * 100) if total_revenue > 0 else 0) }}%
+      </div>
+      <div class="col-md-4">
+        <strong>Best Client:</strong><br>
+        {{ top_clients[0].name if top_clients else 'N/A' }} (£{{ "%.0f"|format(top_clients[0].total_revenue) if top_clients else 0 }})
+      </div>
+      <div class="col-md-4">
+        <strong>Average Client Value:</strong><br>
+        £{{ "%.0f"|format(avg_revenue_per_client) }} per client
+      </div>
+    </div>
+  </div>
+  
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <h5>No Client Data Yet</h5>
+    <p class="text-muted mb-3">Complete some invoices to see your top clients and revenue insights.</p>
+    <a href="/invoices/create" class="btn-base btn-accent">Create Your First Invoice</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Quick Stats Summary -->
+<div class="card-base">
+  <h4 class="section-title">📋 Quick Stats</h4>
+  <div class="row g-3">
+    <div class="col-md-3 col-6">
+      <div class="text-center">
+        <div class="h3 mb-1" style="color: var(--teal);">{{ paid_invoices_count }}</div>
+        <div class="text-muted small">Paid Invoices</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="text-center">
+        <div class="h3 mb-1" style="color: var(--navy);">{{ all_invoices_count }}</div>
+        <div class="text-muted small">Total Invoices</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="text-center">
+        <div class="h3 mb-1" style="color: var(--warning);">{{ "%.0f"|format((paid_invoices_count / all_invoices_count * 100) if all_invoices_count > 0 else 0) }}%</div>
+        <div class="text-muted small">Payment Rate</div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="text-center">
+        <div class="h3 mb-1" style="color: var(--success);">£{{ "%.0f"|format(current_year_revenue) }}</div>
+        <div class="text-muted small">This Year</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Period filtering
+  function showPeriod(period, button) {
+    // Update tab buttons
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    button.classList.add('active');
+    
+    // Show/hide period views
+    document.querySelectorAll('.period-view').forEach(view => {
+      view.style.display = 'none';
+    });
+    document.getElementById(period + '-view').style.display = 'block';
+  }
+  
+  // Show period details
+  function showPeriodDetail(period, revenue) {
+    const message = `${period}\nRevenue: £${revenue.toFixed(0)}`;
+    
+    // Create a simple modal-like tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'position-fixed top-50 start-50 translate-middle';
+    tooltip.style.cssText = `
+      background: var(--navy);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      z-index: 1050;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      min-width: 200px;
+    `;
+    
+    tooltip.innerHTML = `
+      <h6 class="mb-2">${period}</h6>
+      <div style="font-size: 1.5rem; font-weight: bold;">£${revenue.toFixed(0)}</div>
+      <button onclick="this.parentElement.remove()" class="btn-base btn-outline-light btn-sm mt-2">Close</button>
+    `;
+    
+    document.body.appendChild(tooltip);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (tooltip.parentNode) {
+        tooltip.remove();
+      }
+    }, 3000);
+  }
+  
+  // Copy analytics summary
+  function copyAnalyticsSummary() {
+    const summary = `📊 COACHING REVENUE SUMMARY
+    
+💰 Total Revenue: £{{ "%.0f"|format(total_revenue) }}
+👥 Paying Clients: {{ total_clients }}
+📈 Average per Client: £{{ "%.0f"|format(avg_revenue_per_client) }}
+📅 This Month: £{{ "%.0f"|format(current_month_revenue) }}
+📊 This Year: £{{ "%.0f"|format(current_year_revenue) }}
+
+🏆 TOP CLIENTS:
+{% for client in top_clients[:5] %}{{ loop.index }}. {{ client.name }} - £{{ "%.0f"|format(client.total_revenue) }}
+{% endfor %}
+
+Generated by Coaches Hub Analytics`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(summary).then(() => {
+        showToast('📋 Analytics summary copied to clipboard!', 'success');
+      });
+    } else {
+      showToast('📋 Copy not supported on this device', 'warning');
+    }
+  }
+  
+  // Export data (placeholder)
+  function exportData() {
+    showToast('📤 Export feature coming soon!', 'info');
+  }
+  
+  // Toast notifications
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed top-0 start-50 translate-middle-x mt-3';
+    toast.style.cssText = `
+      background: ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--info)'};
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      z-index: 1050;
+      font-size: 0.875rem;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideDown 0.3s ease;
+    `;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideUp 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      switch(e.key) {
+        case 'c':
+          e.preventDefault();
+          copyAnalyticsSummary();
+          break;
+        case '1':
+          e.preventDefault();
+          document.querySelectorAll('.filter-tab')[0].click();
+          break;
+        case '2':
+          e.preventDefault();
+          document.querySelectorAll('.filter-tab')[1].click();
+          break;
+        case '3':
+          e.preventDefault();
+          document.querySelectorAll('.filter-tab')[2].click();
+          break;
+      }
+    }
+  });
+  
+  // Initialize mobile optimizations
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth <= 768) {
+      // Optimize chart interactions for mobile
+      document.querySelectorAll('.chart-bar').forEach(bar => {
+        bar.addEventListener('touchstart', function(e) {
+          e.preventDefault();
+          this.click();
+        });
+      });
+      
+      // Add swipe gesture for period switching
+      let startX = 0;
+      document.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+      });
+      
+      document.addEventListener('touchend', function(e) {
+        const endX = e.changedTouches[0].clientX;
+        const deltaX = startX - endX;
+        
+        if (Math.abs(deltaX) > 50) {
+          const currentTab = document.querySelector('.filter-tab.active');
+          const tabs = document.querySelectorAll('.filter-tab');
+          const currentIndex = Array.from(tabs).indexOf(currentTab);
+          
+          if (deltaX > 0 && currentIndex < tabs.length - 1) {
+            // Swipe left - next tab
+            tabs[currentIndex + 1].click();
+          } else if (deltaX < 0 && currentIndex > 0) {
+            // Swipe right - previous tab
+            tabs[currentIndex - 1].click();
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -100%); opacity: 0; }
+}
+</style>
+{% endblock %}
