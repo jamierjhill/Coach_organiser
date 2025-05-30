@@ -810,3 +810,211 @@ def invoice_analytics():
             paid_invoices_count=0,
             all_invoices_count=0
         )
+    
+# Add these routes to blueprints/invoice.py
+
+@invoice_bp.route("/pay/<invoice_id>")
+def client_payment_portal(invoice_id):
+    """Public payment confirmation portal for clients"""
+    try:
+        # Find invoice across all coaches
+        invoice = None
+        coach_username = None
+        
+        for users_dir in os.listdir("data/users"):
+            if users_dir.endswith('.json'):
+                username = users_dir[:-5]
+                invoices = load_json_feature(INVOICES_DIR, username)
+                found_invoice = next((inv for inv in invoices if inv.get("id") == invoice_id), None)
+                if found_invoice:
+                    invoice = normalize_invoice_data(found_invoice)
+                    coach_username = username
+                    break
+        
+        if not invoice:
+            return render_template("payment_error.html", 
+                                 error="Invoice not found",
+                                 message="This invoice link may be invalid or expired.")
+        
+        # Check if already paid
+        if invoice.get("status") == "paid":
+            return render_template("payment_success.html", 
+                                 invoice=invoice, 
+                                 coach_name=coach_username.title(),
+                                 already_paid=True)
+        
+        return render_template("client_payment_portal.html", 
+                             invoice=invoice, 
+                             coach_name=coach_username.title())
+                             
+    except Exception as e:
+        return render_template("payment_error.html", 
+                             error="System Error",
+                             message="Please contact your coach directly.")
+
+@invoice_bp.route("/pay/<invoice_id>/confirm", methods=["POST"])
+def confirm_payment(invoice_id):
+    """Client confirms payment made"""
+    try:
+        payment_method = request.form.get("payment_method", "").strip()
+        payment_reference = request.form.get("payment_reference", "").strip()
+        payment_date = request.form.get("payment_date", "")
+        client_notes = request.form.get("client_notes", "").strip()
+        
+        if not payment_date:
+            payment_date = datetime.now().strftime("%Y-%m-%d")
+        
+        # Find and update invoice
+        invoice = None
+        coach_username = None
+        
+        for users_dir in os.listdir("data/users"):
+            if users_dir.endswith('.json'):
+                username = users_dir[:-5]
+                invoices = load_json_feature(INVOICES_DIR, username)
+                
+                for i, inv in enumerate(invoices):
+                    if inv.get("id") == invoice_id:
+                        invoice = inv
+                        coach_username = username
+                        
+                        # Update invoice with client-provided payment info
+                        invoice["status"] = "paid"
+                        invoice["paid_date"] = payment_date
+                        invoice["client_payment_method"] = payment_method
+                        invoice["client_payment_reference"] = payment_reference
+                        invoice["client_payment_notes"] = client_notes
+                        invoice["client_confirmed_at"] = datetime.now().isoformat()
+                        invoice["updated_at"] = datetime.now().isoformat()
+                        
+                        # Save updated invoices
+                        save_json_feature(INVOICES_DIR, username, invoices)
+                        
+                        # Send notification email to coach
+                        send_payment_notification_to_coach(invoice, coach_username)
+                        
+                        return render_template("payment_success.html", 
+                                             invoice=invoice, 
+                                             coach_name=coach_username.title())
+        
+        return render_template("payment_error.html", 
+                             error="Invoice not found",
+                             message="Unable to process payment confirmation.")
+                             
+    except Exception as e:
+        return render_template("payment_error.html", 
+                             error="Processing Error", 
+                             message="Please try again or contact your coach.")
+
+def send_payment_notification_to_coach(invoice, coach_username):
+    """Send email notification to coach when client confirms payment"""
+    try:
+        from app import mail
+        
+        # Get coach's email from user data
+        coach_data = load_user(coach_username)
+        coach_email = coach_data.get("email") if coach_data else None
+        
+        if not coach_email:
+            print(f"No email found for coach {coach_username}")
+            return
+        
+        subject = f"💰 Payment Confirmed - Invoice #{invoice['invoice_number']}"
+        
+        body = f"""Hi {coach_username.title()},
+
+Good news! {invoice['client_name']} has confirmed payment for:
+
+🎾 PAYMENT CONFIRMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Invoice: {invoice['invoice_number']}
+Client: {invoice['client_name']}
+Amount: £{invoice['amount']:.2f}
+Service: {invoice['description']}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Payment Details:
+• Date: {invoice.get('paid_date', 'Not specified')}
+• Method: {invoice.get('client_payment_method', 'Not specified')}
+• Reference: {invoice.get('client_payment_reference', 'None provided')}
+
+{invoice.get('client_payment_notes', '')}
+
+The invoice has been automatically marked as PAID in your system.
+
+Best regards,
+Coaches Hub
+"""
+
+        msg = Message(
+            subject=subject,
+            recipients=[coach_email],
+            body=body
+        )
+        
+        mail.send(msg)
+        print(f"Payment notification sent to {coach_email}")
+        
+    except Exception as e:
+        print(f"Failed to send payment notification: {e}")
+
+# Update the send_invoice_email function to include payment link
+def send_invoice_email_with_payment_link(invoice, coach_name):
+    """Enhanced email with payment confirmation link"""
+    try:
+        from app import mail
+        from flask import request
+        
+        if not invoice.get("client_email"):
+            return False, "No client email provided"
+        
+        # Generate payment link
+        base_url = request.url_root.rstrip('/')
+        payment_link = f"{base_url}/pay/{invoice['id']}"
+        
+        subject = f"🎾 Invoice #{invoice['invoice_number']} from {coach_name}"
+        
+        body = f"""Hi {invoice['client_name']},
+
+I hope this email finds you well. Please find your invoice below:
+
+🎾 INVOICE DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Invoice Number: {invoice['invoice_number']}
+Service: {invoice['description']}
+Amount: £{invoice['amount']:.2f}
+Issue Date: {invoice['issue_date']}
+Due Date: {invoice['due_date']}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💰 EASY PAYMENT CONFIRMATION
+Once you've made payment, simply click this link to confirm:
+{payment_link}
+
+This will automatically notify me and update your invoice status.
+
+{invoice.get('notes', '')}
+
+Thank you!
+
+Best regards,
+{coach_name}
+Tennis Coach
+
+---
+This invoice was generated by Coaches Hub
+www.coaches-hub.app
+"""
+
+        msg = Message(
+            subject=subject,
+            recipients=[invoice["client_email"]],
+            body=body
+        )
+        
+        mail.send(msg)
+        return True, "Email sent successfully"
+        
+    except Exception as e:
+        print(f"Error sending invoice email: {e}")
+        return False, f"Failed to send email: {str(e)}"
