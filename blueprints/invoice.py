@@ -808,10 +808,4 @@ def invoice_analytics():
             current_year_revenue=0,
             month_growth=0,
             paid_invoices_count=0,
-            all_invoices_count=0
-<<<<<<< HEAD
-        )
-    
-=======
-        )
->>>>>>> parent of a495958 (client side confirmation)
+            all_invoices_count=0)
