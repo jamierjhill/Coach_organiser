@@ -809,5 +809,9 @@ def invoice_analytics():
             month_growth=0,
             paid_invoices_count=0,
             all_invoices_count=0
+<<<<<<< HEAD
         )
     
+=======
+        )
+>>>>>>> parent of a495958 (client side confirmation)
