@@ -5,7 +5,7 @@ load_dotenv()
 import os, random, csv, io
 from datetime import timedelta
 from collections import defaultdict
-from flask import Flask, render_template, request, session, redirect, flash
+from flask import Flask, render_template, request, session, redirect
 from utils import organize_matches
 
 app = Flask(__name__)
@@ -196,25 +196,8 @@ def index():
             "match_type": match_type
         })
 
-        # Handle player rounds editing
-        if "edit_player_rounds" in request.form:
-            player_name = request.form.get("edit_player_name")
-            try:
-                max_rounds = int(request.form.get("max_rounds", num_matches))
-                for player in players:
-                    if player["name"] == player_name:
-                        if max_rounds < num_matches:
-                            player["max_rounds"] = max_rounds
-                        elif "max_rounds" in player:
-                            del player["max_rounds"]
-                        break
-                session["players"] = players
-                flash(f"✅ Updated max rounds for {player_name}", "success")
-            except (ValueError, TypeError):
-                flash("⚠️ Invalid number of rounds", "warning")
-
         # Remove player
-        elif "remove_player" in request.form:
+        if "remove_player" in request.form:
             name_to_remove = request.form.get("remove_player")
             players = [p for p in players if p["name"] != name_to_remove]
             session["players"] = players
@@ -222,21 +205,16 @@ def index():
             session.pop("matchups", None)
             session.pop("player_match_counts", None)
             session.pop("rounds", None)
-            flash(f"✅ Removed {name_to_remove} from session", "success")
 
         # CSV upload
         elif "upload_csv" in request.form:
             file = request.files.get("csv_file")
-            if not file or not file.filename.endswith(".csv"):
-                flash("⚠️ Please upload a valid .csv file.", "warning")
-            else:
+            if file and file.filename.endswith(".csv"):
                 try:
                     content = file.read().decode("utf-8")
                     reader = csv.DictReader(io.StringIO(content))
                     
-                    if not reader.fieldnames or 'name' not in reader.fieldnames or 'grade' not in reader.fieldnames:
-                        flash("⚠️ CSV must have 'name' and 'grade' columns.", "warning")
-                    else:
+                    if reader.fieldnames and 'name' in reader.fieldnames and 'grade' in reader.fieldnames:
                         added_count = 0
                         for row in reader:
                             name = row.get("name", "").strip()
@@ -248,21 +226,15 @@ def index():
                             except (ValueError, AttributeError):
                                 continue
                         
-                        if added_count == 0:
-                            flash("⚠️ No valid players found in CSV.", "warning")
-                        else:
+                        if added_count > 0:
                             session["players"] = players
-                            flash(f"✅ Added {added_count} players from CSV.", "success")
                             
-                except UnicodeDecodeError:
-                    flash("⚠️ File encoding error. Please ensure the CSV is UTF-8 encoded.", "warning")
-                except Exception as e:
-                    flash(f"❌ Failed to read CSV: {str(e)}", "warning")
+                except (UnicodeDecodeError, Exception):
+                    pass  # Silently handle errors
 
         # Reset everything
         elif "reset" in request.form:
             session.clear()
-            flash("✅ Everything has been reset.", "success")
             return redirect("/")
 
         # Add individual player
@@ -273,29 +245,22 @@ def index():
             except (TypeError, ValueError):
                 grade = None
 
-            if not name or grade not in [1, 2, 3, 4]:
-                flash("⚠️ Please enter a valid name and select a grade between 1-4.", "warning")
-            else:
+            if name and grade in [1, 2, 3, 4]:
                 players.append({"name": name, "grade": grade})
                 session["players"] = players
-                flash(f"✅ Added {name} to the session.", "success")
 
-        # Reshuffle specific round - NOW IMPLEMENTED!
+        # Reshuffle specific round
         elif "reshuffle_round" in request.form:
             try:
                 round_to_reshuffle = int(request.form.get("reshuffle_round"))
                 
-                if not matchups or not rounds:
-                    flash("⚠️ No matches to reshuffle. Organize matches first.", "warning")
-                else:
+                if matchups and rounds:
                     # Generate new matches for this round
                     new_round_matches = reshuffle_single_round(
                         players, courts, match_type, round_to_reshuffle, matchups, rounds
                     )
                     
-                    if new_round_matches is None:
-                        flash("⚠️ Cannot reshuffle this round - not enough available players.", "warning")
-                    else:
+                    if new_round_matches is not None:
                         # Remove old matches for this round from all courts
                         for court_index in range(len(matchups)):
                             matchups[court_index] = [
@@ -329,19 +294,15 @@ def index():
                             "rounds": rounds
                         })
                         
-                        flash(f"🔀 Round {round_to_reshuffle} has been reshuffled with new matchups!", "success")
-                        
             except (ValueError, TypeError):
-                flash("⚠️ Invalid round number.", "warning")
+                pass  # Silently handle invalid round numbers
 
         # Organize matches
         elif "organize_matches" in request.form or "reshuffle" in request.form:
             if "reshuffle" in request.form:
                 random.shuffle(players)
 
-            if len(players) < (2 if match_type == "singles" else 4):
-                flash(f"⚠️ Need at least {2 if match_type == 'singles' else 4} players for {match_type}.", "warning")
-            else:
+            if len(players) >= (2 if match_type == "singles" else 4):
                 matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
                     players, courts, match_type, num_matches
                 )
@@ -358,7 +319,6 @@ def index():
                     "player_match_counts": player_match_counts,
                     "rounds": rounds
                 })
-                flash("✅ Matches organized successfully!", "success")
 
     return render_template(
         "index.html",
@@ -373,12 +333,10 @@ def index():
 
 @app.errorhandler(404)
 def not_found(error):
-    flash("⚠️ Page not found.", "warning")
     return redirect("/")
 
 @app.errorhandler(500)
 def server_error(error):
-    flash("❌ Something went wrong. Please try again.", "danger")
     return redirect("/")
 
 if __name__ == "__main__":

@@ -110,13 +110,9 @@
                   {% endif %}
                 </div>
                 <div class="player-actions">
-                  <button type="button" class="btn-base btn-info btn-sm" 
-                         onclick="editPlayerRounds('{{ player.name }}', {{ player.get('max_rounds', num_matches) }})">
-                    🔄
-                  </button>
                   <button type="button" class="btn-base btn-accent btn-sm" 
                          onclick="confirmRemovePlayer('{{ player.name }}')">
-                    🗑️
+                    🗑️ Remove
                   </button>
                 </div>
               </div>
@@ -136,10 +132,10 @@
     {% if players %}
     <div class="card-base">
       <div class="action-controls">
-        <button type="submit" name="organize_matches" value="true" class="btn-base btn-accent btn-lg" onclick="return validateOrganizeMatches()" formnovalidate>
+        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()" formnovalidate>
           🎯 Organize Matches
         </button>
-        <button type="submit" name="reshuffle" value="true" class="btn-base btn-secondary" formnovalidate>
+        <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()">
           🔀 Reshuffle All
         </button>
         <button type="button" class="btn-base btn-outline-danger" 
@@ -155,7 +151,6 @@
     <div class="card-base" id="matches-section">
       <div class="schedule-header">
         <h4 class="section-title">📋 Match Schedule</h4>
-
       </div>
 
       <!-- Schedule by Round -->
@@ -164,9 +159,9 @@
           <div class="round-section">
             <div class="round-header">
               <h5 class="round-title">Round {{ round_num }}</h5>
-              <button type="submit" name="reshuffle_round" value="{{ round_num }}" 
-                     class="btn-base btn-info btn-sm"
-                     formnovalidate>
+              <button type="button" class="btn-base btn-info btn-sm"
+                     onclick="reshuffleRound({{ round_num }})"
+                     data-round="{{ round_num }}">
                 🔀 Reshuffle
               </button>
             </div>
@@ -234,7 +229,6 @@
         {% endfor %}
       </div>
 
-
     {% elif players %}
     <div class="card-base">
       <div class="empty-state">
@@ -279,68 +273,6 @@
 
 {% block extra_js %}
 <script>
-  // Modal Management Functions
-  function showAlert(message, type = 'info', title = null) {
-    const modal = document.getElementById('alertModal');
-    const header = document.getElementById('alertModalHeader');
-    const icon = document.getElementById('alertModalIcon');
-    const titleEl = document.getElementById('alertModalTitle');
-    const messageEl = document.getElementById('alertModalMessage');
-    const button = document.getElementById('alertModalButton');
-    
-    // Set content
-    messageEl.textContent = message;
-    
-    // Configure based on type
-    switch(type) {
-      case 'success':
-        header.className = 'modal-header bg-success text-white';
-        icon.textContent = '✅ ';
-        titleEl.textContent = title || 'Success';
-        button.className = 'btn-base btn-success';
-        break;
-      case 'error':
-        header.className = 'modal-header bg-danger text-white';
-        icon.textContent = '❌ ';
-        titleEl.textContent = title || 'Error';
-        button.className = 'btn-base btn-danger';
-        break;
-      case 'warning':
-        header.className = 'modal-header bg-warning text-dark';
-        icon.textContent = '⚠️ ';
-        titleEl.textContent = title || 'Warning';
-        button.className = 'btn-base btn-warning';
-        break;
-      default:
-        header.className = 'modal-header bg-info text-white';
-        icon.textContent = 'ℹ️ ';
-        titleEl.textContent = title || 'Information';
-        button.className = 'btn-base btn-info';
-    }
-    
-    new bootstrap.Modal(modal).show();
-  }
-  
-  function showConfirm(message, onConfirm, title = 'Confirm Action') {
-    const modal = document.getElementById('confirmModal');
-    const messageEl = document.getElementById('confirmModalMessage');
-    const confirmBtn = document.getElementById('confirmModalButton');
-    
-    messageEl.textContent = message;
-    
-    // Remove any existing event listeners
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    
-    // Add new event listener
-    newConfirmBtn.addEventListener('click', function() {
-      bootstrap.Modal.getInstance(modal).hide();
-      if (onConfirm) onConfirm();
-    });
-    
-    new bootstrap.Modal(modal).show();
-  }
-
   // Timer functions
   let timerInterval;
   let remainingTime = 1200;
@@ -374,213 +306,293 @@
       remainingTime = minutes * 60;
       updateClockDisplay(display);
     } else {
-      showAlert("Please enter a number between 1 and 60.", 'warning');
+      alert("Please enter a number between 1 and 60.");
     }
   }
 
-// Scroll position management - just maintain current position
-function saveScrollPosition() {
-  sessionStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
-}
-
-function restoreScrollPosition() {
-  const savedPosition = sessionStorage.getItem('scrollPosition');
-  if (savedPosition) {
-    window.scrollTo(0, parseInt(savedPosition));
-    sessionStorage.removeItem('scrollPosition');
-  }
-}
-
-window.onload = function () {
-  // Restore scroll position before any DOM changes
-  restoreScrollPosition();
-
-  const display = document.getElementById('main-timer-display');
-  if (display) updateClockDisplay(display);
-  
-  const defaultView = "round";
-  const selector = document.getElementById("scheduleToggle");
-  if (selector) {
-    selector.value = defaultView;
-    toggleScheduleView(defaultView);
-  }
-};
-
-// Save scroll position before form submission
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', function() {
-      saveScrollPosition();
+  // Helper function to reattach event handlers after AJAX updates
+  function reattachEventHandlers() {
+    // Reattach reshuffle round buttons
+    const reshuffleButtons = document.querySelectorAll('button[data-round]');
+    reshuffleButtons.forEach(button => {
+      button.onclick = function() {
+        reshuffleRound(this.getAttribute('data-round'));
+      };
     });
   }
-});
 
-  
-  function toggleScheduleView(view) {
-    const courtDiv = document.getElementById("schedule-court");
-    const roundDiv = document.getElementById("schedule-round");
-    if (courtDiv && roundDiv) {
-      courtDiv.style.display = view === "court" ? "block" : "none";
-      roundDiv.style.display = view === "round" ? "block" : "none";
-    }
-  }
-  
-  function editPlayerRounds(playerName, currentMaxRounds) {
-    if (typeof bootstrap === 'undefined') {
-      console.error("Bootstrap is not loaded.");
-      return;
-    }
-
-    const modalElement = document.getElementById('editRoundsModal');
-    if (!modalElement) {
-      console.error("Modal element not found.");
+  // AJAX organize matches function
+  function organizeMatches() {
+    if (!validateOrganizeMatches()) {
       return;
     }
     
-    try {
-      const modal = new bootstrap.Modal(modalElement);
-      document.getElementById('editPlayerName').value = playerName;
-      document.getElementById('maxRounds').value = currentMaxRounds;
-      
-      const totalRounds = parseInt(document.querySelector('input[name="num_matches"]').value) || 1;
-      document.getElementById('maxRounds').max = totalRounds;
-      
-      modal.show();
-    } catch (e) {
-      console.error("Error initializing modal:", e);
-      alert("There was an error opening the edit form. Please try again.");
-    }
-  }
-
-  function submitEditRounds() {
-    const playerName = document.getElementById('editPlayerName').value;
-    const maxRounds = document.getElementById('maxRounds').value;
+    const formData = new FormData();
+    formData.append('organize_matches', 'true');
     
-    if (!playerName || !maxRounds) {
-      alert("Please ensure all fields are filled out.");
-      return;
-    }
-    
-    // Create a hidden form and submit it
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/index';
-    
-    // Add the edit player rounds data
-    const editField = document.createElement('input');
-    editField.type = 'hidden';
-    editField.name = 'edit_player_rounds';
-    editField.value = 'true';
-    form.appendChild(editField);
-    
-    const nameField = document.createElement('input');
-    nameField.type = 'hidden';
-    nameField.name = 'edit_player_name';
-    nameField.value = playerName;
-    form.appendChild(nameField);
-    
-    const roundsField = document.createElement('input');
-    roundsField.type = 'hidden';
-    roundsField.name = 'max_rounds';
-    roundsField.value = maxRounds;
-    form.appendChild(roundsField);
-    
-    // Add current form state to maintain session
-    const mainForm = document.querySelector('form');
-    const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
+    // Add current form state
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[type="number"], select');
     inputs.forEach(input => {
       if (input.name && input.value) {
-        const hiddenField = document.createElement('input');
-        hiddenField.type = 'hidden';
-        hiddenField.name = input.name;
-        hiddenField.value = input.value;
-        form.appendChild(hiddenField);
+        formData.append(input.name, input.value);
       }
     });
     
-    document.body.appendChild(form);
-    form.submit();
+    fetch('/index', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Parse the response and update the page content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update matches section
+      const newMatchesSection = doc.querySelector('#matches-section');
+      const currentMatchesSection = document.querySelector('#matches-section');
+      
+      if (newMatchesSection && currentMatchesSection) {
+        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
+        reattachEventHandlers();
+      } else if (newMatchesSection && !currentMatchesSection) {
+        // Add matches section if it doesn't exist
+        const actionControls = document.querySelector('.action-controls').closest('.card-base');
+        actionControls.insertAdjacentHTML('afterend', '<div class="card-base" id="matches-section">' + newMatchesSection.innerHTML + '</div>');
+        reattachEventHandlers();
+      }
+      
+      // Update timer widget if present
+      const newTimerWidget = doc.querySelector('.timer-widget');
+      const currentTimerWidget = document.querySelector('.timer-widget');
+      
+      if (newTimerWidget && !currentTimerWidget) {
+        // Add timer widget if matches were just created
+        const lastCard = document.querySelector('.card-base:last-of-type');
+        lastCard.insertAdjacentHTML('afterend', '<div class="card-base"><div class="timer-widget">' + newTimerWidget.innerHTML + '</div></div>');
+        
+        // Reinitialize timer
+        const display = document.getElementById('main-timer-display');
+        if (display) updateClockDisplay(display);
+      }
+    })
+    .catch(error => {
+      console.error('Error organizing matches:', error);
+      // Fallback to form submission if AJAX fails
+      const form = document.querySelector('form');
+      form.submit();
+    });
   }
-  
-  // NEW: Reset Everything functionality
+
+  // AJAX reshuffle all function
+  function reshuffleAll() {
+    const formData = new FormData();
+    formData.append('reshuffle', 'true');
+    
+    // Add current form state
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[type="number"], select');
+    inputs.forEach(input => {
+      if (input.name && input.value) {
+        formData.append(input.name, input.value);
+      }
+    });
+    
+    fetch('/index', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Parse the response and update just the matches section
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newMatchesSection = doc.querySelector('#matches-section');
+      const currentMatchesSection = document.querySelector('#matches-section');
+      
+      if (newMatchesSection && currentMatchesSection) {
+        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
+        reattachEventHandlers();
+      }
+    })
+    .catch(error => {
+      console.error('Error reshuffling all:', error);
+      // Fallback to form submission if AJAX fails
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/index';
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'reshuffle';
+      input.value = 'true';
+      form.appendChild(input);
+      
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
+
+  // AJAX reshuffle function to avoid page refresh
+  function reshuffleRound(roundNum) {
+    const formData = new FormData();
+    formData.append('reshuffle_round', roundNum);
+    
+    // Add current form state
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[type="number"], select');
+    inputs.forEach(input => {
+      if (input.name && input.value) {
+        formData.append(input.name, input.value);
+      }
+    });
+    
+    fetch('/index', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+      // Parse the response and update just the matches section
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      const newMatchesSection = doc.querySelector('#matches-section');
+      const currentMatchesSection = document.querySelector('#matches-section');
+      
+      if (newMatchesSection && currentMatchesSection) {
+        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
+        reattachEventHandlers();
+      }
+    })
+    .catch(error => {
+      console.error('Error reshuffling round:', error);
+      // Fallback to form submission if AJAX fails
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/index';
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'reshuffle_round';
+      input.value = roundNum;
+      form.appendChild(input);
+      
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
+
+  // Improved scroll position management
+  function saveScrollPosition() {
+    const scrollPos = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    sessionStorage.setItem('scrollPosition', scrollPos.toString());
+  }
+
+  function restoreScrollPosition() {
+    const savedPosition = sessionStorage.getItem('scrollPosition');
+    if (savedPosition) {
+      const scrollPos = parseInt(savedPosition);
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPos);
+        sessionStorage.removeItem('scrollPosition');
+      });
+    }
+  }
+
+  // Restore scroll position as early as possible
+  document.addEventListener('DOMContentLoaded', function() {
+    restoreScrollPosition();
+    
+    const display = document.getElementById('main-timer-display');
+    if (display) updateClockDisplay(display);
+    
+    // Save scroll position before any form submission
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        saveScrollPosition();
+      });
+    }
+    
+    // Also save scroll position before any button click that might cause navigation
+    const buttons = document.querySelectorAll('button[type="submit"]');
+    buttons.forEach(button => {
+      button.addEventListener('click', function() {
+        saveScrollPosition();
+      });
+    });
+  });
+
+  // Simple confirmation for reset - using browser confirm
   function confirmReset() {
-    showConfirm(
-      'Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.',
-      function() {
-        // Save scroll position before reset
-        saveScrollPosition();
-        
-        // Create a hidden form and submit the reset request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/index';
-        
-        const resetField = document.createElement('input');
-        resetField.type = 'hidden';
-        resetField.name = 'reset';
-        resetField.value = 'true';
-        form.appendChild(resetField);
-        
-        document.body.appendChild(form);
-        form.submit();
-      },
-      'Reset Everything'
-    );
+    if (confirm('Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.')) {
+      saveScrollPosition();
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/index';
+      
+      const resetField = document.createElement('input');
+      resetField.type = 'hidden';
+      resetField.name = 'reset';
+      resetField.value = 'true';
+      form.appendChild(resetField);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
   }
   
-  // NEW: Remove Individual Player functionality
+  // Simple confirmation for removing player - using browser confirm
   function confirmRemovePlayer(playerName) {
-    showConfirm(
-      `Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`,
-      function() {
-        // Save scroll position before removing player
-        saveScrollPosition();
-        
-        // Create a hidden form and submit the remove player request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/index';
-        
-        const removeField = document.createElement('input');
-        removeField.type = 'hidden';
-        removeField.name = 'remove_player';
-        removeField.value = playerName;
-        form.appendChild(removeField);
-        
-        // Add current form state to maintain session
-        const mainForm = document.querySelector('form');
-        const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
-        inputs.forEach(input => {
-          if (input.name && input.value) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = input.name;
-            hiddenField.value = input.value;
-            form.appendChild(hiddenField);
-          }
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
-      },
-      'Remove Player'
-    );
+    if (confirm(`Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`)) {
+      saveScrollPosition();
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/index';
+      
+      const removeField = document.createElement('input');
+      removeField.type = 'hidden';
+      removeField.name = 'remove_player';
+      removeField.value = playerName;
+      form.appendChild(removeField);
+      
+      // Add current form state to maintain session
+      const mainForm = document.querySelector('form');
+      const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
+      inputs.forEach(input => {
+        if (input.name && input.value) {
+          const hiddenField = document.createElement('input');
+          hiddenField.type = 'hidden';
+          hiddenField.name = input.name;
+          hiddenField.value = input.value;
+          form.appendChild(hiddenField);
+        }
+      });
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
   }
   
-  // Add validation function for adding a player
+  // Simple validation functions - using browser alert
   function validateAddPlayer() {
     const name = document.getElementById('playerName').value.trim();
     const grade = document.getElementById('playerGrade').value;
     
     if (!name) {
-      showAlert('Please enter a player name.', 'warning');
+      alert('Please enter a player name.');
       document.getElementById('playerName').focus();
       return false;
     }
     
     if (!grade || !['1', '2', '3', '4'].includes(grade)) {
-      showAlert('Please select a grade between 1 (strongest) and 4 (weakest).', 'warning');
+      alert('Please select a grade between 1 (strongest) and 4 (weakest).');
       document.getElementById('playerGrade').focus();
       return false;
     }
@@ -595,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
     if (players < minPlayersNeeded) {
-      showAlert(`You need at least ${minPlayersNeeded} players for ${match_type} matches!`, 'warning');
+      alert(`You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
       return false;
     }
     
@@ -603,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (players < courts * playersPerCourt) {
       const maxCourts = Math.floor(players / playersPerCourt);
       if (maxCourts === 0) {
-        showAlert(`Not enough players for any ${match_type} matches. Add more players!`, 'warning');
+        alert(`Not enough players for any ${match_type} matches. Add more players!`);
         return false;
       } else {
         return confirm(`You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`);
@@ -616,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function validateCSVUpload() {
     const fileInput = document.getElementById('csvFileInput');
     if (!fileInput.files[0]) {
-      showAlert('Please select a CSV file first', 'warning');
+      alert('Please select a CSV file first');
       return false;
     }
     return true;

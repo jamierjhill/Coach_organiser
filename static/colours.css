@@ -60,6 +60,8 @@ html {
   font-size: 16px;
   line-height: 1.5;
   scroll-behavior: smooth;
+  /* Prevent scroll restoration by browser */
+  overflow-anchor: none;
 }
 
 body {
@@ -71,6 +73,8 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent browser from restoring scroll position */
+  overflow-anchor: none;
 }
 
 /* =============================================
@@ -700,73 +704,4 @@ select.input-base {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Add this to the end of your static/colours.css file */
-
-/* =============================================
-   19. BOTTOM RIGHT MODAL POSITIONING
-   ============================================= */
-
-/* Override Bootstrap modal positioning for bottom-right placement */
-.modal.bottom-right .modal-dialog {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  margin: 0;
-  max-width: 400px;
-  width: calc(100vw - 40px);
-  max-height: calc(100vh - 40px);
-  transform: none;
-}
-
-.modal.bottom-right .modal-dialog.modal-dialog-centered {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  top: auto;
-  left: auto;
-  transform: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-/* Animation for bottom-right modals */
-.modal.bottom-right.fade .modal-dialog {
-  transform: translateX(100%);
-  transition: transform 0.3s ease-out;
-}
-
-.modal.bottom-right.fade.show .modal-dialog {
-  transform: translateX(0);
-}
-
-/* Responsive adjustments for mobile */
-@media (max-width: 768px) {
-  .modal.bottom-right .modal-dialog {
-    bottom: 10px;
-    right: 10px;
-    width: calc(100vw - 20px);
-    max-width: none;
-  }
-}
-
-/* Ensure modal content fits properly */
-.modal.bottom-right .modal-content {
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-}
-
-/* Stack multiple modals properly */
-.modal.bottom-right:nth-of-type(1) .modal-dialog {
-  bottom: 20px;
-}
-
-.modal.bottom-right:nth-of-type(2) .modal-dialog {
-  bottom: 80px;
-}
-
-.modal.bottom-right:nth-of-type(3) .modal-dialog {
-  bottom: 140px;
 }
