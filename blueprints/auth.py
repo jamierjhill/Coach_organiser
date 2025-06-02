@@ -1,8 +1,9 @@
-# auth.py
+# auth.py - Enhanced with CAPTCHA functionality
 import os, json
 import secrets  # Add missing import
+import random  # For CAPTCHA generation
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, session, current_app, flash
+from flask import Blueprint, render_template, request, redirect, session, current_app, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from models import User
@@ -11,6 +12,38 @@ from user_utils import feature_path
 from password_utils import hash_password, verify_password
 
 auth_bp = Blueprint("auth", __name__)
+
+# CAPTCHA utility functions
+def generate_captcha():
+    """Generate a simple math CAPTCHA question and answer."""
+    # Generate two random numbers between 1-20 for addition
+    # Or 1-10 for multiplication to keep numbers manageable
+    operation_type = random.choice(['add', 'multiply', 'subtract'])
+    
+    if operation_type == 'add':
+        num1 = random.randint(1, 50)
+        num2 = random.randint(1, 50)
+        answer = num1 + num2
+        question = f"{num1} + {num2}"
+    elif operation_type == 'multiply':
+        num1 = random.randint(1, 12)
+        num2 = random.randint(1, 12)
+        answer = num1 * num2
+        question = f"{num1} × {num2}"
+    else:  # subtract
+        num1 = random.randint(10, 50)
+        num2 = random.randint(1, num1 - 1)  # Ensure positive result
+        answer = num1 - num2
+        question = f"{num1} - {num2}"
+    
+    return question, answer
+
+def validate_captcha(user_answer, session_answer):
+    """Validate the CAPTCHA answer."""
+    try:
+        return int(user_answer) == int(session_answer)
+    except (ValueError, TypeError):
+        return False
 
 # === LOGIN ===
 # Improved password validation with constant-time comparison
@@ -110,17 +143,65 @@ def register():
         email = request.form.get("email", "").strip()
         postcode = request.form.get("postcode", "").strip()
         password = request.form.get("password", "").strip()
+        captcha_answer = request.form.get("captcha_answer", "").strip()
+        gdpr_consent = request.form.get("gdpr_consent")
 
         # Add validation for required fields
         if not username or not email or not password:
-            return render_template("register.html", error="Username, email, and password are required.")
+            # Regenerate CAPTCHA for security
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="Username, email, and password are required.",
+                                 captcha_question=question)
+
+        # Validate CAPTCHA
+        session_answer = session.get("captcha_answer")
+        if not session_answer or not validate_captcha(captcha_answer, session_answer):
+            # Generate new CAPTCHA for security
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="❌ Incorrect security verification. Please try again.",
+                                 captcha_question=question)
+
+        # Validate GDPR consent
+        if not gdpr_consent:
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="⚠️ You must agree to the Privacy Policy to create an account.",
+                                 captcha_question=question)
+
+        # Clear CAPTCHA from session after successful validation
+        session.pop("captcha_answer", None)
 
         # Ensure data directory exists
         os.makedirs("data/users", exist_ok=True)
 
         # Prevent duplicate users
         if load_user(username):
-            return render_template("register.html", error="Username already exists.")
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="❌ Username already exists. Please choose a different username.",
+                                 captcha_question=question)
+
+        # Validate email format
+        if "@" not in email or "." not in email.split("@")[-1]:
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="❌ Please enter a valid email address.",
+                                 captcha_question=question)
+
+        # Validate password strength
+        if len(password) < 6:
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error="❌ Password must be at least 6 characters long.",
+                                 captcha_question=question)
 
         try:
             # Hash the password
@@ -135,11 +216,19 @@ def register():
                 "password_salt": salt,
                 "default_postcode": postcode,
                 "is_admin": False,  # Default not admin
-                "registration_date": datetime.now().strftime("%Y-%m-%d")
+                "registration_date": datetime.now().strftime("%Y-%m-%d"),
+                "gdpr_consent": True,
+                "gdpr_consent_date": datetime.now().isoformat(),
+                "registration_ip": request.remote_addr,
+                "captcha_verified": True
             }
             
             if not save_user(user_data):
-                return render_template("register.html", error="Failed to create user account. Please try again.")
+                question, answer = generate_captcha()
+                session["captcha_answer"] = answer
+                return render_template("register.html", 
+                                     error="❌ Failed to create user account. Please try again.",
+                                     captcha_question=question)
 
             # Create User object for login
             user = User(id=username, username=username, is_admin=False)
@@ -171,9 +260,34 @@ def register():
             
         except Exception as e:
             print(f"Registration error: {e}")
-            return render_template("register.html", error=f"Registration failed: {str(e)}")
+            question, answer = generate_captcha()
+            session["captcha_answer"] = answer
+            return render_template("register.html", 
+                                 error=f"❌ Registration failed: {str(e)}",
+                                 captcha_question=question)
 
-    return render_template("register.html")
+    # Handle GET request - show registration form with CAPTCHA
+    question, answer = generate_captcha()
+    session["captcha_answer"] = answer
+    return render_template("register.html", captcha_question=question)
+
+# === CAPTCHA REFRESH ROUTE ===
+@auth_bp.route("/refresh-captcha", methods=["POST"])
+def refresh_captcha():
+    """AJAX endpoint to refresh CAPTCHA question."""
+    try:
+        question, answer = generate_captcha()
+        session["captcha_answer"] = answer
+        return jsonify({
+            "success": True,
+            "question": question
+        })
+    except Exception as e:
+        print(f"Error refreshing CAPTCHA: {e}")
+        return jsonify({
+            "success": False,
+            "error": "Failed to generate new question"
+        }), 500
 
 # === DELETE ACCOUNT ===
 @auth_bp.route("/delete-account", methods=["POST"])
