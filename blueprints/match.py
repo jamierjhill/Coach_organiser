@@ -1,20 +1,15 @@
 from flask import Blueprint, render_template, request, session, redirect
-from flask_login import login_required, current_user
 import random, os, csv, io
 from collections import defaultdict
 from utils import organize_matches
 
 match_bp = Blueprint("match", __name__)
 
+@match_bp.route("/")
 @match_bp.route("/index", methods=["GET", "POST"])
-@login_required
 def index():
-    # Add this check
-    if not current_user.is_authenticated:
-        return redirect("/login")
-        
-    session["last_form_page"] = "/index"
-
+    """Main match organizer page - accessible without authentication."""
+    
     players = session.get("players", [])
     courts = session.get("courts", 1)
     num_matches = session.get("num_matches", 1)
@@ -118,11 +113,6 @@ def index():
             except Exception as e:
                 error = f"❌ Unexpected error during file upload: {str(e)}"
                 print(f"File Upload Error: {str(e)}")
-            
-            # Ensure we're still logged in
-            if not current_user.is_authenticated:
-                print("User was logged out during CSV upload!")
-                return redirect("/login")
 
             if error:
                 return render_template(
@@ -142,11 +132,7 @@ def index():
                 )
 
         elif "reset" in request.form:
-            # Instead of clearing the entire session, just clear match-related data
-            # Save important session values
-            last_form_page = session.get("last_form_page")
-            
-            # Clear only match organizer data
+            # Clear all match organizer data
             session["players"] = []
             session["matchups"] = []
             session["player_match_counts"] = {}
@@ -155,7 +141,7 @@ def index():
             session["rounds"] = {}
             session["session_name"] = ""
             
-            # Reset match variables for the current function
+            # Reset variables for the current function
             players = []
             matchups = []
             player_match_counts = {}
@@ -163,9 +149,6 @@ def index():
             opponent_diff = {}
             rounds = {}
             session_name = ""
-            
-            # Restore important session values
-            session["last_form_page"] = last_form_page
 
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()
@@ -334,9 +317,6 @@ def index():
             session["opponent_averages"] = opponent_averages
             session["opponent_diff"] = opponent_diff
             session["rounds"] = rounds
-
-        if "go_home" in request.form:
-            return redirect("/home")
 
     # Always use the latest session data for rendering
     return render_template(

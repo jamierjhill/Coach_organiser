@@ -5,7 +5,7 @@
 {% block content %}
   <div class="page-title-container">
     <h1 class="page-title">🎾 Match Organizer</h1>
-
+    <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
   </div>
 
   <form method="POST" enctype="multipart/form-data">
@@ -92,14 +92,14 @@
       </div>
     </div>
     
-<!-- Action Buttons -->
-<div class="card-section">
-  <div class="d-flex justify-content-between align-items-center">
-    <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent">🎯 Organize Matches</button>
-    <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent">🔀 Reshuffle</button>
-    <button type="submit" name="reset" class="btn-base btn-outline-danger">🔁 Reset All</button>
-  </div>
-</div>
+    <!-- Action Buttons -->
+    <div class="card-section">
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent">🎯 Organize Matches</button>
+        <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent">🔀 Reshuffle</button>
+        <button type="submit" name="reset" class="btn-base btn-outline-danger">🔁 Reset All</button>
+      </div>
+    </div>
 
     
     {% if error %}
@@ -365,7 +365,7 @@
     // Store current scroll position
     const scrollPosition = window.pageYOffset;
     
-    fetch('/index', {
+    fetch('/', {
       method: 'POST',
       body: formData
     })
@@ -426,7 +426,7 @@
     // Store current scroll position
     const scrollPosition = window.pageYOffset;
     
-    fetch('/index', {
+    fetch('/', {
         method: 'POST',
         body: formData
     })
@@ -492,7 +492,7 @@ function reshuffleAll() {
  // Store current scroll position
  const scrollPosition = window.pageYOffset;
  
- fetch('/index', {
+ fetch('/', {
      method: 'POST',
      body: formData
  })
@@ -574,7 +574,7 @@ function organizeMatches() {
  // Store current scroll position
  const scrollPosition = window.pageYOffset;
  
- fetch('/index', {
+ fetch('/', {
      method: 'POST',
      body: formData
  })
@@ -664,16 +664,11 @@ function uploadCSV() {
  // Store current scroll position
  const scrollPosition = window.pageYOffset;
  
- fetch('/index', {
+ fetch('/', {
      method: 'POST',
      body: formData
  })
  .then(response => {
-     if (response.redirected && response.url.includes('/login')) {
-         // Session expired, redirect to login
-         window.location.href = '/login';
-         return;
-     }
      return response.text();
  })
  .then(html => {

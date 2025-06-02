@@ -5,33 +5,23 @@
 {% block content %}
 <div class="text-center py-5">
   <div class="error-container">
-    <div class="error-code">{{ error_code }}</div>
-    <h1 class="error-title">{{ error_message }}</h1>
+    <div class="error-code" style="font-size: 6rem; font-weight: bold; color: var(--navy);">{{ error_code }}</div>
+    <h1 class="error-title mb-4">{{ error_message }}</h1>
     
     <div class="error-image my-5">
       {% if error_code == 404 %}
         <span style="font-size: 120px;">🔍</span>
+        <p class="text-muted mt-3">Sorry, we couldn't find the page you were looking for.</p>
       {% else %}
         <span style="font-size: 120px;">⚠️</span>
+        <p class="text-muted mt-3">Something went wrong. Please try refreshing the page.</p>
       {% endif %}
     </div>
     
-    <p class="error-description mb-4">
-      {% if error_code == 404 %}
-        Sorry, we couldn't find the page you were looking for.
-      {% else %}
-        Something went wrong on our end. Our team has been notified.
-      {% endif %}
-    </p>
-    
     <div class="error-actions">
-      <a href="/home" class="btn btn-primary me-3">Go to Home</a>
-      <a href="javascript:history.back()" class="btn btn-outline-secondary">Go Back</a>
+      <a href="/" class="btn-base btn-accent me-3">🎾 Back to Match Organizer</a>
+      <a href="javascript:history.back()" class="btn-base btn-outline-secondary">⬅️ Go Back</a>
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-
 {% endblock %}
