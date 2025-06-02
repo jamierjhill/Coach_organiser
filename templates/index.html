@@ -835,43 +835,44 @@
     }
   }
 
-  // Scroll position management - just maintain current position
-  function saveScrollPosition() {
-    sessionStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+// Scroll position management - just maintain current position
+function saveScrollPosition() {
+  sessionStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+}
+
+function restoreScrollPosition() {
+  const savedPosition = sessionStorage.getItem('scrollPosition');
+  if (savedPosition) {
+    window.scrollTo(0, parseInt(savedPosition));
+    sessionStorage.removeItem('scrollPosition');
   }
+}
 
-  function restoreScrollPosition() {
-    const savedPosition = sessionStorage.getItem('scrollPosition');
-    if (savedPosition) {
-      window.scrollTo(0, parseInt(savedPosition));
-      sessionStorage.removeItem('scrollPosition');
-    }
+window.onload = function () {
+  // Restore scroll position before any DOM changes
+  restoreScrollPosition();
+
+  const display = document.getElementById('main-timer-display');
+  if (display) updateClockDisplay(display);
+  
+  const defaultView = "round";
+  const selector = document.getElementById("scheduleToggle");
+  if (selector) {
+    selector.value = defaultView;
+    toggleScheduleView(defaultView);
   }
+};
 
-  window.onload = function () {
-    const display = document.getElementById('main-timer-display');
-    if (display) updateClockDisplay(display);
-    
-    const defaultView = "round";
-    const selector = document.getElementById("scheduleToggle");
-    if (selector) {
-      selector.value = defaultView;
-      toggleScheduleView(defaultView);
-    }
+// Save scroll position before form submission
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function() {
+      saveScrollPosition();
+    });
+  }
+});
 
-    // Restore scroll position after page load
-    restoreScrollPosition();
-  };
-
-  // Save scroll position before form submission
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    if (form) {
-      form.addEventListener('submit', function() {
-        saveScrollPosition();
-      });
-    }
-  });
   
   function toggleScheduleView(view) {
     const courtDiv = document.getElementById("schedule-court");
@@ -959,19 +960,84 @@
     form.submit();
   }
   
-  // NEW: Add validation function for adding a player
+  // NEW: Reset Everything functionality
+  function confirmReset() {
+    showConfirm(
+      'Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.',
+      function() {
+        // Save scroll position before reset
+        saveScrollPosition();
+        
+        // Create a hidden form and submit the reset request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/index';
+        
+        const resetField = document.createElement('input');
+        resetField.type = 'hidden';
+        resetField.name = 'reset';
+        resetField.value = 'true';
+        form.appendChild(resetField);
+        
+        document.body.appendChild(form);
+        form.submit();
+      },
+      'Reset Everything'
+    );
+  }
+  
+  // NEW: Remove Individual Player functionality
+  function confirmRemovePlayer(playerName) {
+    showConfirm(
+      `Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`,
+      function() {
+        // Save scroll position before removing player
+        saveScrollPosition();
+        
+        // Create a hidden form and submit the remove player request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/index';
+        
+        const removeField = document.createElement('input');
+        removeField.type = 'hidden';
+        removeField.name = 'remove_player';
+        removeField.value = playerName;
+        form.appendChild(removeField);
+        
+        // Add current form state to maintain session
+        const mainForm = document.querySelector('form');
+        const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
+        inputs.forEach(input => {
+          if (input.name && input.value) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = input.name;
+            hiddenField.value = input.value;
+            form.appendChild(hiddenField);
+          }
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+      },
+      'Remove Player'
+    );
+  }
+  
+  // Add validation function for adding a player
   function validateAddPlayer() {
     const name = document.getElementById('playerName').value.trim();
     const grade = document.getElementById('playerGrade').value;
     
     if (!name) {
-      alert('Please enter a player name.');
+      showAlert('Please enter a player name.', 'warning');
       document.getElementById('playerName').focus();
       return false;
     }
     
     if (!grade || !['1', '2', '3', '4'].includes(grade)) {
-      alert('Please select a grade between 1 (strongest) and 4 (weakest).');
+      showAlert('Please select a grade between 1 (strongest) and 4 (weakest).', 'warning');
       document.getElementById('playerGrade').focus();
       return false;
     }
@@ -986,7 +1052,7 @@
     
     const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
     if (players < minPlayersNeeded) {
-      alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
+      showAlert(`You need at least ${minPlayersNeeded} players for ${match_type} matches!`, 'warning');
       return false;
     }
     
@@ -994,10 +1060,10 @@
     if (players < courts * playersPerCourt) {
       const maxCourts = Math.floor(players / playersPerCourt);
       if (maxCourts === 0) {
-        alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
+        showAlert(`Not enough players for any ${match_type} matches. Add more players!`, 'warning');
         return false;
       } else {
-        return confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`);
+        return confirm(`You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`);
       }
     }
     
@@ -1007,7 +1073,7 @@
   function validateCSVUpload() {
     const fileInput = document.getElementById('csvFileInput');
     if (!fileInput.files[0]) {
-      alert('Please select a CSV file first');
+      showAlert('Please select a CSV file first', 'warning');
       return false;
     }
     return true;
