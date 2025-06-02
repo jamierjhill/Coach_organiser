@@ -155,13 +155,7 @@
     <div class="card-base" id="matches-section">
       <div class="schedule-header">
         <h4 class="section-title">📋 Match Schedule</h4>
-        <div class="schedule-controls">
-          <label for="scheduleToggle" class="form-label">View by:</label>
-          <select class="form-select" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
-            <option value="round">Round</option>
-            <option value="court">Court</option>
-          </select>
-        </div>
+
       </div>
 
       <!-- Schedule by Round -->
@@ -240,62 +234,7 @@
         {% endfor %}
       </div>
 
-      <!-- Schedule by Court -->
-      <div id="schedule-court" class="schedule-container" style="display: none;">
-        {% for court_number in range(1, courts + 1) %}
-          <div class="court-section">
-            <div class="court-header">
-              <h5 class="court-title">Court {{ court_number }}</h5>
-            </div>
-            
-            {% if matchups[court_number - 1] %}
-              <div class="court-matches">
-                {% for match, round_num in matchups[court_number - 1] %}
-                  <div class="match-card">
-                    <div class="round-label">Round {{ round_num }}</div>
-                    <div class="match-players">
-                      {% if match|length == 2 %}
-                        <div class="vs-match">
-                          <div class="player">
-                            <span class="name">{{ match[0].name }}</span>
-                            <span class="grade">G{{ match[0].grade }}</span>
-                          </div>
-                          <div class="vs">VS</div>
-                          <div class="player">
-                            <span class="name">{{ match[1].name }}</span>
-                            <span class="grade">G{{ match[1].grade }}</span>
-                          </div>
-                        </div>
-                      {% else %}
-                        <div class="doubles-match">
-                          <div class="team">
-                            <div class="team-players">
-                              <span class="name">{{ match[0].name }}</span> & <span class="name">{{ match[1].name }}</span>
-                            </div>
-                            <span class="avg-grade">Avg G{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
-                          </div>
-                          <div class="vs">VS</div>
-                          <div class="team">
-                            <div class="team-players">
-                              <span class="name">{{ match[2].name }}</span> & <span class="name">{{ match[3].name }}</span>
-                            </div>
-                            <span class="avg-grade">Avg G{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
-                          </div>
-                        </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="empty-state">
-                <p class="text-muted">No matches scheduled for this court.</p>
-              </div>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
-    </div>
+
     {% elif players %}
     <div class="card-base">
       <div class="empty-state">
@@ -311,7 +250,7 @@
     </div>
     {% endif %}
   </form>
-
+</div>
   <!-- Timer Widget -->
   {% if matchups and rounds %}
   <div class="card-base">
