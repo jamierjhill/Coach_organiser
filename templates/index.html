@@ -49,10 +49,10 @@
         <h6 class="text-primary mb-3">Add Individual Player</h6>
         <div class="row g-3">
           <div class="col-md-5">
-            <input type="text" name="name" class="form-control" placeholder="Enter player name" required>
+            <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName">
           </div>
           <div class="col-md-3">
-            <select name="grade" class="form-control" required>
+            <select name="grade" class="form-control" id="playerGrade">
               <option value="">Select Grade</option>
               <option value="1">Grade 1 (Strongest)</option>
               <option value="2">Grade 2 (Strong)</option>
@@ -61,7 +61,7 @@
             </select>
           </div>
           <div class="col-md-4">
-            <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100">
+            <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" onclick="return validateAddPlayer()">
               ➕ Add Player
             </button>
           </div>
@@ -77,7 +77,7 @@
             <small class="text-muted">Format: <code>name,grade</code> (e.g., "John Smith,2")</small>
           </div>
           <div class="col-md-4">
-            <button type="submit" name="upload_csv" value="true" class="btn-base btn-info w-100" onclick="return validateCSVUpload()">
+            <button type="submit" name="upload_csv" value="true" class="btn-base btn-info w-100" onclick="return validateCSVUpload()" formnovalidate>
               📎 Upload CSV
             </button>
           </div>
@@ -91,7 +91,7 @@
     </div>
 
     <!-- Current Players List -->
-    <div class="card-base">
+    <div class="card-base" id="players-section">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="section-title mb-0">👥 Current Players</h4>
         <div class="badge badge-base status-info">{{ players|length }} players</div>
@@ -114,9 +114,8 @@
                          onclick="editPlayerRounds('{{ player.name }}', {{ player.get('max_rounds', num_matches) }})">
                     🔄
                   </button>
-                  <button type="submit" name="remove_player" value="{{ player.name }}" 
-                         class="btn-sm btn-outline-danger" 
-                         onclick="return confirm('Remove {{ player.name }}?')">
+                  <button type="button" class="btn-sm btn-outline-danger" 
+                         onclick="confirmRemovePlayer('{{ player.name }}')">
                     🗑️
                   </button>
                 </div>
@@ -137,14 +136,14 @@
     {% if players %}
     <div class="card-base">
       <div class="action-controls">
-        <button type="submit" name="organize_matches" value="true" class="btn-base btn-accent btn-lg" onclick="return validateOrganizeMatches()">
+        <button type="submit" name="organize_matches" value="true" class="btn-base btn-accent btn-lg" onclick="return validateOrganizeMatches()" formnovalidate>
           🎯 Organize Matches
         </button>
-        <button type="submit" name="reshuffle" value="true" class="btn-base btn-secondary">
+        <button type="submit" name="reshuffle" value="true" class="btn-base btn-secondary" formnovalidate>
           🔀 Reshuffle All
         </button>
-        <button type="submit" name="reset" class="btn-base btn-outline-danger" 
-               onclick="return confirm('This will clear all players and matches. Continue?')">
+        <button type="button" class="btn-base btn-outline-danger" 
+               onclick="confirmReset()">
           🔁 Reset Everything
         </button>
       </div>
@@ -153,7 +152,7 @@
 
     <!-- Match Schedule -->
     {% if matchups and rounds %}
-    <div class="card-base">
+    <div class="card-base" id="matches-section">
       <div class="schedule-header">
         <h4 class="section-title">📋 Match Schedule</h4>
         <div class="schedule-controls">
@@ -172,7 +171,8 @@
             <div class="round-header">
               <h5 class="round-title">Round {{ round_num }}</h5>
               <button type="submit" name="reshuffle_round" value="{{ round_num }}" 
-                     class="btn-base btn-outline-accent btn-sm">
+                     class="btn-base btn-outline-accent btn-sm"
+                     formnovalidate>
                 🔀 Reshuffle
               </button>
             </div>
@@ -359,6 +359,48 @@
         <div class="modal-footer">
           <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn-base btn-accent" onclick="submitEditRounds()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" id="alertModalHeader">
+          <h5 class="modal-title" id="alertModalLabel">
+            <span id="alertModalIcon"></span>
+            <span id="alertModalTitle"></span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="alertModalMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-base btn-accent" data-bs-dismiss="modal" id="alertModalButton">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">
+            <span class="text-warning">⚠️</span> Confirm Action
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmModalMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn-base btn-warning" id="confirmModalButton">Confirm</button>
         </div>
       </div>
     </div>
@@ -623,12 +665,140 @@
         align-self: center;
       }
     }
+
+    /* Modal Enhancements */
+    .modal-content {
+      border-radius: var(--card-radius);
+      border: none;
+      box-shadow: 0 10px 30px rgba(0, 34, 62, 0.2);
+    }
+    
+    .modal-header {
+      border-bottom: 1px solid var(--light-border);
+      border-radius: var(--card-radius) var(--card-radius) 0 0;
+      padding: var(--space-lg);
+    }
+    
+    .modal-body {
+      padding: var(--space-lg);
+      color: var(--text-primary);
+    }
+    
+    .modal-footer {
+      border-top: 1px solid var(--light-border);
+      padding: var(--space-lg);
+      gap: var(--space-md);
+    }
+    
+    .modal-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    /* Modal backdrop */
+    .modal-backdrop {
+      background-color: rgba(0, 34, 62, 0.5);
+    }
+    
+    /* Modal animations */
+    .modal.fade .modal-dialog {
+      transition: transform 0.3s ease-out;
+      transform: scale(0.9);
+    }
+    
+    .modal.show .modal-dialog {
+      transform: scale(1);
+    }
+    
+    /* Success modal styling */
+    .modal-header.bg-success {
+      background: linear-gradient(135deg, var(--success), #00885f) !important;
+    }
+    
+    /* Error modal styling */
+    .modal-header.bg-danger {
+      background: linear-gradient(135deg, var(--danger), #c0392b) !important;
+    }
+    
+    /* Warning modal styling */
+    .modal-header.bg-warning {
+      background: linear-gradient(135deg, var(--warning), #e6b800) !important;
+    }
+    
+    /* Info modal styling */
+    .modal-header.bg-info {
+      background: linear-gradient(135deg, var(--info), #2874a6) !important;
+    }
   </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  // All the existing JavaScript functions remain the same
+  // Modal Management Functions
+  function showAlert(message, type = 'info', title = null) {
+    const modal = document.getElementById('alertModal');
+    const header = document.getElementById('alertModalHeader');
+    const icon = document.getElementById('alertModalIcon');
+    const titleEl = document.getElementById('alertModalTitle');
+    const messageEl = document.getElementById('alertModalMessage');
+    const button = document.getElementById('alertModalButton');
+    
+    // Set content
+    messageEl.textContent = message;
+    
+    // Configure based on type
+    switch(type) {
+      case 'success':
+        header.className = 'modal-header bg-success text-white';
+        icon.textContent = '✅ ';
+        titleEl.textContent = title || 'Success';
+        button.className = 'btn-base btn-success';
+        break;
+      case 'error':
+        header.className = 'modal-header bg-danger text-white';
+        icon.textContent = '❌ ';
+        titleEl.textContent = title || 'Error';
+        button.className = 'btn-base btn-danger';
+        break;
+      case 'warning':
+        header.className = 'modal-header bg-warning text-dark';
+        icon.textContent = '⚠️ ';
+        titleEl.textContent = title || 'Warning';
+        button.className = 'btn-base btn-warning';
+        break;
+      default:
+        header.className = 'modal-header bg-info text-white';
+        icon.textContent = 'ℹ️ ';
+        titleEl.textContent = title || 'Information';
+        button.className = 'btn-base btn-info';
+    }
+    
+    new bootstrap.Modal(modal).show();
+  }
+  
+  function showConfirm(message, onConfirm, title = 'Confirm Action') {
+    const modal = document.getElementById('confirmModal');
+    const messageEl = document.getElementById('confirmModalMessage');
+    const confirmBtn = document.getElementById('confirmModalButton');
+    
+    messageEl.textContent = message;
+    
+    // Remove any existing event listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    // Add new event listener
+    newConfirmBtn.addEventListener('click', function() {
+      bootstrap.Modal.getInstance(modal).hide();
+      if (onConfirm) onConfirm();
+    });
+    
+    new bootstrap.Modal(modal).show();
+  }
+
+  // Timer functions
   let timerInterval;
   let remainingTime = 1200;
 
@@ -661,7 +831,20 @@
       remainingTime = minutes * 60;
       updateClockDisplay(display);
     } else {
-      alert("Please enter a number between 1 and 60.");
+      showAlert("Please enter a number between 1 and 60.", 'warning');
+    }
+  }
+
+  // Scroll position management - just maintain current position
+  function saveScrollPosition() {
+    sessionStorage.setItem('scrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+  }
+
+  function restoreScrollPosition() {
+    const savedPosition = sessionStorage.getItem('scrollPosition');
+    if (savedPosition) {
+      window.scrollTo(0, parseInt(savedPosition));
+      sessionStorage.removeItem('scrollPosition');
     }
   }
 
@@ -675,7 +858,20 @@
       selector.value = defaultView;
       toggleScheduleView(defaultView);
     }
+
+    // Restore scroll position after page load
+    restoreScrollPosition();
   };
+
+  // Save scroll position before form submission
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function() {
+        saveScrollPosition();
+      });
+    }
+  });
   
   function toggleScheduleView(view) {
     const courtDiv = document.getElementById("schedule-court");
@@ -763,6 +959,26 @@
     form.submit();
   }
   
+  // NEW: Add validation function for adding a player
+  function validateAddPlayer() {
+    const name = document.getElementById('playerName').value.trim();
+    const grade = document.getElementById('playerGrade').value;
+    
+    if (!name) {
+      alert('Please enter a player name.');
+      document.getElementById('playerName').focus();
+      return false;
+    }
+    
+    if (!grade || !['1', '2', '3', '4'].includes(grade)) {
+      alert('Please select a grade between 1 (strongest) and 4 (weakest).');
+      document.getElementById('playerGrade').focus();
+      return false;
+    }
+    
+    return true;
+  }
+  
   function validateOrganizeMatches() {
     const courts = parseInt(document.querySelector('input[name="courts"]').value) || 1;
     const match_type = document.querySelector('select[name="match_type"]').value;
@@ -794,7 +1010,7 @@
       alert('Please select a CSV file first');
       return false;
     }
-    return true; // Allow form submission to proceed
+    return true;
   }
 </script>
 {% endblock %}
