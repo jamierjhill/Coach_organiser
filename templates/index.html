@@ -4,151 +4,219 @@
 
 {% block content %}
   <div class="page-title-container">
-    <h1 class="page-title">🎾 Match Organizer</h1>
+    <h1 class="page-title">🎾 Tennis Match Organizer</h1>
     <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
   </div>
 
-  <form method="POST" enctype="multipart/form-data">
-    <!-- Session Setup -->
+  <form method="POST" action="/index" enctype="multipart/form-data">
+    <!-- Session Setup Card -->
     <div class="card-base">
       <h4 class="section-title">🎯 Session Setup</h4>
       <div class="row g-3">
         <div class="col-md-4">
-          <label class="form-label font-medium">Courts</label>
-          <input type="number" class="form-control" name="courts" min="1" value="{{ courts }}">
+          <label class="form-label">Courts Available</label>
+          <div class="input-group">
+            <span class="input-group-text">🏟️</span>
+            <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}">
+          </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Matches per player</label>
-          <input type="number" class="form-control" name="num_matches" min="1" value="{{ num_matches }}">
+          <label class="form-label">Matches per Player</label>
+          <div class="input-group">
+            <span class="input-group-text">🔄</span>
+            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}">
+          </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Format</label>
-          <select class="form-control" name="match_type">
-            <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
-            <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
-          </select>
+          <label class="form-label">Match Format</label>
+          <div class="input-group">
+            <span class="input-group-text">🎾</span>
+            <select class="form-control" name="match_type">
+              <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
+              <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Add / Upload Players -->
-    <div class="card-section">
-      <h4>👤 Add or Upload Players</h4>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <input type="text" name="name" class="form-control" placeholder="Player name">
+    <!-- Player Management Card -->
+    <div class="card-base">
+      <h4 class="section-title">👤 Player Management</h4>
+      
+      <!-- Add Player Section -->
+      <div class="card-border-left">
+        <h6 class="text-primary mb-3">Add Individual Player</h6>
+        <div class="row g-3">
+          <div class="col-md-5">
+            <input type="text" name="name" class="form-control" placeholder="Enter player name" required>
+          </div>
+          <div class="col-md-3">
+            <select name="grade" class="form-control" required>
+              <option value="">Select Grade</option>
+              <option value="1">Grade 1 (Strongest)</option>
+              <option value="2">Grade 2 (Strong)</option>
+              <option value="3">Grade 3 (Medium)</option>
+              <option value="4">Grade 4 (Beginner)</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100">
+              ➕ Add Player
+            </button>
+          </div>
         </div>
-        <div class="col-md-4">
-          <input type="number" name="grade" class="form-control" placeholder="Grade (1–4)" min="1" max="4">
-        </div>
-        <div class="col-md-2">
-          <button type="submit" name="add_player" class="btn-base btn-accent">➕ Add</button>
-        </div>
-
       </div>
 
       <!-- CSV Upload Section -->
-      <div class="mt-3">
-        <hr>
-        <h6>📤 Upload from CSV</h6>
+      <div class="card-border-left" style="border-left-color: #3498db;">
+        <h6 class="text-info mb-3">📤 Bulk Upload via CSV</h6>
         <div class="row g-3">
           <div class="col-md-8">
-            <input type="file" name="csv_file" accept=".csv" class="form-control">
+            <input type="file" name="csv_file" accept=".csv" class="form-control" id="csvFileInput">
+            <small class="text-muted">Format: <code>name,grade</code> (e.g., "John Smith,2")</small>
           </div>
           <div class="col-md-4">
-            <button type="button" onclick="return uploadCSV()" class="btn-base btn-accent">📎 Upload CSV</button>
+            <button type="submit" name="upload_csv" value="true" class="btn-base btn-info w-100" onclick="return validateCSVUpload()">
+              📎 Upload CSV
+            </button>
           </div>
         </div>
-        <small class="text-muted d-block mt-2">CSV format: <code>name,grade</code></small>
         {% if error %}
-          <div class="text-danger fw-bold mt-2">⚠️ {{ error }}</div>
+          <div class="alert alert-danger mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle"></i> {{ error }}
+          </div>
         {% endif %}
       </div>
     </div>
 
-    <!-- Player List - With round limits -->
-    <div class="card-section">
-      <h4>👟 Current Players ({{ players|length }})</h4>
-      <div class="row row-cols-1 row-cols-md-2 g-3">
-        {% for player in players %}
-          <div class="col">
-            <div class="player-box d-flex justify-content-between align-items-center">
-              <div>
-                🧍‍♂️ {{ player.name }} (Grade {{ player.grade }})
-                {% if player.max_rounds is defined %}
-                  <span class="badge bg-info">{{ player.max_rounds }} rounds max</span>
-                {% endif %}
-              </div>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-primary" 
-                       onclick="editPlayerRounds('{{ player.name }}')">
-                  🔄 Rounds
-                </button>
-                <button type="submit" name="remove_player" value="{{ player.name }}" class="btn btn-danger btn-sm">🗑️</button>
+    <!-- Current Players List -->
+    <div class="card-base">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="section-title mb-0">👥 Current Players</h4>
+        <div class="badge badge-base status-info">{{ players|length }} players</div>
+      </div>
+      
+      {% if players %}
+        <div class="row g-3">
+          {% for player in players %}
+            <div class="col-md-6 col-lg-4">
+              <div class="player-card">
+                <div class="player-info">
+                  <div class="player-name">{{ player.name }}</div>
+                  <div class="player-grade">Grade {{ player.grade }}</div>
+                  {% if player.max_rounds is defined %}
+                    <div class="badge badge-base status-warning">{{ player.max_rounds }} rounds max</div>
+                  {% endif %}
+                </div>
+                <div class="player-actions">
+                  <button type="button" class="btn-sm btn-outline-primary" 
+                         onclick="editPlayerRounds('{{ player.name }}', {{ player.get('max_rounds', num_matches) }})">
+                    🔄
+                  </button>
+                  <button type="submit" name="remove_player" value="{{ player.name }}" 
+                         class="btn-sm btn-outline-danger" 
+                         onclick="return confirm('Remove {{ player.name }}?')">
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        {% endfor %}
-      </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <h6>No Players Added Yet</h6>
+          <p class="text-muted">Add players individually or upload a CSV file to get started.</p>
+        </div>
+      {% endif %}
     </div>
     
-    <!-- Action Buttons -->
-    <div class="card-section">
-      <div class="d-flex justify-content-between align-items-center">
-        <button type="button" onclick="return organizeMatches()" class="btn-base btn-accent">🎯 Organize Matches</button>
-        <button type="button" onclick="return reshuffleAll()" class="btn-base btn-accent">🔀 Reshuffle</button>
-        <button type="submit" name="reset" class="btn-base btn-outline-danger">🔁 Reset All</button>
+    <!-- Action Controls -->
+    {% if players %}
+    <div class="card-base">
+      <div class="action-controls">
+        <button type="submit" name="organize_matches" value="true" class="btn-base btn-accent btn-lg" onclick="return validateOrganizeMatches()">
+          🎯 Organize Matches
+        </button>
+        <button type="submit" name="reshuffle" value="true" class="btn-base btn-secondary">
+          🔀 Reshuffle All
+        </button>
+        <button type="submit" name="reset" class="btn-base btn-outline-danger" 
+               onclick="return confirm('This will clear all players and matches. Continue?')">
+          🔁 Reset Everything
+        </button>
       </div>
     </div>
-
-    
-    {% if error %}
-      <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
 
     <!-- Match Schedule -->
-    <div class="card-section">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📋 Match Schedule</h4>
-        <div>
-          <label for="scheduleToggle" class="form-label me-2">🔀 View By</label>
-          <select class="form-select d-inline w-auto" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
+    {% if matchups and rounds %}
+    <div class="card-base">
+      <div class="schedule-header">
+        <h4 class="section-title">📋 Match Schedule</h4>
+        <div class="schedule-controls">
+          <label for="scheduleToggle" class="form-label">View by:</label>
+          <select class="form-select" id="scheduleToggle" onchange="toggleScheduleView(this.value)">
             <option value="round">Round</option>
             <option value="court">Court</option>
           </select>
         </div>
       </div>
 
-      {% if not matchups or not rounds %}
-        <div class="alert alert-warning">
-          <p class="mb-0">⚠️ No matches scheduled. This might be because:</p>
-          <ul class="mb-0 mt-2">
-            <li>Not enough players for the selected format (Singles needs at least 2 players per court, Doubles needs at least 4)</li>
-            <li>Player count doesn't work well with the number of courts</li>
-            <li>Try adjusting the number of courts or adding more players</li>
-          </ul>
-        </div>
-      {% else %}
-        <!-- Match Schedule by Round -->
-        <div id="schedule-round" style="display: none;">
-          {% for round_num, matches in rounds.items() %}
-            <div class="round-header d-flex justify-content-between align-items-center">
-              <h5 class="text-success mb-0">Round {{ round_num }}</h5>
-              <button type="button" onclick="return reshuffleRound({{ round_num }})" class="btn btn-sm btn-outline-success round-reshuffle-btn">🔀 Reshuffle Round {{ round_num }}</button>
+      <!-- Schedule by Round -->
+      <div id="schedule-round" class="schedule-container">
+        {% for round_num, matches in rounds.items() %}
+          <div class="round-section">
+            <div class="round-header">
+              <h5 class="round-title">Round {{ round_num }}</h5>
+              <button type="submit" name="reshuffle_round" value="{{ round_num }}" 
+                     class="btn-base btn-outline-accent btn-sm">
+                🔀 Reshuffle
+              </button>
             </div>
-            {% for court_num, match in matches %}
-              <div class="match">
-                <strong>Court {{ court_num }}:</strong>
-                {% if match|length == 2 %}
-                  {{ match[0].name }} (g{{ match[0].grade }}) vs {{ match[1].name }} (g{{ match[1].grade }})
-                {% else %}
-                  {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-                  vs {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
-                {% endif %}
-              </div>
-            {% endfor %}
             
-            {# Find players sitting out in this round #}
+            <div class="matches-grid">
+              {% for court_num, match in matches %}
+                <div class="match-card">
+                  <div class="court-label">Court {{ court_num }}</div>
+                  <div class="match-players">
+                    {% if match|length == 2 %}
+                      <div class="vs-match">
+                        <div class="player">
+                          <span class="name">{{ match[0].name }}</span>
+                          <span class="grade">G{{ match[0].grade }}</span>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="player">
+                          <span class="name">{{ match[1].name }}</span>
+                          <span class="grade">G{{ match[1].grade }}</span>
+                        </div>
+                      </div>
+                    {% else %}
+                      <div class="doubles-match">
+                        <div class="team">
+                          <div class="team-players">
+                            <span class="name">{{ match[0].name }}</span> & <span class="name">{{ match[1].name }}</span>
+                          </div>
+                          <span class="avg-grade">Avg G{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="team">
+                          <div class="team-players">
+                            <span class="name">{{ match[2].name }}</span> & <span class="name">{{ match[3].name }}</span>
+                          </div>
+                          <span class="avg-grade">Avg G{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
+                        </div>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            
+            <!-- Players sitting out -->
             {% set playing_players = [] %}
             {% for court_num, match in matches %}
               {% for player in match %}
@@ -164,41 +232,111 @@
             {% endfor %}
             
             {% if sitting_out %}
-              <div class="alert alert-info mt-2 mb-3">
+              <div class="sitting-out">
                 <strong>🪑 Sitting out:</strong> {{ sitting_out|join(', ') }}
               </div>
             {% endif %}
-          {% endfor %}
-        </div>
+          </div>
+        {% endfor %}
+      </div>
 
-        <!-- Match Schedule by Court -->
-        <div id="schedule-court" style="display: none;">
-          {% for court_number in range(1, courts + 1) %}
-            <div class="court-header d-flex justify-content-between align-items-center">
-              <h5 class="text-success mb-0">Court {{ court_number }}</h5>
+      <!-- Schedule by Court -->
+      <div id="schedule-court" class="schedule-container" style="display: none;">
+        {% for court_number in range(1, courts + 1) %}
+          <div class="court-section">
+            <div class="court-header">
+              <h5 class="court-title">Court {{ court_number }}</h5>
             </div>
+            
             {% if matchups[court_number - 1] %}
-              {% for match, round_num in matchups[court_number - 1] %}
-                <div class="match">
-                  {% if match|length == 2 %}
-                    {{ match[0].name }} (g{{ match[0].grade }}) vs. {{ match[1].name }} (g{{ match[1].grade }})
-                  {% else %}
-                    {{ match[0].name }} & {{ match[1].name }} (avg g{{ ((match[0].grade + match[1].grade) / 2) | round(1) }})
-                    vs. {{ match[2].name }} & {{ match[3].name }} (avg g{{ ((match[2].grade + match[3].grade) / 2) | round(1) }})
-                  {% endif %}
-                  <br><small>Round {{ round_num }}</small>
-                </div>
-              {% endfor %}
+              <div class="court-matches">
+                {% for match, round_num in matchups[court_number - 1] %}
+                  <div class="match-card">
+                    <div class="round-label">Round {{ round_num }}</div>
+                    <div class="match-players">
+                      {% if match|length == 2 %}
+                        <div class="vs-match">
+                          <div class="player">
+                            <span class="name">{{ match[0].name }}</span>
+                            <span class="grade">G{{ match[0].grade }}</span>
+                          </div>
+                          <div class="vs">VS</div>
+                          <div class="player">
+                            <span class="name">{{ match[1].name }}</span>
+                            <span class="grade">G{{ match[1].grade }}</span>
+                          </div>
+                        </div>
+                      {% else %}
+                        <div class="doubles-match">
+                          <div class="team">
+                            <div class="team-players">
+                              <span class="name">{{ match[0].name }}</span> & <span class="name">{{ match[1].name }}</span>
+                            </div>
+                            <span class="avg-grade">Avg G{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
+                          </div>
+                          <div class="vs">VS</div>
+                          <div class="team">
+                            <div class="team-players">
+                              <span class="name">{{ match[2].name }}</span> & <span class="name">{{ match[3].name }}</span>
+                            </div>
+                            <span class="avg-grade">Avg G{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
             {% else %}
-              <p class="text-muted">No matches scheduled for this court.</p>
+              <div class="empty-state">
+                <p class="text-muted">No matches scheduled for this court.</p>
+              </div>
             {% endif %}
-          {% endfor %}
-        </div>
-      {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     </div>
+    {% elif players %}
+    <div class="card-base">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h6>No Matches Organized Yet</h6>
+        <p class="text-muted">Click "Organize Matches" to create a balanced match schedule.</p>
+        {% if players|length < (2 if match_type == "singles" else 4) %}
+          <div class="alert alert-warning mt-3">
+            ⚠️ You need at least {{ 2 if match_type == "singles" else 4 }} players for {{ match_type }} matches.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
   </form>
 
-  <!-- Modal for Editing Player Rounds -->
+  <!-- Timer Widget -->
+  {% if matchups and rounds %}
+  <div class="card-base">
+    <div class="timer-widget">
+      <h5 class="timer-title">⏱️ Match Timer</h5>
+      <div class="timer-display" id="main-timer-display">20:00</div>
+      <div class="timer-controls">
+        <button class="btn-base btn-success btn-sm" onclick="startClock(document.getElementById('main-timer-display'))">
+          ▶️ Start
+        </button>
+        <button class="btn-base btn-warning btn-sm" onclick="pauseClock()">
+          ⏸️ Pause
+        </button>
+        <div class="timer-input">
+          <input type="number" id="custom-minutes" class="form-control" min="1" max="60" value="20" placeholder="Min">
+          <button class="btn-base btn-outline-secondary btn-sm" onclick="setClockInput(document.getElementById('main-timer-display'))">
+            Set
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Edit Player Rounds Modal -->
   <div class="modal fade" id="editRoundsModal" tabindex="-1" aria-labelledby="editRoundsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -210,43 +348,287 @@
           <form id="editRoundsForm" method="POST">
             <input type="hidden" id="editPlayerName" name="edit_player_name">
             <div class="mb-3">
-              <label for="maxRounds" class="form-label">Maximum Rounds:</label>
+              <label for="maxRounds" class="form-label">Maximum Rounds for this Player:</label>
               <input type="number" class="form-control" id="maxRounds" name="max_rounds" min="1" required>
-              <div class="form-text">Set how many rounds this player can participate in</div>
+              <div class="form-text">
+                Useful for players who need to leave early or have limited availability.
+              </div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-success" onclick="submitEditRounds()">Save Changes</button>
+          <button type="button" class="btn-base btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn-base btn-accent" onclick="submitEditRounds()">Save Changes</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Timer -->
-  <div class="container my-4">
-    <div class="card shadow-sm border-0 rounded-4 p-4 bg-light mx-auto" style="max-width: 400px;">
-      <h5 class="text-center text-primary mb-3">⏱️ Match Timer</h5>
-  
-      <div id="main-timer-display" class="display-4 fw-semibold text-center text-dark mb-3">20:00</div>
-  
-      <div class="d-flex justify-content-center gap-3 mb-3">
-        <button class="btn btn-success px-4" onclick="startClock(document.getElementById('main-timer-display'))">▶️ Start</button>
-        <button class="btn btn-warning px-4" onclick="pauseClock()">⏸️ Pause</button>
-      </div>
-  
-      <div class="input-group">
-        <input type="number" id="custom-minutes" class="form-control" min="1" max="200" value="20">
-        <button class="btn btn-outline-primary" onclick="setClockInput(document.getElementById('main-timer-display'))">Set Timer</button>
-      </div>
-    </div>
-  </div>
-  
+  <style>
+    /* Enhanced styles for improved UI */
+    .player-card {
+      background: var(--white);
+      border: 1px solid var(--light-border);
+      border-radius: var(--card-radius);
+      padding: var(--space-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all var(--transition-speed) ease;
+    }
+    
+    .player-card:hover {
+      border-color: var(--teal);
+      box-shadow: 0 4px 12px rgba(0, 160, 126, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .player-info {
+      flex: 1;
+    }
+    
+    .player-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .player-grade {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .player-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      border: 1px solid;
+      background: transparent;
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+    }
+    
+    .btn-outline-primary {
+      color: var(--teal);
+      border-color: var(--teal);
+    }
+    
+    .btn-outline-primary:hover {
+      background: var(--teal);
+      color: white;
+    }
+    
+    .btn-outline-danger {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    
+    .btn-outline-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .action-controls {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    @media (max-width: 768px) {
+      .action-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+    
+    .schedule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+    
+    .schedule-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .schedule-controls .form-select {
+      min-width: 120px;
+    }
+    
+    .round-section, .court-section {
+      margin-bottom: var(--space-xl);
+    }
+    
+    .round-header, .court-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--card-radius);
+      margin-bottom: var(--space-md);
+    }
+    
+    .round-title, .court-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .matches-grid, .court-matches {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+    
+    .match-card {
+      background: var(--white);
+      border: 1px solid var(--light-border);
+      border-radius: var(--btn-radius);
+      padding: var(--space-md);
+      box-shadow: 0 2px 4px rgba(0, 34, 62, 0.05);
+    }
+    
+    .court-label, .round-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--space-sm);
+    }
+    
+    .vs-match, .doubles-match {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      justify-content: space-between;
+    }
+    
+    .player, .team {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .player .name, .team-players .name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .player .grade, .team .avg-grade {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: block;
+      margin-top: 2px;
+    }
+    
+    .vs {
+      background: var(--teal);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .sitting-out {
+      background: rgba(52, 152, 219, 0.1);
+      border: 1px solid rgba(52, 152, 219, 0.2);
+      border-radius: var(--btn-radius);
+      padding: var(--space-sm) var(--space-md);
+      color: var(--info);
+      font-size: 0.875rem;
+    }
+    
+    .timer-widget {
+      text-align: center;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .timer-title {
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+    
+    .timer-display {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: var(--space-lg);
+      background: var(--light);
+      padding: var(--space-lg);
+      border-radius: var(--card-radius);
+    }
+    
+    .timer-controls {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .timer-input {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+    
+    .timer-input input {
+      width: 80px;
+    }
+    
+    @media (max-width: 768px) {
+      .timer-display {
+        font-size: 2rem;
+        padding: var(--space-md);
+      }
+      
+      .timer-controls {
+        flex-direction: column;
+        gap: var(--space-sm);
+      }
+      
+      .schedule-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .matches-grid, .court-matches {
+        grid-template-columns: 1fr;
+      }
+      
+      .vs-match, .doubles-match {
+        flex-direction: column;
+        gap: var(--space-sm);
+      }
+      
+      .vs {
+        align-self: center;
+      }
+    }
+  </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+  // All the existing JavaScript functions remain the same
   let timerInterval;
   let remainingTime = 1200;
 
@@ -275,11 +657,11 @@
 
   function setClockInput(display) {
     const minutes = parseInt(document.getElementById('custom-minutes').value);
-    if (!isNaN(minutes) && minutes > 0 && minutes <= 200) {
+    if (!isNaN(minutes) && minutes > 0 && minutes <= 60) {
       remainingTime = minutes * 60;
       updateClockDisplay(display);
     } else {
-      alert("Please enter a number between 1 and 200.");
+      alert("Please enter a number between 1 and 60.");
     }
   }
 
@@ -287,7 +669,7 @@
     const display = document.getElementById('main-timer-display');
     if (display) updateClockDisplay(display);
     
-    const defaultView = "round";  // Changed to always default to "round"
+    const defaultView = "round";
     const selector = document.getElementById("scheduleToggle");
     if (selector) {
       selector.value = defaultView;
@@ -298,39 +680,32 @@
   function toggleScheduleView(view) {
     const courtDiv = document.getElementById("schedule-court");
     const roundDiv = document.getElementById("schedule-round");
-    courtDiv.style.display = view === "court" ? "block" : "none";
-    roundDiv.style.display = view === "round" ? "block" : "none";
+    if (courtDiv && roundDiv) {
+      courtDiv.style.display = view === "court" ? "block" : "none";
+      roundDiv.style.display = view === "round" ? "block" : "none";
+    }
   }
   
-  // Fixed script for player rounds modal
   function editPlayerRounds(playerName, currentMaxRounds) {
-    // Make sure Bootstrap is loaded before attempting to initialize the modal
     if (typeof bootstrap === 'undefined') {
-      console.error("Bootstrap is not loaded. Make sure bootstrap.bundle.min.js is included.");
+      console.error("Bootstrap is not loaded.");
       return;
     }
 
-    // Get the modal element
     const modalElement = document.getElementById('editRoundsModal');
-    
     if (!modalElement) {
-      console.error("Modal element not found. Make sure the HTML for the modal exists in the document.");
+      console.error("Modal element not found.");
       return;
     }
     
     try {
-      // Initialize the modal with Bootstrap
       const modal = new bootstrap.Modal(modalElement);
-      
-      // Set the values in the form
       document.getElementById('editPlayerName').value = playerName;
       document.getElementById('maxRounds').value = currentMaxRounds;
       
-      // Set the max attribute on the input to match the total rounds
       const totalRounds = parseInt(document.querySelector('input[name="num_matches"]').value) || 1;
       document.getElementById('maxRounds').max = totalRounds;
       
-      // Show the modal
       modal.show();
     } catch (e) {
       console.error("Error initializing modal:", e);
@@ -339,7 +714,6 @@
   }
 
   function submitEditRounds() {
-    // Submit the form functionality
     const playerName = document.getElementById('editPlayerName').value;
     const maxRounds = document.getElementById('maxRounds').value;
     
@@ -348,366 +722,79 @@
       return;
     }
     
-    const formData = new FormData();
-    formData.append('edit_player_rounds', 'true');
-    formData.append('edit_player_name', playerName);
-    formData.append('max_rounds', maxRounds);
+    // Create a hidden form and submit it
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/index';
     
-    // Add all existing form inputs to maintain state
+    // Add the edit player rounds data
+    const editField = document.createElement('input');
+    editField.type = 'hidden';
+    editField.name = 'edit_player_rounds';
+    editField.value = 'true';
+    form.appendChild(editField);
+    
+    const nameField = document.createElement('input');
+    nameField.type = 'hidden';
+    nameField.name = 'edit_player_name';
+    nameField.value = playerName;
+    form.appendChild(nameField);
+    
+    const roundsField = document.createElement('input');
+    roundsField.type = 'hidden';
+    roundsField.name = 'max_rounds';
+    roundsField.value = maxRounds;
+    form.appendChild(roundsField);
+    
+    // Add current form state to maintain session
     const mainForm = document.querySelector('form');
     const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
     inputs.forEach(input => {
-      if (input.name && input.value && !formData.has(input.name)) {
-        formData.append(input.name, input.value);
+      if (input.name && input.value) {
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = input.name;
+        hiddenField.value = input.value;
+        form.appendChild(hiddenField);
       }
     });
     
-    // Store current scroll position
-    const scrollPosition = window.pageYOffset;
-    
-    fetch('/', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url;
-        return;
-      }
-      return response.text();
-    })
-    .then(html => {
-      if (!html) return;
-      
-      // Parse the response
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      
-      // Update the player list section
-      const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
-      const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
-      if (newPlayerList && currentPlayerList) {
-        currentPlayerList.innerHTML = newPlayerList.innerHTML;
-      }
-      
-      // Close the modal
-      try {
-        const modalElement = document.getElementById('editRoundsModal');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      } catch (e) {
-        console.error("Error closing modal:", e);
-      }
-      
-      // Restore scroll position
-      window.scrollTo(0, scrollPosition);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert("There was an error saving your changes. Please try again.");
-    });
+    document.body.appendChild(form);
+    form.submit();
   }
   
-  function reshuffleRound(roundNum) {
-    const form = document.querySelector('form');
-    const formData = new FormData(form);
-    formData.append('reshuffle_round', roundNum);
+  function validateOrganizeMatches() {
+    const courts = parseInt(document.querySelector('input[name="courts"]').value) || 1;
+    const match_type = document.querySelector('select[name="match_type"]').value;
+    const players = document.querySelectorAll('.player-card').length;
     
-    // Add all existing form inputs to maintain state
-    const inputs = form.querySelectorAll('input[type="hidden"], input[type="number"], select');
-    inputs.forEach(input => {
-        if (input.name && input.value) {
-            formData.append(input.name, input.value);
-        }
-    });
+    const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
+    if (players < minPlayersNeeded) {
+      alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
+      return false;
+    }
     
-    // Store current scroll position
-    const scrollPosition = window.pageYOffset;
+    const playersPerCourt = match_type === 'singles' ? 2 : 4;
+    if (players < courts * playersPerCourt) {
+      const maxCourts = Math.floor(players / playersPerCourt);
+      if (maxCourts === 0) {
+        alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
+        return false;
+      } else {
+        return confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`);
+      }
+    }
     
-    fetch('/', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.redirected) {
-            window.location.href = response.url;
-            return;
-        }
-        return response.text();
-    })
-    .then(html => {
-        if (!html) return;
-        
-        // Parse the response and update the entire page
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Update the entire schedule sections
-        const newScheduleRound = doc.querySelector('#schedule-round');
-        const currentScheduleRound = document.querySelector('#schedule-round');
-        if (newScheduleRound && currentScheduleRound) {
-            currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-        }
-        
-        const newScheduleCourt = doc.querySelector('#schedule-court');
-        const currentScheduleCourt = document.querySelector('#schedule-court');
-        if (newScheduleCourt && currentScheduleCourt) {
-            currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-        }
-        
-        // Update the player summary section (back to simple list)
-        const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
-        const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
-        if (newSummary && currentSummary) {
-            currentSummary.innerHTML = newSummary.innerHTML;
-        }
-        
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-        
-        // Re-run the toggle function to show the correct view
-        const currentView = document.getElementById('scheduleToggle').value;
-        toggleScheduleView(currentView);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Fallback to regular form submission
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'reshuffle_round';
-        input.value = roundNum;
-        form.appendChild(input);
-        form.submit();
-    });
-    
-    return false;
-}
+    return true;
+  }
 
-function reshuffleAll() {
- const formData = new FormData();
- formData.append('reshuffle', 'true');
- 
- // Store current scroll position
- const scrollPosition = window.pageYOffset;
- 
- fetch('/', {
-     method: 'POST',
-     body: formData
- })
- .then(response => response.text())
- .then(html => {
-     // Create a temporary DOM element to parse the response
-     const parser = new DOMParser();
-     const doc = parser.parseFromString(html, 'text/html');
-     
-     // Update both schedule views
-     const newScheduleRound = doc.querySelector('#schedule-round');
-     const currentScheduleRound = document.querySelector('#schedule-round');
-     if (newScheduleRound && currentScheduleRound) {
-         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-     }
-     
-     const newScheduleCourt = doc.querySelector('#schedule-court');
-     const currentScheduleCourt = document.querySelector('#schedule-court');
-     if (newScheduleCourt && currentScheduleCourt) {
-         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-     }
-     
-     // Also update the player summary section (back to simple list)
-     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
-     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
-     if (newSummary && currentSummary) {
-         currentSummary.innerHTML = newSummary.innerHTML;
-     }
-     
-     // Restore scroll position
-     window.scrollTo(0, scrollPosition);
- })
- .catch(error => {
-     console.error('Error:', error);
-     // Fallback to regular form submission if AJAX fails
-     const form = document.querySelector('form');
-     const input = document.createElement('input');
-     input.type = 'hidden';
-     input.name = 'reshuffle';
-     input.value = 'true';
-     form.appendChild(input);
-     form.submit();
- });
- 
- return false; // Prevent default form submission
-}
-
-function organizeMatches() {
- // Get form values
- const form = document.querySelector('form');
- const courts = parseInt(form.querySelector('input[name="courts"]').value) || 1;
- const match_type = form.querySelector('select[name="match_type"]').value;
- const players = document.querySelectorAll('.player-box').length;
- 
- // Validate player count
- const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
- if (players < minPlayersNeeded) {
-     alert(`⚠️ You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
-     return false;
- }
- 
- // Check if there are enough players for the number of courts
- const playersPerCourt = match_type === 'singles' ? 2 : 4;
- if (players < courts * playersPerCourt) {
-     const maxCourts = Math.floor(players / playersPerCourt);
-     if (maxCourts === 0) {
-         alert(`⚠️ Not enough players for any ${match_type} matches. Add more players!`);
-         return false;
-     } else {
-         if (!confirm(`⚠️ You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`)) {
-             return false;
-         }
-     }
- }
- 
- const formData = new FormData(form);
- formData.append('organize_matches', 'true');
- 
- // Store current scroll position
- const scrollPosition = window.pageYOffset;
- 
- fetch('/', {
-     method: 'POST',
-     body: formData
- })
- .then(response => response.text())
- .then(html => {
-     // Create a temporary DOM element to parse the response
-     const parser = new DOMParser();
-     const doc = parser.parseFromString(html, 'text/html');
-     
-     // Update both schedule views
-     const newScheduleRound = doc.querySelector('#schedule-round');
-     const currentScheduleRound = document.querySelector('#schedule-round');
-     if (newScheduleRound && currentScheduleRound) {
-         currentScheduleRound.innerHTML = newScheduleRound.innerHTML;
-     }
-     
-     const newScheduleCourt = doc.querySelector('#schedule-court');
-     const currentScheduleCourt = document.querySelector('#schedule-court');
-     if (newScheduleCourt && currentScheduleCourt) {
-         currentScheduleCourt.innerHTML = newScheduleCourt.innerHTML;
-     }
-     
-     // Update the entire match schedule section to include warnings
-     const newScheduleSection = doc.querySelector('.card-section:nth-of-type(5)');
-     const currentScheduleSection = document.querySelector('.card-section:nth-of-type(5)');
-     if (newScheduleSection && currentScheduleSection) {
-         currentScheduleSection.innerHTML = newScheduleSection.innerHTML;
-     }
-     
-     // Also update the player summary section
-     const newSummary = doc.querySelector('.card-section:last-of-type ul.list-group');
-     const currentSummary = document.querySelector('.card-section:last-of-type ul.list-group');
-     if (newSummary && currentSummary) {
-         currentSummary.innerHTML = newSummary.innerHTML;
-     }
-     
-     // Update error messages if any
-     const newError = doc.querySelector('.alert-danger');
-     const existingError = document.querySelector('.alert-danger');
-     if (newError) {
-         if (existingError) {
-             existingError.innerHTML = newError.innerHTML;
-         } else {
-             // Add new error alert after action buttons
-             const actionButtons = document.querySelector('.text-center.my-4');
-             actionButtons.insertAdjacentHTML('afterend', newError.outerHTML);
-         }
-     } else if (existingError) {
-         existingError.remove();
-     }
-     
-     // Restore scroll position
-     window.scrollTo(0, scrollPosition);
-     
-     // Re-run the toggle function to show the correct view
-     const currentView = document.getElementById('scheduleToggle').value;
-     toggleScheduleView(currentView);
- })
- .catch(error => {
-     console.error('Error:', error);
-     // Fallback to regular form submission if AJAX fails
-     const form = document.querySelector('form');
-     const input = document.createElement('input');
-     input.type = 'hidden';
-     input.name = 'organize_matches';
-     input.value = 'true';
-     form.appendChild(input);
-     form.submit();
- });
- 
- return false; // Prevent default form submission
-}
-
-function uploadCSV() {
- const fileInput = document.querySelector('input[name="csv_file"]');
- const file = fileInput.files[0];
- 
- if (!file) {
-     alert('Please select a file');
-     return false;
- }
- 
- const formData = new FormData();
- formData.append('csv_file', file);
- formData.append('upload_csv', 'true');
- 
- // Store current scroll position
- const scrollPosition = window.pageYOffset;
- 
- fetch('/', {
-     method: 'POST',
-     body: formData
- })
- .then(response => {
-     return response.text();
- })
- .then(html => {
-     if (!html) return;
-     
-     // Update the page content
-     const parser = new DOMParser();
-     const doc = parser.parseFromString(html, 'text/html');
-     
-     // Update player list
-     const newPlayerList = doc.querySelector('.card-section:nth-of-type(3)');
-     const currentPlayerList = document.querySelector('.card-section:nth-of-type(3)');
-     if (newPlayerList && currentPlayerList) {
-         currentPlayerList.innerHTML = newPlayerList.innerHTML;
-     }
-     
-     // Update error messages
-     const newError = doc.querySelector('.text-danger.fw-bold');
-     const errorContainer = document.querySelector('.text-danger.fw-bold')?.parentElement || 
-                            document.querySelector('.mt-3');
-     if (newError && errorContainer) {
-         errorContainer.innerHTML = newError.outerHTML;
-     } else if (errorContainer && errorContainer.querySelector('.text-danger.fw-bold')) {
-         errorContainer.querySelector('.text-danger.fw-bold').remove();
-     }
-     
-     // Clear file input
-     fileInput.value = '';
-     
-     // Restore scroll position
-     window.scrollTo(0, scrollPosition);
- })
- .catch(error => {
-     console.error('Error:', error);
-     // Fallback to regular form submission
-     document.querySelector('form').submit();
- });
- 
- return false;
-}
+  function validateCSVUpload() {
+    const fileInput = document.getElementById('csvFileInput');
+    if (!fileInput.files[0]) {
+      alert('Please select a CSV file first');
+      return false;
+    }
+    return true; // Allow form submission to proceed
+  }
 </script>
 {% endblock %}

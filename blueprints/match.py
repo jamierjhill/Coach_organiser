@@ -5,7 +5,7 @@ from utils import organize_matches
 
 match_bp = Blueprint("match", __name__)
 
-@match_bp.route("/")
+@match_bp.route("/", methods=["GET", "POST"])
 @match_bp.route("/index", methods=["GET", "POST"])
 def index():
     """Main match organizer page - accessible without authentication."""
