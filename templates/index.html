@@ -110,11 +110,11 @@
                   {% endif %}
                 </div>
                 <div class="player-actions">
-                  <button type="button" class="btn-sm btn-outline-primary" 
+                  <button type="button" class="btn-base btn-info btn-sm" 
                          onclick="editPlayerRounds('{{ player.name }}', {{ player.get('max_rounds', num_matches) }})">
                     🔄
                   </button>
-                  <button type="button" class="btn-sm btn-outline-danger" 
+                  <button type="button" class="btn-base btn-accent btn-sm" 
                          onclick="confirmRemovePlayer('{{ player.name }}')">
                     🗑️
                   </button>
@@ -171,7 +171,7 @@
             <div class="round-header">
               <h5 class="round-title">Round {{ round_num }}</h5>
               <button type="submit" name="reshuffle_round" value="{{ round_num }}" 
-                     class="btn-base btn-outline-accent btn-sm"
+                     class="btn-base btn-info btn-sm"
                      formnovalidate>
                 🔀 Reshuffle
               </button>

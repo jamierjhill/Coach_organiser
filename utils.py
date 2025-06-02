@@ -1,12 +1,6 @@
-# utils.py
-import os
-import json
-import time
+# utils.py - Tennis Match Organization Algorithm
 import random
-import requests
 from collections import defaultdict
-from datetime import datetime
-
 
 def organize_matches(players, courts, match_type, num_matches):
     """
@@ -83,7 +77,7 @@ def organize_matches(players, courts, match_type, num_matches):
 
     # Process rounds in order (1 to num_matches)
     for round_num in range(1, num_matches + 1):
-        # Filter and sort available players based on constraints
+        # Filter available players based on constraints
         available_players = [
             p for p in players 
             if match_counts[p['name']] < p.get('max_rounds', num_matches) and
@@ -143,13 +137,6 @@ def organize_matches(players, courts, match_type, num_matches):
                     last_court_groups[p['name']] = group_set
                     new_round_groups[p['name']].update(mate['name'] for mate in group if mate['name'] != p['name'])
 
-                # Track partner pairings
-                previous_partners = {p['name']: set() for p in players}
-                for i in range(0, len(group), 2):
-                    if i+1 < len(group):
-                        previous_partners[group[i]['name']].add(group[i+1]['name'])
-                        previous_partners[group[i+1]['name']].add(group[i]['name'])
-
                 pair = group
             else:
                 p1 = candidates.pop(0)
@@ -183,49 +170,3 @@ def organize_matches(players, courts, match_type, num_matches):
     }
 
     return matchups, match_counts, opponent_averages, opponent_diff
-
-def make_api_request(url, params=None, timeout=5, max_retries=2):
-    """
-    Make an API request with retry logic.
-    
-    Args:
-        url: API endpoint URL
-        params: Dictionary of query parameters
-        timeout: Request timeout in seconds
-        max_retries: Maximum number of retry attempts
-        
-    Returns:
-        dict: JSON response or error information
-    """
-    retry_count = 0
-    while retry_count <= max_retries:
-        try:
-            response = requests.get(url, params=params, timeout=timeout)
-            
-            if response.status_code == 200:
-                return response.json()
-            
-            if retry_count < max_retries:
-                retry_count += 1
-                time.sleep(1)  # Wait before retry
-                continue
-            
-            return {"error": f"API error: {response.status_code}"}
-            
-        except requests.exceptions.Timeout:
-            if retry_count < max_retries:
-                retry_count += 1
-                time.sleep(1)
-                continue
-            return {"error": "Request timed out"}
-            
-        except requests.exceptions.ConnectionError:
-            if retry_count < max_retries:
-                retry_count += 1
-                time.sleep(1)
-                continue
-            return {"error": "Connection error"}
-            
-        except Exception as e:
-            return {"error": f"Request error: {str(e)}"}
-

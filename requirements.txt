@@ -1,7 +1,3 @@
-# Tennis Match Organizer - Minimal Dependencies
+# Tennis Match Organizer - Essential Dependencies Only
 Flask==2.3.3
 python-dotenv==1.0.0
-Werkzeug==2.3.7
-
-# Development and testing (optional)
-pytest==7.4.2
