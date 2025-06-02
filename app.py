@@ -331,6 +331,33 @@ def index():
         rounds=rounds
     )
 
+def cleanup_session_data():
+    """Clean up session data to prevent template rendering issues."""
+    # Clean up empty matchups
+    matchups = session.get("matchups", [])
+    if matchups:
+        # Remove empty court lists
+        matchups = [court_matches for court_matches in matchups if court_matches]
+        if not matchups:
+            session.pop("matchups", None)
+            session.pop("rounds", None)
+            session.pop("player_match_counts", None)
+        else:
+            session["matchups"] = matchups
+    
+    # Clean up empty rounds
+    rounds = session.get("rounds", {})
+    if rounds:
+        # Remove empty rounds
+        rounds = {k: v for k, v in rounds.items() if v}
+        if not rounds:
+            session.pop("rounds", None)
+            session.pop("matchups", None)
+            session.pop("player_match_counts", None)
+        else:
+            session["rounds"] = rounds
+
+
 @app.errorhandler(404)
 def not_found(error):
     return redirect("/")

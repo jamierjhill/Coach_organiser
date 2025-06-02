@@ -272,6 +272,16 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+
 <script>
   // Timer functions
   let timerInterval;
@@ -325,6 +335,15 @@
   function organizeMatches() {
     if (!validateOrganizeMatches()) {
       return;
+    }
+    
+    // Track GA event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'organize_matches', {
+        'event_category': 'user_interaction',
+        'event_label': 'match_organization',
+        'value': 1
+      });
     }
     
     const formData = new FormData();
@@ -387,6 +406,15 @@
 
   // AJAX reshuffle all function
   function reshuffleAll() {
+    // Track GA event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'reshuffle_all', {
+        'event_category': 'user_interaction',
+        'event_label': 'match_reshuffle',
+        'value': 1
+      });
+    }
+    
     const formData = new FormData();
     formData.append('reshuffle', 'true');
     
@@ -437,6 +465,15 @@
 
   // AJAX reshuffle function to avoid page refresh
   function reshuffleRound(roundNum) {
+    // Track GA event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'reshuffle_round', {
+        'event_category': 'user_interaction',
+        'event_label': 'round_reshuffle',
+        'value': roundNum
+      });
+    }
+    
     const formData = new FormData();
     formData.append('reshuffle_round', roundNum);
     
@@ -532,6 +569,15 @@
     if (confirm('Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.')) {
       saveScrollPosition();
       
+      // Track GA event
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'reset_session', {
+          'event_category': 'user_interaction',
+          'event_label': 'session_reset',
+          'value': 1
+        });
+      }
+      
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '/index';
@@ -551,6 +597,15 @@
   function confirmRemovePlayer(playerName) {
     if (confirm(`Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`)) {
       saveScrollPosition();
+      
+      // Track GA event
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'remove_player', {
+          'event_category': 'user_interaction',
+          'event_label': 'player_management',
+          'value': 1
+        });
+      }
       
       const form = document.createElement('form');
       form.method = 'POST';
@@ -597,6 +652,15 @@
       return false;
     }
     
+    // Track GA event for successful player addition
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'add_player', {
+        'event_category': 'user_interaction',
+        'event_label': 'player_management',
+        'value': 1
+      });
+    }
+    
     return true;
   }
   
@@ -631,6 +695,16 @@
       alert('Please select a CSV file first');
       return false;
     }
+    
+    // Track GA event for CSV upload attempt
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'csv_upload', {
+        'event_category': 'user_interaction',
+        'event_label': 'file_upload',
+        'value': 1
+      });
+    }
+    
     return true;
   }
 </script>
