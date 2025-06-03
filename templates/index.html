@@ -276,489 +276,88 @@
 
 {% endblock %}
 
-{% block extra_js %}
-<script>
-  // Get CSRF token for AJAX requests (if available)
-  function getCSRFToken() {
-    const csrfToken = document.querySelector('input[name="csrf_token"]');
-    return csrfToken ? csrfToken.value : null;
+// Enhanced AJAX organize matches function with aggressive empty state removal
+function organizeMatches() {
+  if (!validateOrganizeMatches()) {
+    return;
   }
-
-  // Timer functions
-  let timerInterval;
-  let remainingTime = 1200;
-
-  function updateClockDisplay(display) {
-    const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
-    const seconds = String(remainingTime % 60).padStart(2, '0');
-    display.textContent = `${minutes}:${seconds}`;
-  }
-
-  function startClock(display) {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      if (remainingTime > 0) {
-        remainingTime--;
-        updateClockDisplay(display);
-      } else {
-        clearInterval(timerInterval);
-        display.textContent = "Time's up!";
-      }
-    }, 1000);
-  }
-
-  function pauseClock() {
-    clearInterval(timerInterval);
-  }
-
-  function setClockInput(display) {
-    const minutes = parseInt(document.getElementById('custom-minutes').value);
-    if (!isNaN(minutes) && minutes > 0 && minutes <= 60) {
-      remainingTime = minutes * 60;
-      updateClockDisplay(display);
-    } else {
-      alert("Please enter a number between 1 and 60.");
+  
+  const formData = new FormData();
+  formData.append('organize_matches', 'true');
+  formData.append('csrf_token', getCSRFToken());
+  
+  // Add current form state
+  const form = document.querySelector('form');
+  const inputs = form.querySelectorAll('input[type="number"], select');
+  inputs.forEach(input => {
+    if (input.name && input.value) {
+      formData.append(input.name, input.value);
     }
-  }
-
-  // Helper function to reattach event handlers after AJAX updates
-  function reattachEventHandlers() {
-    // Reattach reshuffle round buttons
-    const reshuffleButtons = document.querySelectorAll('button[data-round]');
-    reshuffleButtons.forEach(button => {
-      button.onclick = function() {
-        reshuffleRound(this.getAttribute('data-round'));
-      };
-    });
-  }
-
-  // AJAX organize matches function with CSRF token
-  function organizeMatches() {
-    if (!validateOrganizeMatches()) {
-      return;
+  });
+  
+  fetch('/index', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.text();
+  })
+  .then(html => {
+    // Parse the response and update the page content
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Update CSRF token
+    const newToken = doc.querySelector('input[name="csrf_token"]').value;
+    document.querySelector('input[name="csrf_token"]').value = newToken;
+    
+    // AGGRESSIVE REMOVAL of all empty state cards
+    removeAllEmptyStates();
+    
+    // Update or create matches section
+    const newMatchesSection = doc.querySelector('#matches-section');
+    const currentMatchesSection = document.querySelector('#matches-section');
+    
+    if (newMatchesSection && currentMatchesSection) {
+      // Update existing matches section
+      currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
+      reattachEventHandlers();
+    } else if (newMatchesSection && !currentMatchesSection) {
+      // Create new matches section
+      const actionControls = document.querySelector('.action-controls').closest('.card-base');
+      actionControls.insertAdjacentHTML('afterend', '<div class="card-base" id="matches-section">' + newMatchesSection.innerHTML + '</div>');
+      reattachEventHandlers();
     }
     
-    const formData = new FormData();
-    formData.append('organize_matches', 'true');
+    // Add timer widget if not present and matches were created
+    const newTimerWidget = doc.querySelector('.timer-widget');
+    const currentTimerWidget = document.querySelector('.timer-widget');
     
-    const csrfToken = getCSRFToken();
-    if (csrfToken) {
-      formData.append('csrf_token', csrfToken);
-    }
-    
-    // Add current form state
-    const form = document.querySelector('form');
-    const inputs = form.querySelectorAll('input[type="number"], select');
-    inputs.forEach(input => {
-      if (input.name && input.value) {
-        formData.append(input.name, input.value);
-      }
-    });
-    
-    fetch('/index', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(html => {
-      // Parse the response and update the page content
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      
-      // Update CSRF token if available
-      const newToken = doc.querySelector('input[name="csrf_token"]');
-      const currentToken = document.querySelector('input[name="csrf_token"]');
-      if (newToken && currentToken) {
-        currentToken.value = newToken.value;
-      }
-      
-      // Update matches section
-      const newMatchesSection = doc.querySelector('#matches-section');
-      const currentMatchesSection = document.querySelector('#matches-section');
-      
-      if (newMatchesSection && currentMatchesSection) {
-        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
-        reattachEventHandlers();
-      } else if (newMatchesSection && !currentMatchesSection) {
-        // Add matches section if it doesn't exist
-        const actionControls = document.querySelector('.action-controls').closest('.card-base');
-        actionControls.insertAdjacentHTML('afterend', '<div class="card-base" id="matches-section">' + newMatchesSection.innerHTML + '</div>');
-        reattachEventHandlers();
-      }
-      
-      // Update timer widget if present
-      const newTimerWidget = doc.querySelector('.timer-widget');
-      const currentTimerWidget = document.querySelector('.timer-widget');
-      
-      if (newTimerWidget && !currentTimerWidget) {
-        // Add timer widget if matches were just created
-        const lastCard = document.querySelector('.card-base:last-of-type');
-        lastCard.insertAdjacentHTML('afterend', '<div class="card-base"><div class="timer-widget">' + newTimerWidget.innerHTML + '</div></div>');
+    if (newTimerWidget && !currentTimerWidget && newMatchesSection) {
+      // Add timer widget after matches section
+      const matchesSection = document.querySelector('#matches-section');
+      if (matchesSection) {
+        matchesSection.insertAdjacentHTML('afterend', '<div class="card-base"><div class="timer-widget">' + newTimerWidget.innerHTML + '</div></div>');
         
         // Reinitialize timer
         const display = document.getElementById('main-timer-display');
         if (display) updateClockDisplay(display);
       }
-    })
-    .catch(error => {
-      console.error('Error organizing matches:', error);
-      // Fallback to form submission if AJAX fails
-      const form = document.querySelector('form');
-      form.submit();
-    });
-  }
-
-  // AJAX reshuffle all function with CSRF token
-  function reshuffleAll() {
-    const formData = new FormData();
-    formData.append('reshuffle', 'true');
-    
-    const csrfToken = getCSRFToken();
-    if (csrfToken) {
-      formData.append('csrf_token', csrfToken);
     }
     
-    // Add current form state
+    // Final cleanup - remove any remaining empty states
+    setTimeout(() => {
+      removeAllEmptyStates();
+    }, 100);
+  })
+  .catch(error => {
+    console.error('Error organizing matches:', error);
+    // Fallback to form submission if AJAX fails
+    saveScrollPosition();
     const form = document.querySelector('form');
-    const inputs = form.querySelectorAll('input[type="number"], select');
-    inputs.forEach(input => {
-      if (input.name && input.value) {
-        formData.append(input.name, input.value);
-      }
-    });
-    
-    fetch('/index', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(html => {
-      // Parse the response and update just the matches section
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      
-      // Update CSRF token if available
-      const newToken = doc.querySelector('input[name="csrf_token"]');
-      const currentToken = document.querySelector('input[name="csrf_token"]');
-      if (newToken && currentToken) {
-        currentToken.value = newToken.value;
-      }
-      
-      const newMatchesSection = doc.querySelector('#matches-section');
-      const currentMatchesSection = document.querySelector('#matches-section');
-      
-      if (newMatchesSection && currentMatchesSection) {
-        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
-        reattachEventHandlers();
-      }
-    })
-    .catch(error => {
-      console.error('Error reshuffling all:', error);
-      // Fallback to form submission if AJAX fails
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/index';
-      
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'reshuffle';
-      input.value = 'true';
-      form.appendChild(input);
-      
-      const csrfToken = getCSRFToken();
-      if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-      }
-      
-      document.body.appendChild(form);
-      form.submit();
-    });
-  }
-
-  // AJAX reshuffle function to avoid page refresh with CSRF token
-  function reshuffleRound(roundNum) {
-    const formData = new FormData();
-    formData.append('reshuffle_round', roundNum);
-    
-    const csrfToken = getCSRFToken();
-    if (csrfToken) {
-      formData.append('csrf_token', csrfToken);
-    }
-    
-    // Add current form state
-    const form = document.querySelector('form');
-    const inputs = form.querySelectorAll('input[type="number"], select');
-    inputs.forEach(input => {
-      if (input.name && input.value) {
-        formData.append(input.name, input.value);
-      }
-    });
-    
-    fetch('/index', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(html => {
-      // Parse the response and update just the matches section
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      
-      // Update CSRF token if available
-      const newToken = doc.querySelector('input[name="csrf_token"]');
-      const currentToken = document.querySelector('input[name="csrf_token"]');
-      if (newToken && currentToken) {
-        currentToken.value = newToken.value;
-      }
-      
-      const newMatchesSection = doc.querySelector('#matches-section');
-      const currentMatchesSection = document.querySelector('#matches-section');
-      
-      if (newMatchesSection && currentMatchesSection) {
-        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
-        reattachEventHandlers();
-      }
-    })
-    .catch(error => {
-      console.error('Error reshuffling round:', error);
-      // Fallback to form submission if AJAX fails
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/index';
-      
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'reshuffle_round';
-      input.value = roundNum;
-      form.appendChild(input);
-      
-      const csrfToken = getCSRFToken();
-      if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-      }
-      
-      document.body.appendChild(form);
-      form.submit();
-    });
-  }
-
-  // Improved scroll position management
-  function saveScrollPosition() {
-    const scrollPos = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    sessionStorage.setItem('scrollPosition', scrollPos.toString());
-  }
-
-  function restoreScrollPosition() {
-    const savedPosition = sessionStorage.getItem('scrollPosition');
-    if (savedPosition) {
-      const scrollPos = parseInt(savedPosition);
-      // Use requestAnimationFrame to ensure DOM is ready
-      requestAnimationFrame(() => {
-        window.scrollTo(0, scrollPos);
-        sessionStorage.removeItem('scrollPosition');
-      });
-    }
-  }
-
-  // Restore scroll position as early as possible
-  document.addEventListener('DOMContentLoaded', function() {
-    restoreScrollPosition();
-    
-    const display = document.getElementById('main-timer-display');
-    if (display) updateClockDisplay(display);
-    
-    // Save scroll position before any form submission
-    const form = document.querySelector('form');
-    if (form) {
-      form.addEventListener('submit', function(e) {
-        saveScrollPosition();
-      });
-    }
-    
-    // Also save scroll position before any button click that might cause navigation
-    const buttons = document.querySelectorAll('button[type="submit"]');
-    buttons.forEach(button => {
-      button.addEventListener('click', function() {
-        saveScrollPosition();
-      });
-    });
+    form.submit();
   });
-
-  // Simple confirmation for reset - using browser confirm
-  function confirmReset() {
-    if (confirm('Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.')) {
-      saveScrollPosition();
-      
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/index';
-      
-      const resetField = document.createElement('input');
-      resetField.type = 'hidden';
-      resetField.name = 'reset';
-      resetField.value = 'true';
-      form.appendChild(resetField);
-      
-      const csrfToken = getCSRFToken();
-      if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-      }
-      
-      document.body.appendChild(form);
-      form.submit();
-    }
-  }
-  
-  // Simple confirmation for removing player - using browser confirm
-  function confirmRemovePlayer(playerName) {
-    if (confirm(`Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`)) {
-      saveScrollPosition();
-      
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/index';
-      
-      const removeField = document.createElement('input');
-      removeField.type = 'hidden';
-      removeField.name = 'remove_player';
-      removeField.value = playerName;
-      form.appendChild(removeField);
-      
-      const csrfToken = getCSRFToken();
-      if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-      }
-      
-      // Add current form state to maintain session
-      const mainForm = document.querySelector('form');
-      const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
-      inputs.forEach(input => {
-        if (input.name && input.value && input.name !== 'csrf_token') {
-          const hiddenField = document.createElement('input');
-          hiddenField.type = 'hidden';
-          hiddenField.name = input.name;
-          hiddenField.value = input.value;
-          form.appendChild(hiddenField);
-        }
-      });
-      
-      document.body.appendChild(form);
-      form.submit();
-    }
-  }
-  
-  // Enhanced validation functions with better security
-  function validateAddPlayer() {
-    const name = document.getElementById('playerName').value.trim();
-    const grade = document.getElementById('playerGrade').value;
-    
-    if (!name) {
-      alert('Please enter a player name.');
-      document.getElementById('playerName').focus();
-      return false;
-    }
-    
-    if (name.length > 50) {
-      alert('Player name too long (max 50 characters).');
-      document.getElementById('playerName').focus();
-      return false;
-    }
-    
-    // Check for valid characters
-    const validNameRegex = /^[a-zA-Z0-9\s\-']+$/;
-    if (!validNameRegex.test(name)) {
-      alert('Player name contains invalid characters. Only letters, numbers, spaces, hyphens and apostrophes are allowed.');
-      document.getElementById('playerName').focus();
-      return false;
-    }
-    
-    if (!grade || !['1', '2', '3', '4'].includes(grade)) {
-      alert('Please select a grade between 1 (strongest) and 4 (weakest).');
-      document.getElementById('playerGrade').focus();
-      return false;
-    }
-    
-    return true;
-  }
-  
-  function validateOrganizeMatches() {
-    const courts = parseInt(document.querySelector('input[name="courts"]').value) || 1;
-    const match_type = document.querySelector('select[name="match_type"]').value;
-    const players = document.querySelectorAll('.player-card').length;
-    
-    const minPlayersNeeded = match_type === 'singles' ? 2 : 4;
-    if (players < minPlayersNeeded) {
-      alert(`You need at least ${minPlayersNeeded} players for ${match_type} matches!`);
-      return false;
-    }
-    
-    const playersPerCourt = match_type === 'singles' ? 2 : 4;
-    if (players < courts * playersPerCourt) {
-      const maxCourts = Math.floor(players / playersPerCourt);
-      if (maxCourts === 0) {
-        alert(`Not enough players for any ${match_type} matches. Add more players!`);
-        return false;
-      } else {
-        return confirm(`You only have enough players for ${maxCourts} court${maxCourts === 1 ? '' : 's'}. Some courts will be empty. Continue anyway?`);
-      }
-    }
-    
-    return true;
-  }
-
-  function validateCSVUpload() {
-    const fileInput = document.getElementById('csvFileInput');
-    if (!fileInput.files[0]) {
-      alert('Please select a CSV file first');
-      return false;
-    }
-    
-    const file = fileInput.files[0];
-    
-    // Check file size (1MB limit)
-    if (file.size > 1024 * 1024) {
-      alert('File too large. Maximum size is 1MB.');
-      return false;
-    }
-    
-    // Check file extension
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      alert('Please select a CSV file.');
-      return false;
-    }
-    
-    return true;
-  }
-</script>
-{% endblock %}
+}
