@@ -137,7 +137,7 @@
     {% if players %}
     <div class="card-base">
       <div class="action-controls">
-        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()" formnovalidate>
+        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()">
           🎯 Organize Matches
         </button>
         <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()">
@@ -249,7 +249,7 @@
     </div>
     {% endif %}
   </form>
-</div>
+
   <!-- Timer Widget -->
   {% if matchups and rounds %}
   <div class="card-base">
@@ -276,15 +276,124 @@
 
 {% endblock %}
 
-// Enhanced AJAX organize matches function with aggressive empty state removal
+{% block extra_js %}
+<script>
+// Timer variables
+let timerInterval = null;
+let isPaused = false;
+let timeRemaining = 20 * 60; // 20 minutes in seconds
+
+// Validation Functions
+function validateAddPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  const grade = document.getElementById('playerGrade').value;
+  
+  if (!name) {
+    alert('Please enter a player name');
+    return false;
+  }
+  
+  if (!grade) {
+    alert('Please select a grade');
+    return false;
+  }
+  
+  // Check for duplicate names
+  const existingPlayers = document.querySelectorAll('.player-name');
+  for (let player of existingPlayers) {
+    if (player.textContent.toLowerCase() === name.toLowerCase()) {
+      alert('Player with this name already exists');
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function validateCSVUpload() {
+  const fileInput = document.getElementById('csvFileInput');
+  if (!fileInput.files.length) {
+    alert('Please select a CSV file');
+    return false;
+  }
+  return true;
+}
+
+function validateOrganizeMatches() {
+  const players = document.querySelectorAll('.player-card');
+  const matchType = document.querySelector('select[name="match_type"]').value;
+  const minPlayers = matchType === 'singles' ? 2 : 4;
+  
+  if (players.length < minPlayers) {
+    alert(`You need at least ${minPlayers} players for ${matchType} matches`);
+    return false;
+  }
+  
+  return true;
+}
+
+// CSRF Token helper
+function getCSRFToken() {
+  const csrfInput = document.querySelector('input[name="csrf_token"]');
+  return csrfInput ? csrfInput.value : '';
+}
+
+// Scroll position helpers
+function saveScrollPosition() {
+  sessionStorage.setItem('scrollPosition', window.pageYOffset);
+}
+
+function restoreScrollPosition() {
+  const scrollPos = sessionStorage.getItem('scrollPosition');
+  if (scrollPos) {
+    window.scrollTo(0, parseInt(scrollPos));
+    sessionStorage.removeItem('scrollPosition');
+  }
+}
+
+// Empty state removal
+function removeAllEmptyStates() {
+  const emptyStates = document.querySelectorAll('.empty-state');
+  emptyStates.forEach(state => {
+    const card = state.closest('.card-base');
+    if (card && card.id !== 'players-section') {
+      card.remove();
+    }
+  });
+}
+
+// Event handler reattachment
+function reattachEventHandlers() {
+  // Reattach reshuffle round buttons
+  const reshuffleButtons = document.querySelectorAll('[onclick*="reshuffleRound"]');
+  reshuffleButtons.forEach(button => {
+    const roundNum = button.getAttribute('data-round');
+    if (roundNum) {
+      button.onclick = () => reshuffleRound(parseInt(roundNum));
+    }
+  });
+}
+
+// Main organize matches function - FIXED VERSION
 function organizeMatches() {
   if (!validateOrganizeMatches()) {
     return;
   }
   
+  // Show loading state
+  const button = event.target;
+  const originalText = button.innerHTML;
+  button.innerHTML = '⏳ Organizing...';
+  button.disabled = true;
+  
   const formData = new FormData();
   formData.append('organize_matches', 'true');
-  formData.append('csrf_token', getCSRFToken());
+  
+  // Add CSRF token if available
+  const csrfToken = getCSRFToken();
+  if (csrfToken) {
+    formData.append('csrf_token', csrfToken);
+  }
   
   // Add current form state
   const form = document.querySelector('form');
@@ -310,25 +419,30 @@ function organizeMatches() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Update CSRF token
-    const newToken = doc.querySelector('input[name="csrf_token"]').value;
-    document.querySelector('input[name="csrf_token"]').value = newToken;
+    // Update CSRF token if present
+    const newToken = doc.querySelector('input[name="csrf_token"]');
+    const currentToken = document.querySelector('input[name="csrf_token"]');
+    if (newToken && currentToken) {
+      currentToken.value = newToken.value;
+    }
     
-    // AGGRESSIVE REMOVAL of all empty state cards
+    // Remove any existing empty states
     removeAllEmptyStates();
     
     // Update or create matches section
     const newMatchesSection = doc.querySelector('#matches-section');
     const currentMatchesSection = document.querySelector('#matches-section');
     
-    if (newMatchesSection && currentMatchesSection) {
-      // Update existing matches section
-      currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
-      reattachEventHandlers();
-    } else if (newMatchesSection && !currentMatchesSection) {
-      // Create new matches section
-      const actionControls = document.querySelector('.action-controls').closest('.card-base');
-      actionControls.insertAdjacentHTML('afterend', '<div class="card-base" id="matches-section">' + newMatchesSection.innerHTML + '</div>');
+    if (newMatchesSection) {
+      if (currentMatchesSection) {
+        // Update existing matches section
+        currentMatchesSection.innerHTML = newMatchesSection.innerHTML;
+      } else {
+        // Create new matches section
+        const actionControls = document.querySelector('.action-controls').closest('.card-base');
+        const matchesHTML = `<div class="card-base" id="matches-section">${newMatchesSection.innerHTML}</div>`;
+        actionControls.insertAdjacentHTML('afterend', matchesHTML);
+      }
       reattachEventHandlers();
     }
     
@@ -337,27 +451,210 @@ function organizeMatches() {
     const currentTimerWidget = document.querySelector('.timer-widget');
     
     if (newTimerWidget && !currentTimerWidget && newMatchesSection) {
-      // Add timer widget after matches section
       const matchesSection = document.querySelector('#matches-section');
       if (matchesSection) {
-        matchesSection.insertAdjacentHTML('afterend', '<div class="card-base"><div class="timer-widget">' + newTimerWidget.innerHTML + '</div></div>');
+        const timerHTML = `<div class="card-base"><div class="timer-widget">${newTimerWidget.outerHTML}</div></div>`;
+        matchesSection.insertAdjacentHTML('afterend', timerHTML);
         
-        // Reinitialize timer
+        // Initialize timer
         const display = document.getElementById('main-timer-display');
-        if (display) updateClockDisplay(display);
+        if (display) {
+          timeRemaining = 20 * 60; // Reset to 20 minutes
+          updateClockDisplay(display);
+        }
       }
     }
     
-    // Final cleanup - remove any remaining empty states
-    setTimeout(() => {
-      removeAllEmptyStates();
-    }, 100);
+    // Final cleanup
+    setTimeout(removeAllEmptyStates, 100);
+    
+    // Show success message
+    showMessage('Matches organized successfully!', 'success');
+    
   })
   .catch(error => {
     console.error('Error organizing matches:', error);
+    showMessage('Error organizing matches. Trying alternative method...', 'warning');
+    
     // Fallback to form submission if AJAX fails
     saveScrollPosition();
-    const form = document.querySelector('form');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'organize_matches';
+    hiddenInput.value = 'true';
+    form.appendChild(hiddenInput);
     form.submit();
+  })
+  .finally(() => {
+    // Restore button state
+    button.innerHTML = originalText;
+    button.disabled = false;
   });
 }
+
+// Simplified reshuffle functions
+function reshuffleAll() {
+  if (confirm('This will reshuffle all players and create new matches. Continue?')) {
+    saveScrollPosition();
+    const form = document.querySelector('form');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'reshuffle';
+    hiddenInput.value = 'true';
+    form.appendChild(hiddenInput);
+    form.submit();
+  }
+}
+
+function reshuffleRound(roundNum) {
+  if (confirm(`Reshuffle Round ${roundNum}? This will create new matches for this round only.`)) {
+    const form = document.querySelector('form');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'reshuffle_round';
+    hiddenInput.value = roundNum;
+    form.appendChild(hiddenInput);
+    form.submit();
+  }
+}
+
+// Player management functions
+function confirmRemovePlayer(playerName) {
+  if (confirm(`Remove ${playerName} from the session?`)) {
+    const form = document.querySelector('form');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'remove_player';
+    hiddenInput.value = playerName;
+    form.appendChild(hiddenInput);
+    form.submit();
+  }
+}
+
+function confirmReset() {
+  if (confirm('This will remove all players and matches. Are you sure?')) {
+    const form = document.querySelector('form');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'reset';
+    hiddenInput.value = 'true';
+    form.appendChild(hiddenInput);
+    form.submit();
+  }
+}
+
+// Timer functions
+function updateClockDisplay(display) {
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+  if (timeRemaining <= 0) {
+    display.style.color = 'var(--danger)';
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    showMessage('Time\'s up!', 'warning');
+  } else if (timeRemaining <= 60) {
+    display.style.color = 'var(--warning)';
+  } else {
+    display.style.color = 'var(--navy)';
+  }
+}
+
+function startClock(display) {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  
+  isPaused = false;
+  timerInterval = setInterval(() => {
+    if (!isPaused && timeRemaining > 0) {
+      timeRemaining--;
+      updateClockDisplay(display);
+    }
+  }, 1000);
+}
+
+function pauseClock() {
+  isPaused = !isPaused;
+  const button = event.target;
+  button.textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
+}
+
+function setClockInput(display) {
+  const customMinutes = document.getElementById('custom-minutes').value;
+  if (customMinutes && customMinutes > 0 && customMinutes <= 60) {
+    timeRemaining = parseInt(customMinutes) * 60;
+    updateClockDisplay(display);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    isPaused = false;
+    document.querySelector('[onclick*="pauseClock"]').textContent = '⏸️ Pause';
+  }
+}
+
+// Message display function
+function showMessage(message, type = 'info') {
+  // Remove existing messages
+  const existingMessages = document.querySelectorAll('.temp-message');
+  existingMessages.forEach(msg => msg.remove());
+  
+  // Create new message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `alert alert-${type} temp-message`;
+  messageDiv.style.position = 'fixed';
+  messageDiv.style.top = '20px';
+  messageDiv.style.right = '20px';
+  messageDiv.style.zIndex = '9999';
+  messageDiv.style.maxWidth = '300px';
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+  }, 3000);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Restore scroll position if returning from form submission
+  restoreScrollPosition();
+  
+  // Initialize timer display if present
+  const timerDisplay = document.getElementById('main-timer-display');
+  if (timerDisplay) {
+    updateClockDisplay(timerDisplay);
+  }
+  
+  // Clear form inputs after successful submission
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('success')) {
+    document.getElementById('playerName').value = '';
+    document.getElementById('playerGrade').value = '';
+  }
+});
+
+// Prevent form submission on Enter key in player name field
+document.addEventListener('DOMContentLoaded', function() {
+  const playerNameInput = document.getElementById('playerName');
+  if (playerNameInput) {
+    playerNameInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (validateAddPlayer()) {
+          document.querySelector('button[name="add_player"]').click();
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
