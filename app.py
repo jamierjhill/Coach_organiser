@@ -1,8 +1,8 @@
-# app.py - Secured Tennis Match Organizer
+# app.py - Secured Tennis Match Organizer with Enhanced CSV Security
 from dotenv import load_dotenv
 load_dotenv()
 
-import os, random, csv, io
+import os, random, csv, io, re
 from datetime import timedelta
 from collections import defaultdict
 from flask import Flask, render_template, request, session, redirect, flash
@@ -56,20 +56,52 @@ def add_security_headers(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
+def sanitize_csv_field(field_value):
+    """Sanitize CSV field to prevent formula injection"""
+    if not field_value:
+        return field_value
+    
+    field_value = str(field_value).strip()
+    
+    # Remove any quotes that might hide formulas
+    field_value = field_value.strip('"\'')
+    
+    # If field starts with dangerous characters, prefix with single quote to neutralize
+    if field_value and field_value[0] in ['=', '+', '-', '@', '\t', '\r']:
+        field_value = "'" + field_value
+    
+    return field_value
+
 def validate_player_name(name):
-    """Validate player name input"""
+    """Enhanced player name validation with security checks"""
     if not name or len(name.strip()) == 0:
         return False, "Player name cannot be empty"
-    if len(name.strip()) > 50:
+    
+    name = name.strip()
+    
+    if len(name) > 50:
         return False, "Player name too long (max 50 characters)"
-    # Allow only alphanumeric, spaces, hyphens, apostrophes
-    import re
-    if not re.match(r"^[a-zA-Z0-9\s\-']+$", name.strip()):
+    
+    # Check for dangerous CSV injection characters
+    dangerous_chars = ['=', '+', '-', '@', '\t', '\r', '\n']
+    if any(char in name for char in dangerous_chars):
+        return False, "Player name contains potentially dangerous characters"
+    
+    # Allow only alphanumeric, spaces, hyphens, apostrophes, periods
+    if not re.match(r"^[a-zA-Z0-9\s\-'.]+$", name):
         return False, "Player name contains invalid characters"
+    
+    # Additional checks
+    if name.startswith(' ') or name.endswith(' '):
+        return False, "Player name cannot start or end with spaces"
+    
+    if '  ' in name:  # Multiple consecutive spaces
+        return False, "Player name cannot contain multiple consecutive spaces"
+    
     return True, ""
 
 def validate_csv_file(file):
-    """Enhanced CSV file validation"""
+    """Enhanced CSV file validation with security checks"""
     if not file:
         return False, "No file provided"
     
@@ -88,7 +120,128 @@ def validate_csv_file(file):
     if size > 1024 * 1024:  # 1MB limit for CSV
         return False, "CSV file too large (max 1MB)"
     
+    if size == 0:
+        return False, "CSV file is empty"
+    
+    # Basic content validation
+    try:
+        # Read first 1KB to check if it's valid UTF-8 text
+        file_sample = file.read(min(1024, size))
+        file.seek(0)  # Reset
+        
+        try:
+            file_sample.decode('utf-8')
+        except UnicodeDecodeError:
+            return False, "File does not appear to be a valid text file"
+            
+    except Exception:
+        return False, "Error reading file"
+    
     return True, ""
+
+def sanitize_csv_content(content):
+    """Sanitize entire CSV content to prevent formula injection"""
+    lines = content.split('\n')
+    sanitized_lines = []
+    
+    for line in lines:
+        if not line.strip():  # Skip empty lines
+            sanitized_lines.append(line)
+            continue
+            
+        # Split by comma and sanitize each field
+        fields = []
+        # Simple CSV parsing - split by comma but handle quoted fields
+        current_field = ""
+        in_quotes = False
+        
+        for char in line:
+            if char == '"' and (not current_field or current_field[-1] != '\\'):
+                in_quotes = not in_quotes
+                current_field += char
+            elif char == ',' and not in_quotes:
+                fields.append(sanitize_csv_field(current_field))
+                current_field = ""
+            else:
+                current_field += char
+        
+        # Add the last field
+        fields.append(sanitize_csv_field(current_field))
+        sanitized_lines.append(','.join(fields))
+    
+    return '\n'.join(sanitized_lines)
+
+def process_csv_upload_secure(file, existing_players):
+    """Secure CSV upload processing with comprehensive validation"""
+    try:
+        # Validate file
+        is_valid, error_msg = validate_csv_file(file)
+        if not is_valid:
+            return [], error_msg
+        
+        # Read and sanitize content
+        content = file.read().decode("utf-8")
+        content = sanitize_csv_content(content)
+        
+        # Parse CSV
+        reader = csv.DictReader(io.StringIO(content))
+        
+        if not reader.fieldnames or 'name' not in reader.fieldnames or 'grade' not in reader.fieldnames:
+            return [], "CSV must have 'name' and 'grade' columns"
+        
+        new_players = []
+        added_count = 0
+        skipped_count = 0
+        errors = []
+        
+        for row_num, row in enumerate(reader, start=2):
+            if row_num > 102:  # Limit to 100 players (plus header)
+                break
+            
+            name = sanitize_csv_field(row.get("name", "")).strip()
+            grade_str = sanitize_csv_field(row.get("grade", "")).strip()
+            
+            # Validate name with enhanced security
+            is_valid_name, name_error = validate_player_name(name)
+            if not is_valid_name:
+                skipped_count += 1
+                errors.append(f"Row {row_num}: {name_error}")
+                continue
+            
+            # Validate grade
+            try:
+                grade = int(grade_str.strip("'\""))  # Remove any quotes added by sanitization
+                if not (1 <= grade <= 4):
+                    skipped_count += 1
+                    errors.append(f"Row {row_num}: Grade must be between 1 and 4")
+                    continue
+            except (ValueError, TypeError):
+                skipped_count += 1
+                errors.append(f"Row {row_num}: Invalid grade format")
+                continue
+            
+            # Check for duplicates with existing players
+            if any(p["name"].lower() == name.lower() for p in existing_players + new_players):
+                skipped_count += 1
+                errors.append(f"Row {row_num}: Player '{name}' already exists")
+                continue
+            
+            new_players.append({"name": name, "grade": grade})
+            added_count += 1
+        
+        # Prepare result message
+        if added_count > 0:
+            success_msg = f"Added {added_count} players"
+            if skipped_count > 0:
+                success_msg += f", skipped {skipped_count} invalid entries"
+            return new_players, success_msg
+        elif skipped_count > 0:
+            return [], f"No valid players found. Skipped {skipped_count} entries with errors."
+        else:
+            return [], "No players found in CSV file"
+        
+    except Exception as e:
+        return [], "Error processing CSV file. Please check format and try again."
 
 def reshuffle_single_round(players, courts, match_type, round_to_reshuffle, existing_matchups, existing_rounds):
     """
@@ -108,7 +261,6 @@ def reshuffle_single_round(players, courts, match_type, round_to_reshuffle, exis
     random.shuffle(available_players)
     
     # Track existing combinations from OTHER rounds (not the one we're reshuffling)
-    # We'll use this as preference, not strict blocking
     existing_combinations = set()
     if match_type == "doubles":
         for court_matches in existing_matchups:
@@ -231,7 +383,7 @@ def reshuffle_single_round(players, courts, match_type, round_to_reshuffle, exis
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
 def index():
-    """Main match organizer page."""
+    """Main match organizer page with enhanced security."""
     
     # Get current session data
     players = session.get("players", [])
@@ -276,62 +428,26 @@ def index():
                 session.pop("player_match_counts", None)
                 session.pop("rounds", None)
 
-        # CSV upload with enhanced validation
+        # CSV upload with enhanced security
         elif "upload_csv" in request.form:
             file = request.files.get("csv_file")
-            is_valid, error_msg = validate_csv_file(file)
+            new_players, message = process_csv_upload_secure(file, players)
             
-            if not is_valid:
-                error = error_msg
+            if new_players:
+                players.extend(new_players)
+                session["players"] = players
+                # Clear matches when new players added
+                session.pop("matchups", None)
+                session.pop("player_match_counts", None)
+                session.pop("rounds", None)
+                
+                # Show success message
+                if "skipped" not in message:
+                    flash(message, "success")
+                else:
+                    flash(message, "warning")
             else:
-                try:
-                    content = file.read().decode("utf-8")
-                    reader = csv.DictReader(io.StringIO(content))
-                    
-                    if not reader.fieldnames or 'name' not in reader.fieldnames or 'grade' not in reader.fieldnames:
-                        error = "CSV must have 'name' and 'grade' columns"
-                    else:
-                        added_count = 0
-                        skipped_count = 0
-                        
-                        for row_num, row in enumerate(reader, start=2):  # Start at 2 for header
-                            if row_num > 102:  # Limit to 100 players (plus header)
-                                error = "Too many players in CSV (max 100)"
-                                break
-                                
-                            name = row.get("name", "").strip()
-                            grade_str = row.get("grade", "").strip()
-                            
-                            # Validate name
-                            is_valid_name, name_error = validate_player_name(name)
-                            if not is_valid_name:
-                                skipped_count += 1
-                                continue
-                            
-                            # Validate grade
-                            try:
-                                grade = int(grade_str)
-                                if not (1 <= grade <= 4):
-                                    skipped_count += 1
-                                    continue
-                            except (ValueError, TypeError):
-                                skipped_count += 1
-                                continue
-                            
-                            # Check for duplicates
-                            if any(p["name"].lower() == name.lower() for p in players):
-                                skipped_count += 1
-                                continue
-                            
-                            players.append({"name": name, "grade": grade})
-                            added_count += 1
-                        
-                        session["players"] = players
-                        if skipped_count > 0:
-                            error = f"Added {added_count} players, skipped {skipped_count} invalid entries"
-                        
-                except (UnicodeDecodeError, csv.Error, Exception) as e:
-                    error = "Error processing CSV file. Please check format."
+                error = message
 
         # Reset everything
         elif "reset" in request.form:
@@ -342,6 +458,9 @@ def index():
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()
             grade_str = request.form.get("grade", "")
+            
+            # Sanitize name input
+            name = sanitize_csv_field(name)
             
             # Validate name
             is_valid_name, name_error = validate_player_name(name)
@@ -361,6 +480,8 @@ def index():
                     else:
                         players.append({"name": name, "grade": grade})
                         session["players"] = players
+                        # Clear form by redirecting
+                        return redirect("/")
                 except (TypeError, ValueError):
                     error = "Invalid grade selected"
 

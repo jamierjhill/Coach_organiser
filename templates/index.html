@@ -507,15 +507,14 @@ function reshuffleAll() {
 }
 
 function reshuffleRound(roundNum) {
-  if (confirm(`Reshuffle Round ${roundNum}? This will create new matches for this round only.`)) {
-    const form = document.querySelector('form');
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'reshuffle_round';
-    hiddenInput.value = roundNum;
-    form.appendChild(hiddenInput);
-    form.submit();
-  }
+  saveScrollPosition();
+  const form = document.querySelector('form');
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = 'reshuffle_round';
+  hiddenInput.value = roundNum;
+  form.appendChild(hiddenInput);
+  form.submit();
 }
 
 // Player management functions
