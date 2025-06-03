@@ -9,6 +9,9 @@
   </div>
 
   <form method="POST" action="/index" enctype="multipart/form-data">
+    <!-- CSRF Token Protection -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
     <!-- Session Setup Card -->
     <div class="card-base">
       <h4 class="section-title">🎯 Session Setup</h4>
@@ -17,21 +20,21 @@
           <label class="form-label">Courts Available</label>
           <div class="input-group">
             <span class="input-group-text">🏟️</span>
-            <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}">
+            <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}" required>
           </div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Matches per Player</label>
           <div class="input-group">
             <span class="input-group-text">🔄</span>
-            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}">
+            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required>
           </div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Match Format</label>
           <div class="input-group">
             <span class="input-group-text">🎾</span>
-            <select class="form-control" name="match_type">
+            <select class="form-control" name="match_type" required>
               <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
               <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
             </select>
@@ -49,10 +52,10 @@
         <h6 class="text-primary mb-3">Add Individual Player</h6>
         <div class="row g-3">
           <div class="col-md-5">
-            <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName">
+            <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName" maxlength="50" pattern="[a-zA-Z0-9\s\-']+" title="Only letters, numbers, spaces, hyphens and apostrophes allowed">
           </div>
           <div class="col-md-3">
-            <select name="grade" class="form-control" id="playerGrade">
+            <select name="grade" class="form-control" id="playerGrade" required>
               <option value="">Select Grade</option>
               <option value="1">Grade 1 (Strongest)</option>
               <option value="2">Grade 2 (Strong)</option>
@@ -74,7 +77,7 @@
         <div class="row g-3">
           <div class="col-md-8">
             <input type="file" name="csv_file" accept=".csv" class="form-control" id="csvFileInput">
-            <small class="text-muted">Format: <code>name,grade</code> (e.g., "John Smith,2")</small>
+            <small class="text-muted">Format: <code>name,grade</code> (e.g., "John Smith,2"). Max file size: 1MB, Max 100 players.</small>
           </div>
           <div class="col-md-4">
             <button type="submit" name="upload_csv" value="true" class="btn-base btn-info w-100" onclick="return validateCSVUpload()" formnovalidate>
@@ -103,7 +106,7 @@
             <div class="col-md-6 col-lg-4">
               <div class="player-card">
                 <div class="player-info">
-                  <div class="player-name">{{ player.name }}</div>
+                  <div class="player-name">{{ player.name|e }}</div>
                   <div class="player-grade">Grade {{ player.grade }}</div>
                   {% if player.max_rounds is defined %}
                     <div class="badge badge-base status-warning">{{ player.max_rounds }} rounds max</div>
@@ -111,7 +114,7 @@
                 </div>
                 <div class="player-actions">
                   <button type="button" class="btn-base btn-accent btn-sm" 
-                         onclick="confirmRemovePlayer('{{ player.name }}')">
+                         onclick="confirmRemovePlayer('{{ player.name|e }}')">
                     🗑️ Remove
                   </button>
                 </div>
@@ -174,12 +177,12 @@
                     {% if match|length == 2 %}
                       <div class="vs-match">
                         <div class="player">
-                          <span class="name">{{ match[0].name }}</span>
+                          <span class="name">{{ match[0].name|e }}</span>
                           <span class="grade">G{{ match[0].grade }}</span>
                         </div>
                         <div class="vs">VS</div>
                         <div class="player">
-                          <span class="name">{{ match[1].name }}</span>
+                          <span class="name">{{ match[1].name|e }}</span>
                           <span class="grade">G{{ match[1].grade }}</span>
                         </div>
                       </div>
@@ -187,14 +190,14 @@
                       <div class="doubles-match">
                         <div class="team">
                           <div class="team-players">
-                            <span class="name">{{ match[0].name }}</span> & <span class="name">{{ match[1].name }}</span>
+                            <span class="name">{{ match[0].name|e }}</span> & <span class="name">{{ match[1].name|e }}</span>
                           </div>
                           <span class="avg-grade">Avg G{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
                         </div>
                         <div class="vs">VS</div>
                         <div class="team">
                           <div class="team-players">
-                            <span class="name">{{ match[2].name }}</span> & <span class="name">{{ match[3].name }}</span>
+                            <span class="name">{{ match[2].name|e }}</span> & <span class="name">{{ match[3].name|e }}</span>
                           </div>
                           <span class="avg-grade">Avg G{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
                         </div>
@@ -222,7 +225,7 @@
             
             {% if sitting_out %}
               <div class="sitting-out">
-                <strong>🪑 Sitting out:</strong> {{ sitting_out|join(', ') }}
+                <strong>🪑 Sitting out:</strong> {{ sitting_out|join(', ')|e }}
               </div>
             {% endif %}
           </div>
@@ -272,17 +275,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  // Get CSRF token for AJAX requests
+  function getCSRFToken() {
+    return document.querySelector('input[name="csrf_token"]').value;
+  }
 
-  gtag('config', 'G-FL37QBZMLC');
-</script>
-
-<script>
   // Timer functions
   let timerInterval;
   let remainingTime = 1200;
@@ -331,23 +329,15 @@
     });
   }
 
-  // AJAX organize matches function
+  // AJAX organize matches function with CSRF token
   function organizeMatches() {
     if (!validateOrganizeMatches()) {
       return;
     }
     
-    // Track GA event
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'organize_matches', {
-        'event_category': 'user_interaction',
-        'event_label': 'match_organization',
-        'value': 1
-      });
-    }
-    
     const formData = new FormData();
     formData.append('organize_matches', 'true');
+    formData.append('csrf_token', getCSRFToken());
     
     // Add current form state
     const form = document.querySelector('form');
@@ -362,11 +352,20 @@
       method: 'POST',
       body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
     .then(html => {
       // Parse the response and update the page content
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update CSRF token
+      const newToken = doc.querySelector('input[name="csrf_token"]').value;
+      document.querySelector('input[name="csrf_token"]').value = newToken;
       
       // Update matches section
       const newMatchesSection = doc.querySelector('#matches-section');
@@ -404,19 +403,11 @@
     });
   }
 
-  // AJAX reshuffle all function
+  // AJAX reshuffle all function with CSRF token
   function reshuffleAll() {
-    // Track GA event
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'reshuffle_all', {
-        'event_category': 'user_interaction',
-        'event_label': 'match_reshuffle',
-        'value': 1
-      });
-    }
-    
     const formData = new FormData();
     formData.append('reshuffle', 'true');
+    formData.append('csrf_token', getCSRFToken());
     
     // Add current form state
     const form = document.querySelector('form');
@@ -431,11 +422,20 @@
       method: 'POST',
       body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
     .then(html => {
       // Parse the response and update just the matches section
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update CSRF token
+      const newToken = doc.querySelector('input[name="csrf_token"]').value;
+      document.querySelector('input[name="csrf_token"]').value = newToken;
       
       const newMatchesSection = doc.querySelector('#matches-section');
       const currentMatchesSection = document.querySelector('#matches-section');
@@ -458,24 +458,22 @@
       input.value = 'true';
       form.appendChild(input);
       
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = getCSRFToken();
+      form.appendChild(csrfInput);
+      
       document.body.appendChild(form);
       form.submit();
     });
   }
 
-  // AJAX reshuffle function to avoid page refresh
+  // AJAX reshuffle function to avoid page refresh with CSRF token
   function reshuffleRound(roundNum) {
-    // Track GA event
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'reshuffle_round', {
-        'event_category': 'user_interaction',
-        'event_label': 'round_reshuffle',
-        'value': roundNum
-      });
-    }
-    
     const formData = new FormData();
     formData.append('reshuffle_round', roundNum);
+    formData.append('csrf_token', getCSRFToken());
     
     // Add current form state
     const form = document.querySelector('form');
@@ -490,11 +488,20 @@
       method: 'POST',
       body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
     .then(html => {
       // Parse the response and update just the matches section
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update CSRF token
+      const newToken = doc.querySelector('input[name="csrf_token"]').value;
+      document.querySelector('input[name="csrf_token"]').value = newToken;
       
       const newMatchesSection = doc.querySelector('#matches-section');
       const currentMatchesSection = document.querySelector('#matches-section');
@@ -516,6 +523,12 @@
       input.name = 'reshuffle_round';
       input.value = roundNum;
       form.appendChild(input);
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = getCSRFToken();
+      form.appendChild(csrfInput);
       
       document.body.appendChild(form);
       form.submit();
@@ -569,15 +582,6 @@
     if (confirm('Are you sure you want to reset everything? This will clear all players, matches, and session data. This action cannot be undone.')) {
       saveScrollPosition();
       
-      // Track GA event
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'reset_session', {
-          'event_category': 'user_interaction',
-          'event_label': 'session_reset',
-          'value': 1
-        });
-      }
-      
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '/index';
@@ -587,6 +591,12 @@
       resetField.name = 'reset';
       resetField.value = 'true';
       form.appendChild(resetField);
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = getCSRFToken();
+      form.appendChild(csrfInput);
       
       document.body.appendChild(form);
       form.submit();
@@ -598,15 +608,6 @@
     if (confirm(`Are you sure you want to remove "${playerName}" from the session? This will also clear any organized matches.`)) {
       saveScrollPosition();
       
-      // Track GA event
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'remove_player', {
-          'event_category': 'user_interaction',
-          'event_label': 'player_management',
-          'value': 1
-        });
-      }
-      
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '/index';
@@ -617,11 +618,17 @@
       removeField.value = playerName;
       form.appendChild(removeField);
       
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = getCSRFToken();
+      form.appendChild(csrfInput);
+      
       // Add current form state to maintain session
       const mainForm = document.querySelector('form');
       const inputs = mainForm.querySelectorAll('input[type="hidden"], input[type="number"], select');
       inputs.forEach(input => {
-        if (input.name && input.value) {
+        if (input.name && input.value && input.name !== 'csrf_token') {
           const hiddenField = document.createElement('input');
           hiddenField.type = 'hidden';
           hiddenField.name = input.name;
@@ -635,7 +642,7 @@
     }
   }
   
-  // Simple validation functions - using browser alert
+  // Enhanced validation functions with better security
   function validateAddPlayer() {
     const name = document.getElementById('playerName').value.trim();
     const grade = document.getElementById('playerGrade').value;
@@ -646,19 +653,24 @@
       return false;
     }
     
+    if (name.length > 50) {
+      alert('Player name too long (max 50 characters).');
+      document.getElementById('playerName').focus();
+      return false;
+    }
+    
+    // Check for valid characters
+    const validNameRegex = /^[a-zA-Z0-9\s\-']+$/;
+    if (!validNameRegex.test(name)) {
+      alert('Player name contains invalid characters. Only letters, numbers, spaces, hyphens and apostrophes are allowed.');
+      document.getElementById('playerName').focus();
+      return false;
+    }
+    
     if (!grade || !['1', '2', '3', '4'].includes(grade)) {
       alert('Please select a grade between 1 (strongest) and 4 (weakest).');
       document.getElementById('playerGrade').focus();
       return false;
-    }
-    
-    // Track GA event for successful player addition
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'add_player', {
-        'event_category': 'user_interaction',
-        'event_label': 'player_management',
-        'value': 1
-      });
     }
     
     return true;
@@ -696,13 +708,18 @@
       return false;
     }
     
-    // Track GA event for CSV upload attempt
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'csv_upload', {
-        'event_category': 'user_interaction',
-        'event_label': 'file_upload',
-        'value': 1
-      });
+    const file = fileInput.files[0];
+    
+    // Check file size (1MB limit)
+    if (file.size > 1024 * 1024) {
+      alert('File too large. Maximum size is 1MB.');
+      return false;
+    }
+    
+    // Check file extension
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please select a CSV file.');
+      return false;
     }
     
     return true;

@@ -6,22 +6,115 @@
 <div class="text-center py-5">
   <div class="error-container">
     <div class="error-code" style="font-size: 6rem; font-weight: bold; color: var(--navy);">{{ error_code }}</div>
-    <h1 class="error-title mb-4">{{ error_message }}</h1>
+    <h1 class="error-title mb-4">{{ error_message|e }}</h1>
     
     <div class="error-image my-5">
       {% if error_code == 404 %}
         <span style="font-size: 120px;">🔍</span>
         <p class="text-muted mt-3">Sorry, we couldn't find the page you were looking for.</p>
+        <p class="text-muted">The page may have been moved, deleted, or you may have mistyped the URL.</p>
+      {% elif error_code == 400 %}
+        <span style="font-size: 120px;">❌</span>
+        <p class="text-muted mt-3">There was a problem with your request.</p>
+        <p class="text-muted">Please check your input and try again.</p>
+      {% elif error_code == 413 %}
+        <span style="font-size: 120px;">📁</span>
+        <p class="text-muted mt-3">The file you tried to upload is too large.</p>
+        <p class="text-muted">Please choose a smaller file (maximum 2MB) and try again.</p>
+      {% elif error_code == 500 %}
+        <span style="font-size: 120px;">⚠️</span>
+        <p class="text-muted mt-3">Something went wrong on our end.</p>
+        <p class="text-muted">Please try refreshing the page or come back later.</p>
       {% else %}
         <span style="font-size: 120px;">⚠️</span>
-        <p class="text-muted mt-3">Something went wrong. Please try refreshing the page.</p>
+        <p class="text-muted mt-3">An unexpected error occurred.</p>
+        <p class="text-muted">Please try again or contact support if the problem persists.</p>
       {% endif %}
     </div>
     
     <div class="error-actions">
       <a href="/" class="btn-base btn-accent me-3">🎾 Back to Match Organizer</a>
-      <a href="javascript:history.back()" class="btn-base btn-outline-secondary">⬅️ Go Back</a>
+      {% if error_code != 500 %}
+        <a href="javascript:history.back()" class="btn-base btn-outline-secondary">⬅️ Go Back</a>
+      {% endif %}
     </div>
+    
+    {% if error_code == 400 or error_code == 413 %}
+      <div class="error-tips mt-4">
+        <h6>Tips to avoid this error:</h6>
+        <ul class="text-muted text-start" style="max-width: 500px; margin: 0 auto;">
+          {% if error_code == 400 %}
+            <li>Ensure all required fields are filled out correctly</li>
+            <li>Use only letters, numbers, and basic punctuation in player names</li>
+            <li>Check that grade values are between 1 and 4</li>
+            <li>Make sure CSV files have 'name' and 'grade' columns</li>
+          {% elif error_code == 413 %}
+            <li>Keep CSV files under 2MB in size</li>
+            <li>Limit CSV files to 100 players maximum</li>
+            <li>Use plain text CSV format without embedded images</li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+    
+    {% if error_code == 500 %}
+      <div class="error-reference mt-4">
+        <small class="text-muted">
+          If this problem continues, please note the time: {{ moment().format('YYYY-MM-DD HH:mm:ss UTC') }}
+        </small>
+      </div>
+    {% endif %}
   </div>
 </div>
+
+<style>
+.error-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.error-tips ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.error-tips li {
+  padding: 0.5rem 0;
+  border-left: 3px solid var(--teal);
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-reference {
+  background: var(--light);
+  padding: 1rem;
+  border-radius: var(--btn-radius);
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .error-container {
+    padding: 1rem;
+  }
+  
+  .error-code {
+    font-size: 4rem !important;
+  }
+  
+  .error-image span {
+    font-size: 80px !important;
+  }
+  
+  .error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .error-actions .btn-base {
+    width: 100%;
+  }
+}
+</style>
 {% endblock %}

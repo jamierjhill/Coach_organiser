@@ -1,21 +1,30 @@
-# app.py - Simplified Tennis Match Organizer
+# app.py - Secured Tennis Match Organizer
 from dotenv import load_dotenv
 load_dotenv()
 
-import os, random, csv, io
+import os, random, csv, io, mimetypes
 from datetime import timedelta
 from collections import defaultdict
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, flash
+from flask_wtf.csrf import CSRFProtect
 from utils import organize_matches
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_key_UNSAFE_FOR_PRODUCTION")
 
-# Session configuration
+# Initialize CSRF Protection
+csrf = CSRFProtect(app)
+
+# Session configuration with enhanced security
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = True  # Enable in production with HTTPS
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Reduced to 2MB
+
+# CSRF Configuration
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
+app.config['WTF_CSRF_SSL_STRICT'] = True  # Enable in production
 
 @app.before_request
 def make_session_permanent():
@@ -23,10 +32,59 @@ def make_session_permanent():
 
 @app.after_request
 def add_security_headers(response):
+    # Enhanced security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
+
+def validate_player_name(name):
+    """Validate player name input"""
+    if not name or len(name.strip()) == 0:
+        return False, "Player name cannot be empty"
+    if len(name.strip()) > 50:
+        return False, "Player name too long (max 50 characters)"
+    # Allow only alphanumeric, spaces, hyphens, apostrophes
+    import re
+    if not re.match(r"^[a-zA-Z0-9\s\-']+$", name.strip()):
+        return False, "Player name contains invalid characters"
+    return True, ""
+
+def validate_csv_file(file):
+    """Enhanced CSV file validation"""
+    if not file:
+        return False, "No file provided"
+    
+    if not file.filename:
+        return False, "No file selected"
+    
+    # Check file extension
+    if not file.filename.lower().endswith('.csv'):
+        return False, "File must have .csv extension"
+    
+    # Check MIME type
+    file.seek(0)
+    file_content = file.read(1024)  # Read first 1KB for detection
+    file.seek(0)  # Reset file pointer
+    
+    try:
+        # Try to decode as UTF-8
+        file_content.decode('utf-8')
+    except UnicodeDecodeError:
+        return False, "File must be UTF-8 encoded"
+    
+    # Check file size (already limited by MAX_CONTENT_LENGTH, but double-check)
+    file.seek(0, 2)  # Seek to end
+    size = file.tell()
+    file.seek(0)  # Reset
+    
+    if size > 1024 * 1024:  # 1MB limit for CSV
+        return False, "CSV file too large (max 1MB)"
+    
+    return True, ""
 
 def reshuffle_single_round(players, courts, match_type, round_to_reshuffle, existing_matchups, existing_rounds):
     """
@@ -180,16 +238,23 @@ def index():
     matchups = session.get("matchups", [])
     player_match_counts = session.get("player_match_counts", {})
     rounds = session.get("rounds", {})
+    error = None
 
     if request.method == "POST":
-        # Update session configuration
+        # Update session configuration with validation
         try:
-            courts = int(request.form.get("courts", courts))
-            num_matches = int(request.form.get("num_matches", num_matches))
-        except ValueError:
-            pass
+            courts_input = int(request.form.get("courts", courts))
+            courts = max(1, min(20, courts_input))  # Limit to reasonable range
+            
+            num_matches_input = int(request.form.get("num_matches", num_matches))
+            num_matches = max(1, min(10, num_matches_input))  # Limit to reasonable range
+        except (ValueError, TypeError):
+            error = "Invalid number format for courts or matches"
         
-        match_type = request.form.get("match_type", match_type)
+        match_type_input = request.form.get("match_type", match_type)
+        if match_type_input in ["singles", "doubles"]:
+            match_type = match_type_input
+        
         session.update({
             "courts": courts,
             "num_matches": num_matches,
@@ -198,63 +263,111 @@ def index():
 
         # Remove player
         if "remove_player" in request.form:
-            name_to_remove = request.form.get("remove_player")
-            players = [p for p in players if p["name"] != name_to_remove]
-            session["players"] = players
-            # Clear matches when player is removed
-            session.pop("matchups", None)
-            session.pop("player_match_counts", None)
-            session.pop("rounds", None)
+            name_to_remove = request.form.get("remove_player", "").strip()
+            if name_to_remove:
+                players = [p for p in players if p["name"] != name_to_remove]
+                session["players"] = players
+                # Clear matches when player is removed
+                session.pop("matchups", None)
+                session.pop("player_match_counts", None)
+                session.pop("rounds", None)
 
-        # CSV upload
+        # CSV upload with enhanced validation
         elif "upload_csv" in request.form:
             file = request.files.get("csv_file")
-            if file and file.filename.endswith(".csv"):
+            is_valid, error_msg = validate_csv_file(file)
+            
+            if not is_valid:
+                error = error_msg
+            else:
                 try:
                     content = file.read().decode("utf-8")
                     reader = csv.DictReader(io.StringIO(content))
                     
-                    if reader.fieldnames and 'name' in reader.fieldnames and 'grade' in reader.fieldnames:
+                    if not reader.fieldnames or 'name' not in reader.fieldnames or 'grade' not in reader.fieldnames:
+                        error = "CSV must have 'name' and 'grade' columns"
+                    else:
                         added_count = 0
-                        for row in reader:
-                            name = row.get("name", "").strip()
-                            try:
-                                grade = int(row.get("grade", "").strip())
-                                if name and 1 <= grade <= 4:
-                                    players.append({"name": name, "grade": grade})
-                                    added_count += 1
-                            except (ValueError, AttributeError):
-                                continue
+                        skipped_count = 0
                         
-                        if added_count > 0:
-                            session["players"] = players
+                        for row_num, row in enumerate(reader, start=2):  # Start at 2 for header
+                            if row_num > 102:  # Limit to 100 players (plus header)
+                                error = "Too many players in CSV (max 100)"
+                                break
+                                
+                            name = row.get("name", "").strip()
+                            grade_str = row.get("grade", "").strip()
                             
-                except (UnicodeDecodeError, Exception):
-                    pass  # Silently handle errors
+                            # Validate name
+                            is_valid_name, name_error = validate_player_name(name)
+                            if not is_valid_name:
+                                skipped_count += 1
+                                continue
+                            
+                            # Validate grade
+                            try:
+                                grade = int(grade_str)
+                                if not (1 <= grade <= 4):
+                                    skipped_count += 1
+                                    continue
+                            except (ValueError, TypeError):
+                                skipped_count += 1
+                                continue
+                            
+                            # Check for duplicates
+                            if any(p["name"].lower() == name.lower() for p in players):
+                                skipped_count += 1
+                                continue
+                            
+                            players.append({"name": name, "grade": grade})
+                            added_count += 1
+                        
+                        session["players"] = players
+                        if skipped_count > 0:
+                            error = f"Added {added_count} players, skipped {skipped_count} invalid entries"
+                        
+                except (UnicodeDecodeError, csv.Error, Exception) as e:
+                    error = "Error processing CSV file. Please check format."
 
         # Reset everything
         elif "reset" in request.form:
             session.clear()
             return redirect("/")
 
-        # Add individual player
+        # Add individual player with enhanced validation
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()
-            try:
-                grade = int(request.form.get("grade"))
-            except (TypeError, ValueError):
-                grade = None
+            grade_str = request.form.get("grade", "")
+            
+            # Validate name
+            is_valid_name, name_error = validate_player_name(name)
+            if not is_valid_name:
+                error = name_error
+            else:
+                try:
+                    grade = int(grade_str)
+                    if not (1 <= grade <= 4):
+                        error = "Grade must be between 1 and 4"
+                    # Check for duplicates
+                    elif any(p["name"].lower() == name.lower() for p in players):
+                        error = f"Player '{name}' already exists"
+                    # Check player limit
+                    elif len(players) >= 100:
+                        error = "Maximum 100 players allowed"
+                    else:
+                        players.append({"name": name, "grade": grade})
+                        session["players"] = players
+                except (TypeError, ValueError):
+                    error = "Invalid grade selected"
 
-            if name and grade in [1, 2, 3, 4]:
-                players.append({"name": name, "grade": grade})
-                session["players"] = players
-
-        # Reshuffle specific round
+        # Reshuffle specific round with validation
         elif "reshuffle_round" in request.form:
             try:
                 round_to_reshuffle = int(request.form.get("reshuffle_round"))
                 
-                if matchups and rounds:
+                if not (1 <= round_to_reshuffle <= 10):
+                    error = "Invalid round number"
+                elif matchups and rounds:
                     # Generate new matches for this round
                     new_round_matches = reshuffle_single_round(
                         players, courts, match_type, round_to_reshuffle, matchups, rounds
@@ -295,30 +408,39 @@ def index():
                         })
                         
             except (ValueError, TypeError):
-                pass  # Silently handle invalid round numbers
+                error = "Invalid round number format"
 
-        # Organize matches
+        # Organize matches with validation
         elif "organize_matches" in request.form or "reshuffle" in request.form:
-            if "reshuffle" in request.form:
-                random.shuffle(players)
+            min_players = 2 if match_type == "singles" else 4
+            
+            if len(players) < min_players:
+                error = f"Need at least {min_players} players for {match_type} matches"
+            elif len(players) > 100:
+                error = "Too many players (max 100)"
+            else:
+                if "reshuffle" in request.form:
+                    random.shuffle(players)
 
-            if len(players) >= (2 if match_type == "singles" else 4):
-                matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
-                    players, courts, match_type, num_matches
-                )
+                try:
+                    matchups, player_match_counts, opponent_averages, opponent_diff = organize_matches(
+                        players, courts, match_type, num_matches
+                    )
 
-                # Build round structure
-                round_structure = defaultdict(list)
-                for court_index, court_matches in enumerate(matchups):
-                    for match, round_num in court_matches:
-                        round_structure[round_num].append((court_index + 1, match))
-                rounds = dict(sorted(round_structure.items()))
+                    # Build round structure
+                    round_structure = defaultdict(list)
+                    for court_index, court_matches in enumerate(matchups):
+                        for match, round_num in court_matches:
+                            round_structure[round_num].append((court_index + 1, match))
+                    rounds = dict(sorted(round_structure.items()))
 
-                session.update({
-                    "matchups": matchups,
-                    "player_match_counts": player_match_counts,
-                    "rounds": rounds
-                })
+                    session.update({
+                        "matchups": matchups,
+                        "player_match_counts": player_match_counts,
+                        "rounds": rounds
+                    })
+                except Exception as e:
+                    error = "Error organizing matches. Please try again."
 
     return render_template(
         "index.html",
@@ -328,43 +450,27 @@ def index():
         num_matches=num_matches,
         match_type=match_type,
         player_match_counts=player_match_counts,
-        rounds=rounds
+        rounds=rounds,
+        error=error
     )
 
-def cleanup_session_data():
-    """Clean up session data to prevent template rendering issues."""
-    # Clean up empty matchups
-    matchups = session.get("matchups", [])
-    if matchups:
-        # Remove empty court lists
-        matchups = [court_matches for court_matches in matchups if court_matches]
-        if not matchups:
-            session.pop("matchups", None)
-            session.pop("rounds", None)
-            session.pop("player_match_counts", None)
-        else:
-            session["matchups"] = matchups
-    
-    # Clean up empty rounds
-    rounds = session.get("rounds", {})
-    if rounds:
-        # Remove empty rounds
-        rounds = {k: v for k, v in rounds.items() if v}
-        if not rounds:
-            session.pop("rounds", None)
-            session.pop("matchups", None)
-            session.pop("player_match_counts", None)
-        else:
-            session["rounds"] = rounds
-
+@app.errorhandler(400)
+def bad_request(error):
+    return render_template('error.html', error_code=400, error_message="Bad Request"), 400
 
 @app.errorhandler(404)
 def not_found(error):
-    return redirect("/")
+    return render_template('error.html', error_code=404, error_message="Page Not Found"), 404
+
+@app.errorhandler(413)
+def payload_too_large(error):
+    return render_template('error.html', error_code=413, error_message="File Too Large"), 413
 
 @app.errorhandler(500)
 def server_error(error):
-    return redirect("/")
+    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # For development only - disable debug in production
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
