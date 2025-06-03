@@ -2,29 +2,40 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import os, random, csv, io, mimetypes
+import os, random, csv, io
 from datetime import timedelta
 from collections import defaultdict
 from flask import Flask, render_template, request, session, redirect, flash
-from flask_wtf.csrf import CSRFProtect
+
+# Only import CSRF if available
+try:
+    from flask_wtf.csrf import CSRFProtect
+    CSRF_AVAILABLE = True
+except ImportError:
+    print("Warning: Flask-WTF not installed. CSRF protection disabled.")
+    CSRF_AVAILABLE = False
+
 from utils import organize_matches
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_key_UNSAFE_FOR_PRODUCTION")
 
-# Initialize CSRF Protection
-csrf = CSRFProtect(app)
+# Initialize CSRF Protection only if available
+if CSRF_AVAILABLE:
+    csrf = CSRFProtect(app)
+    # CSRF Configuration
+    app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
+    app.config['WTF_CSRF_SSL_STRICT'] = os.getenv("FLASK_ENV") == "production"
+
+# Check if running in production
+IS_PRODUCTION = os.getenv("FLASK_ENV") == "production"
 
 # Session configuration with enhanced security
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = True  # Enable in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION  # Only secure in production with HTTPS
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Reduced to 2MB
-
-# CSRF Configuration
-app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
-app.config['WTF_CSRF_SSL_STRICT'] = True  # Enable in production
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB
 
 @app.before_request
 def make_session_permanent():
@@ -36,7 +47,11 @@ def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # Only add HSTS in production
+    if IS_PRODUCTION:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
     response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
@@ -64,17 +79,6 @@ def validate_csv_file(file):
     # Check file extension
     if not file.filename.lower().endswith('.csv'):
         return False, "File must have .csv extension"
-    
-    # Check MIME type
-    file.seek(0)
-    file_content = file.read(1024)  # Read first 1KB for detection
-    file.seek(0)  # Reset file pointer
-    
-    try:
-        # Try to decode as UTF-8
-        file_content.decode('utf-8')
-    except UnicodeDecodeError:
-        return False, "File must be UTF-8 encoded"
     
     # Check file size (already limited by MAX_CONTENT_LENGTH, but double-check)
     file.seek(0, 2)  # Seek to end
@@ -451,7 +455,8 @@ def index():
         match_type=match_type,
         player_match_counts=player_match_counts,
         rounds=rounds,
-        error=error
+        error=error,
+        csrf_available=CSRF_AVAILABLE
     )
 
 @app.errorhandler(400)

@@ -9,8 +9,10 @@
   </div>
 
   <form method="POST" action="/index" enctype="multipart/form-data">
-    <!-- CSRF Token Protection -->
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <!-- CSRF Token Protection (only if available) -->
+    {% if csrf_available %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% endif %}
     
     <!-- Session Setup Card -->
     <div class="card-base">
@@ -276,9 +278,10 @@
 
 {% block extra_js %}
 <script>
-  // Get CSRF token for AJAX requests
+  // Get CSRF token for AJAX requests (if available)
   function getCSRFToken() {
-    return document.querySelector('input[name="csrf_token"]').value;
+    const csrfToken = document.querySelector('input[name="csrf_token"]');
+    return csrfToken ? csrfToken.value : null;
   }
 
   // Timer functions
@@ -337,7 +340,11 @@
     
     const formData = new FormData();
     formData.append('organize_matches', 'true');
-    formData.append('csrf_token', getCSRFToken());
+    
+    const csrfToken = getCSRFToken();
+    if (csrfToken) {
+      formData.append('csrf_token', csrfToken);
+    }
     
     // Add current form state
     const form = document.querySelector('form');
@@ -363,9 +370,12 @@
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       
-      // Update CSRF token
-      const newToken = doc.querySelector('input[name="csrf_token"]').value;
-      document.querySelector('input[name="csrf_token"]').value = newToken;
+      // Update CSRF token if available
+      const newToken = doc.querySelector('input[name="csrf_token"]');
+      const currentToken = document.querySelector('input[name="csrf_token"]');
+      if (newToken && currentToken) {
+        currentToken.value = newToken.value;
+      }
       
       // Update matches section
       const newMatchesSection = doc.querySelector('#matches-section');
@@ -407,7 +417,11 @@
   function reshuffleAll() {
     const formData = new FormData();
     formData.append('reshuffle', 'true');
-    formData.append('csrf_token', getCSRFToken());
+    
+    const csrfToken = getCSRFToken();
+    if (csrfToken) {
+      formData.append('csrf_token', csrfToken);
+    }
     
     // Add current form state
     const form = document.querySelector('form');
@@ -433,9 +447,12 @@
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       
-      // Update CSRF token
-      const newToken = doc.querySelector('input[name="csrf_token"]').value;
-      document.querySelector('input[name="csrf_token"]').value = newToken;
+      // Update CSRF token if available
+      const newToken = doc.querySelector('input[name="csrf_token"]');
+      const currentToken = document.querySelector('input[name="csrf_token"]');
+      if (newToken && currentToken) {
+        currentToken.value = newToken.value;
+      }
       
       const newMatchesSection = doc.querySelector('#matches-section');
       const currentMatchesSection = document.querySelector('#matches-section');
@@ -458,11 +475,14 @@
       input.value = 'true';
       form.appendChild(input);
       
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrf_token';
-      csrfInput.value = getCSRFToken();
-      form.appendChild(csrfInput);
+      const csrfToken = getCSRFToken();
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
       
       document.body.appendChild(form);
       form.submit();
@@ -473,7 +493,11 @@
   function reshuffleRound(roundNum) {
     const formData = new FormData();
     formData.append('reshuffle_round', roundNum);
-    formData.append('csrf_token', getCSRFToken());
+    
+    const csrfToken = getCSRFToken();
+    if (csrfToken) {
+      formData.append('csrf_token', csrfToken);
+    }
     
     // Add current form state
     const form = document.querySelector('form');
@@ -499,9 +523,12 @@
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       
-      // Update CSRF token
-      const newToken = doc.querySelector('input[name="csrf_token"]').value;
-      document.querySelector('input[name="csrf_token"]').value = newToken;
+      // Update CSRF token if available
+      const newToken = doc.querySelector('input[name="csrf_token"]');
+      const currentToken = document.querySelector('input[name="csrf_token"]');
+      if (newToken && currentToken) {
+        currentToken.value = newToken.value;
+      }
       
       const newMatchesSection = doc.querySelector('#matches-section');
       const currentMatchesSection = document.querySelector('#matches-section');
@@ -524,11 +551,14 @@
       input.value = roundNum;
       form.appendChild(input);
       
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrf_token';
-      csrfInput.value = getCSRFToken();
-      form.appendChild(csrfInput);
+      const csrfToken = getCSRFToken();
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
       
       document.body.appendChild(form);
       form.submit();
@@ -592,11 +622,14 @@
       resetField.value = 'true';
       form.appendChild(resetField);
       
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrf_token';
-      csrfInput.value = getCSRFToken();
-      form.appendChild(csrfInput);
+      const csrfToken = getCSRFToken();
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
       
       document.body.appendChild(form);
       form.submit();
@@ -618,11 +651,14 @@
       removeField.value = playerName;
       form.appendChild(removeField);
       
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrf_token';
-      csrfInput.value = getCSRFToken();
-      form.appendChild(csrfInput);
+      const csrfToken = getCSRFToken();
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
       
       // Add current form state to maintain session
       const mainForm = document.querySelector('form');

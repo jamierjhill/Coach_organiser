@@ -50,4 +50,4 @@ cache/
 
 offline_archive/
 
-requirements.txt
+# Remove requirements.txt from .gitignore so it gets tracked
