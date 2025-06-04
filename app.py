@@ -79,8 +79,8 @@ def validate_player_name(name):
     
     name = name.strip()
     
-    if len(name) > 50:
-        return False, "Player name too long (max 50 characters)"
+    if len(name) > 20:
+        return False, "Player name too long (max 20 characters)"
     
     # Check for dangerous CSV injection characters
     dangerous_chars = ['=', '+', '-', '@', '\t', '\r', '\n']
