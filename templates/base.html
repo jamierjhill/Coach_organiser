@@ -15,26 +15,26 @@
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="navbar" style="background: var(--navy); box-shadow: 0 2px 4px rgba(0,34,62,0.1);">
+  <!-- Minimal Header -->
+  <header class="navbar">
     <div class="container">
-      <a class="navbar-brand text-white fw-bold d-flex align-items-center gap-2" href="/">
-        <span style="font-size: 1.5rem;">🎾</span>
+      <a class="navbar-brand" href="/">
+        <span>🎾</span>
         <span>Tennis Match Organizer</span>
       </a>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="{% block container_class %}container py-4{% endblock %}">
+  <main class="{% block container_class %}container{% endblock %}" style="padding-top: 2rem; padding-bottom: 4rem;">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
-  <footer class="text-center text-muted py-4 mt-5 border-top">
+  <!-- Minimal Footer -->
+  <footer style="text-align: center; padding: 2rem 0; color: var(--text-muted); border-top: 1px solid var(--border-light); margin-top: 3rem;">
     <div class="container">
-      <p class="mb-0">
-        <span class="fw-medium">Tennis Match Organizer</span> 
+      <p style="margin: 0; font-size: 0.875rem;">
+        Tennis Match Organizer
       </p>
     </div>
   </footer>

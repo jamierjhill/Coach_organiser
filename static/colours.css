@@ -1,52 +1,50 @@
 /* =============================================
-   TENNIS MATCH ORGANIZER - OPTIMIZED CSS
-   Clean, focused styles for the tennis app
+   TENNIS MATCH ORGANIZER - UX-OPTIMIZED DESIGN
+   Clean, intuitive, and user-focused interface
    ============================================= */
 
 /* =============================================
-   1. CSS VARIABLES
+   1. CSS VARIABLES - UX-OPTIMIZED PALETTE
    ============================================= */
 :root {
-  /* Brand Colors */
-  --navy: #00223e;
-  --navy-light: #003a66;
-  --navy-dark: #001527;
-  --teal: #00a07e;
-  --teal-light: #33b597;
-  --teal-dark: #007a5f;
-  --white: #fafaf8;
-  --light: #f3f6f9;
-  --light-border: #dce4ef;
+  /* UX-Optimized Color Palette */
+  --primary: #1a1a1a;
+  --primary-light: #2d2d2d;
+  --accent: #4a90e2;
+  --accent-light: #6ba3e8;
+  --accent-dark: #3a7bd5;
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-hover: #f8f9fa;
+  --border: #e5e5e5;
+  --border-light: #f0f0f0;
   
   /* Text Colors */
-  --text-primary: #00223e;
-  --text-secondary: #5a6987;
-  --text-muted: #6c757d;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
   
   /* Status Colors */
-  --success: #00a07e;
-  --warning: #f7c948;
-  --danger: #e74c3c;
-  --info: #3498db;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
   
-  /* Component Properties */
-  --card-radius: 15px;
-  --card-shadow: 0 4px 12px rgba(0, 34, 62, 0.08);
-  --btn-radius: 8px;
-  --input-radius: 8px;
-  --transition-speed: 0.3s;
+  /* Minimal Design Properties */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(74, 144, 226, 0.12);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Spacing System */
-  --space-xs: 0.25rem;   /* 4px */
-  --space-sm: 0.5rem;    /* 8px */
-  --space-md: 1rem;      /* 16px */
-  --space-lg: 1.5rem;    /* 24px */
-  --space-xl: 2rem;      /* 32px */
-  --space-2xl: 3rem;     /* 48px */
-  
-  /* Touch targets for mobile */
-  --touch-target: 44px;
-  --touch-target-sm: 36px;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
 }
 
 /* =============================================
@@ -58,23 +56,19 @@
 
 html {
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   scroll-behavior: smooth;
-  /* Prevent scroll restoration by browser */
-  overflow-anchor: none;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--light);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--background);
   color: var(--text-primary);
   margin: 0;
   padding: 0;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent browser from restoring scroll position */
-  overflow-anchor: none;
 }
 
 /* =============================================
@@ -82,199 +76,200 @@ body {
    ============================================= */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 var(--space-md);
+  padding: 0 var(--space-lg);
 }
 
-@media (min-width: 768px) {
+@media (max-width: 768px) {
   .container {
-    padding: 0 var(--space-lg);
+    padding: 0 var(--space-md);
   }
+}
+
+/* Minimal Header */
+.navbar {
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-subtle) !important;
+  padding: var(--space-md) 0;
+}
+
+.navbar-brand {
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+  color: var(--text-primary) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.navbar-brand span:first-child {
+  font-size: 1.5rem;
 }
 
 /* Page Header */
 .page-title-container {
   text-align: center;
-  padding: var(--space-xl) var(--space-md);
-  margin-bottom: var(--space-lg);
+  padding: var(--space-2xl) 0;
+  margin-bottom: var(--space-xl);
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-primary);
   margin-bottom: var(--space-md);
   line-height: 1.2;
+  letter-spacing: -0.025em;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 768px) {
   .page-title {
-    font-size: 2.5rem;
+    font-size: 1.875rem;
   }
 }
 
 .page-subtitle {
   font-size: 1.125rem;
   color: var(--text-secondary);
-  margin-bottom: var(--space-lg);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  font-weight: 400;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--navy);
-  margin-bottom: var(--space-md);
-  line-height: 1.3;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* =============================================
-   4. CARD COMPONENTS
+   4. MINIMAL CARD SYSTEM
    ============================================= */
 .card-base {
-  background: var(--white);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  padding: var(--space-lg);
-  margin-bottom: var(--space-lg);
-  transition: transform var(--transition-speed) ease;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  transition: var(--transition);
+}
+
+.card-base:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
 @media (max-width: 768px) {
   .card-base {
-    padding: var(--space-md);
-    margin-bottom: var(--space-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
   }
 }
 
-.card-border-left {
-  background: var(--white);
-  border-left: 4px solid var(--teal);
-  border-radius: var(--btn-radius);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-  box-shadow: 0 2px 4px rgba(0, 34, 62, 0.05);
-  transition: all var(--transition-speed) ease;
-}
-
-.summary-card {
-  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
-  color: white;
-  border-radius: var(--card-radius);
+.card-section {
+  background: var(--surface-hover);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
   padding: var(--space-lg);
-  text-align: center;
-  box-shadow: var(--card-shadow);
-  transition: transform var(--transition-speed) ease;
+  margin-bottom: var(--space-lg);
 }
 
-.summary-card:hover {
-  transform: translateY(-3px);
+.card-section:last-child {
+  margin-bottom: 0;
 }
 
 /* =============================================
-   5. BUTTON SYSTEM
+   5. MINIMAL BUTTON SYSTEM
    ============================================= */
 .btn-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: var(--btn-radius);
-  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
-  min-height: var(--touch-target);
+  transition: var(--transition);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
 }
 
 .btn-accent {
-  background: linear-gradient(145deg, var(--teal), var(--teal-dark));
+  background: var(--accent);
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 160, 126, 0.2);
 }
 
 .btn-accent:hover {
-  background: linear-gradient(145deg, var(--teal-light), var(--teal));
+  background: var(--accent-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 160, 126, 0.3);
-}
-
-.btn-outline-accent {
-  background: transparent;
-  color: var(--teal);
-  border: 1px solid var(--teal);
-}
-
-.btn-outline-accent:hover {
-  background: var(--teal);
-  color: white;
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-secondary {
-  background: var(--light);
+  background: var(--surface);
   color: var(--text-primary);
-  border: 1px solid var(--light-border);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background: var(--white);
-  border-color: var(--teal);
+  background: var(--surface-hover);
+  border-color: var(--accent);
 }
 
 .btn-outline-secondary {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--light-border);
+  border: 1px solid var(--border);
 }
 
 .btn-outline-secondary:hover {
-  background: var(--light);
+  background: var(--surface-hover);
   color: var(--text-primary);
 }
 
 .btn-success {
-  background: linear-gradient(145deg, var(--success), #00885f);
+  background: var(--success);
   color: white;
-}
-
-.btn-success:hover {
-  background: linear-gradient(145deg, var(--teal-light), var(--success));
 }
 
 .btn-warning {
-  background: linear-gradient(145deg, var(--warning), #e6b800);
-  color: var(--navy);
-}
-
-.btn-danger {
-  background: linear-gradient(145deg, var(--danger), #c0392b);
+  background: var(--warning);
   color: white;
 }
 
-.btn-danger:hover {
-  background: linear-gradient(145deg, #e74c3c, var(--danger));
+.btn-danger, .btn-outline-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger);
+  color: white;
 }
 
 .btn-info {
-  background: linear-gradient(145deg, var(--info), #2874a6);
+  background: var(--info);
   color: white;
 }
 
 /* Button Sizes */
 .btn-sm {
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  min-height: var(--touch-target-sm);
+  font-size: 0.8rem;
+  min-height: 36px;
 }
 
 .btn-lg {
@@ -283,22 +278,14 @@ body {
   min-height: 52px;
 }
 
-/* Mobile Button Optimizations */
-@media (max-width: 768px) {
-  .btn-base {
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9rem;
-  }
-}
-
 .btn-base:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
 }
 
 /* =============================================
-   6. FORM COMPONENTS
+   6. MINIMAL FORM COMPONENTS
    ============================================= */
 .form-label {
   display: block;
@@ -308,56 +295,70 @@ body {
   margin-bottom: var(--space-sm);
 }
 
-.input-base {
+.form-control, .input-base {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--light-border);
-  border-radius: var(--input-radius);
-  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
   line-height: 1.5;
-  background: var(--white);
+  background: var(--surface);
   color: var(--text-primary);
-  transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-  min-height: var(--touch-target);
+  transition: var(--transition);
+  min-height: 44px;
 }
 
-.input-base:focus {
+.form-control:focus, .input-base:focus {
   outline: none;
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(0, 160, 126, 0.1);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
 }
 
-.input-base::placeholder {
+.form-control::placeholder, .input-base::placeholder {
+  color: var(--text-muted);
+}
+
+/* Input Groups */
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group-text {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-right: none;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   color: var(--text-secondary);
+  font-size: 0.9rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
-/* Select Styling */
-select.input-base {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: 2.5rem;
+.input-group .form-control {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: none;
 }
 
 /* =============================================
-   7. PLAYER CARD COMPONENTS
+   7. PLAYER MANAGEMENT
    ============================================= */
 .player-card {
-  background: var(--white);
-  border: 1px solid var(--light-border);
-  border-radius: var(--card-radius);
-  padding: var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all var(--transition-speed) ease;
+  transition: var(--transition);
 }
 
 .player-card:hover {
-  border-color: var(--teal);
-  box-shadow: 0 4px 12px rgba(0, 160, 126, 0.1);
-  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-subtle);
 }
 
 .player-info {
@@ -368,12 +369,12 @@ select.input-base {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
+  font-size: 0.95rem;
 }
 
 .player-grade {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  margin-bottom: 4px;
 }
 
 .player-actions {
@@ -382,41 +383,56 @@ select.input-base {
 }
 
 /* =============================================
-   8. MATCH CARD COMPONENTS
+   8. MATCH SCHEDULE - MINIMAL DESIGN
    ============================================= */
-.match-card {
-  background: var(--white);
-  border: 1px solid var(--light-border);
-  border-radius: var(--btn-radius);
-  padding: var(--space-md);
-  box-shadow: 0 2px 4px rgba(0, 34, 62, 0.05);
-}
-
-.round-header, .court-header {
+.schedule-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
-  color: white;
-  padding: var(--space-md);
-  border-radius: var(--card-radius);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
 
-.round-title, .court-title {
+.round-section {
+  margin-bottom: var(--space-2xl);
+}
+
+.round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--text-primary);
+  color: white;
+  padding: var(--space-lg);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.round-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
 }
 
-.matches-grid, .court-matches {
+.matches-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-md);
-  margin-bottom: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-lg);
 }
 
-.court-label, .round-label {
+.match-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-lg);
+  transition: var(--transition);
+}
+
+.match-card:hover {
+  border-color: var(--accent-light);
+  box-shadow: var(--shadow-subtle);
+}
+
+.court-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -428,7 +444,7 @@ select.input-base {
 .vs-match, .doubles-match {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   justify-content: space-between;
 }
 
@@ -440,6 +456,7 @@ select.input-base {
 .player .name, .team-players .name {
   font-weight: 600;
   color: var(--text-primary);
+  font-size: 0.9rem;
 }
 
 .player .grade, .team .avg-grade {
@@ -450,26 +467,27 @@ select.input-base {
 }
 
 .vs {
-  background: var(--teal);
+  background: var(--accent);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .sitting-out {
-  background: rgba(52, 152, 219, 0.1);
-  border: 1px solid rgba(52, 152, 219, 0.2);
-  border-radius: var(--btn-radius);
-  padding: var(--space-sm) var(--space-md);
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-lg);
   color: var(--info);
   font-size: 0.875rem;
+  margin-top: var(--space-lg);
 }
 
 /* =============================================
-   9. TIMER WIDGET
+   9. TIMER WIDGET - MINIMAL
    ============================================= */
 .timer-widget {
   text-align: center;
@@ -479,17 +497,20 @@ select.input-base {
 
 .timer-title {
   color: var(--text-primary);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
+  font-weight: 600;
 }
 
 .timer-display {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--navy);
-  margin-bottom: var(--space-lg);
-  background: var(--light);
-  padding: var(--space-lg);
-  border-radius: var(--card-radius);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+  background: var(--surface-hover);
+  padding: var(--space-xl);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-controls {
@@ -511,89 +532,93 @@ select.input-base {
 }
 
 /* =============================================
-   10. BADGES AND STATUS
+   10. BADGES AND STATUS - MINIMAL
    ============================================= */
 .badge-base {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  font-weight: 500;
   line-height: 1;
 }
 
 .status-success {
-  background: rgba(0, 160, 126, 0.1);
-  color: var(--teal-dark);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
 .status-warning {
-  background: rgba(247, 201, 72, 0.1);
-  color: #b8860b;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
 }
 
 .status-danger {
-  background: rgba(231, 76, 60, 0.1);
-  color: #c0392b;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
 }
 
 .status-info {
-  background: rgba(52, 152, 219, 0.1);
-  color: #2874a6;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--info);
 }
 
 /* =============================================
-   11. ALERTS
+   11. ALERTS - MINIMAL
    ============================================= */
 .alert {
-  padding: var(--space-md);
-  border-radius: var(--btn-radius);
-  margin-bottom: var(--space-md);
-  border-left: 4px solid;
+  padding: var(--space-lg);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+  border: 1px solid;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-sm);
 }
 
 .alert-success {
-  background: rgba(0, 160, 126, 0.1);
-  border-color: var(--success);
-  color: var(--teal-dark);
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
 }
 
 .alert-warning {
-  background: rgba(247, 201, 72, 0.1);
-  border-color: var(--warning);
-  color: #b8860b;
+  background: rgba(245, 158, 11, 0.05);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
 }
 
 .alert-danger {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: var(--danger);
-  color: #c0392b;
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
 }
 
 .alert-info {
-  background: rgba(52, 152, 219, 0.1);
-  border-color: var(--info);
-  color: #2874a6;
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: var(--info);
 }
 
 /* =============================================
-   12. EMPTY STATE
+   12. EMPTY STATE - MINIMAL
    ============================================= */
 .empty-state {
   text-align: center;
-  padding: var(--space-2xl) var(--space-md);
+  padding: var(--space-2xl);
   color: var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 3rem;
-  margin-bottom: var(--space-md);
-  opacity: 0.5;
+  font-size: 2.5rem;
+  margin-bottom: var(--space-lg);
+  opacity: 0.4;
+}
+
+.empty-state h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
 }
 
 /* =============================================
@@ -601,7 +626,7 @@ select.input-base {
    ============================================= */
 .action-controls {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -611,32 +636,25 @@ select.input-base {
     flex-direction: column;
     align-items: stretch;
   }
+  
+  .timer-controls {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .vs-match, .doubles-match {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .timer-display {
+    font-size: 2rem;
+    padding: var(--space-lg);
+  }
 }
 
 /* =============================================
-   14. SCHEDULE COMPONENTS
-   ============================================= */
-.schedule-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-lg);
-  flex-wrap: wrap;
-  gap: var(--space-md);
-}
-
-.schedule-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.round-section, .court-section {
-  margin-bottom: var(--space-xl);
-}
-
-/* =============================================
-   15. UTILITY CLASSES
+   14. UTILITY CLASSES
    ============================================= */
 .text-center { text-align: center; }
 .text-muted { color: var(--text-muted); }
@@ -652,49 +670,16 @@ select.input-base {
 .flex-wrap { flex-wrap: wrap; }
 
 /* =============================================
-   16. RESPONSIVE DESIGN
-   ============================================= */
-@media (max-width: 768px) {
-  .timer-display {
-    font-size: 2rem;
-    padding: var(--space-md);
-  }
-  
-  .timer-controls {
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-  
-  .schedule-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .matches-grid, .court-matches {
-    grid-template-columns: 1fr;
-  }
-  
-  .vs-match, .doubles-match {
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-  
-  .vs {
-    align-self: center;
-  }
-}
-
-/* =============================================
-   17. FOCUS STYLES FOR ACCESSIBILITY
+   15. FOCUS STYLES FOR ACCESSIBILITY
    ============================================= */
 .btn-base:focus,
-.input-base:focus {
-  outline: 2px solid var(--teal);
+.form-control:focus {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 /* =============================================
-   18. REDUCED MOTION SUPPORT
+   16. REDUCED MOTION SUPPORT
    ============================================= */
 @media (prefers-reduced-motion: reduce) {
   *,

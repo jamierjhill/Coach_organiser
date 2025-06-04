@@ -4,7 +4,7 @@
 
 {% block content %}
   <div class="page-title-container">
-    <h1 class="page-title">🎾 Tennis Match Organizer</h1>
+    <h1 class="page-title">Tennis Match Organizer</h1>
     <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
   </div>
 
@@ -14,26 +14,26 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     {% endif %}
     
-    <!-- Session Setup Card -->
+    <!-- Session Setup -->
     <div class="card-base">
-      <h4 class="section-title">🎯 Session Setup</h4>
-      <div class="row g-3">
+      <h4 class="section-title">⚙️ Setup</h4>
+      <div class="row g-4">
         <div class="col-md-4">
-          <label class="form-label">Courts Available</label>
+          <label class="form-label">Courts</label>
           <div class="input-group">
             <span class="input-group-text">🏟️</span>
             <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}" required>
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Matches per Player</label>
+          <label class="form-label">Rounds</label>
           <div class="input-group">
             <span class="input-group-text">🔄</span>
             <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required>
           </div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Match Format</label>
+          <label class="form-label">Format</label>
           <div class="input-group">
             <span class="input-group-text">🎾</span>
             <select class="form-control" name="match_type" required>
@@ -45,65 +45,59 @@
       </div>
     </div>
 
-    <!-- Player Management Card -->
+    <!-- Player Management -->
     <div class="card-base">
-      <h4 class="section-title">👤 Player Management</h4>
+      <h4 class="section-title">👥 Players <span class="badge-base status-info">{{ players|length }}</span></h4>
       
-      <!-- Add Player Section -->
-      <div class="card-border-left">
-        <h6 class="text-primary mb-3">Add Individual Player</h6>
-        <div class="row g-3">
+      <!-- Add Player -->
+      <div class="card-section">
+        <div class="row g-3 align-items-end">
           <div class="col-md-5">
+            <label class="form-label">Name</label>
             <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName" maxlength="50" pattern="[a-zA-Z0-9\s\-']+" title="Only letters, numbers, spaces, hyphens and apostrophes allowed">
           </div>
           <div class="col-md-3">
+            <label class="form-label">Grade</label>
             <select name="grade" class="form-control" id="playerGrade" required>
-              <option value="">Select Grade</option>
-              <option value="1">Grade 1 (Strongest)</option>
-              <option value="2">Grade 2 (Strong)</option>
-              <option value="3">Grade 3 (Medium)</option>
-              <option value="4">Grade 4 (Beginner)</option>
+              <option value="">Select</option>
+              <option value="1">1 (Strongest)</option>
+              <option value="2">2 (Strong)</option>
+              <option value="3">3 (Medium)</option>
+              <option value="4">4 (Beginner)</option>
             </select>
           </div>
           <div class="col-md-4">
             <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" onclick="return validateAddPlayer()">
-              ➕ Add Player
+              Add Player
             </button>
           </div>
         </div>
       </div>
 
-      <!-- CSV Upload Section -->
-      <div class="card-border-left" style="border-left-color: #3498db;">
-        <h6 class="text-info mb-3">📤 Bulk Upload via CSV</h6>
-        <div class="row g-3">
+      <!-- CSV Upload 
+      <div class="card-section">
+        <div class="row g-3 align-items-end">
           <div class="col-md-8">
+            <label class="form-label">Upload CSV</label>
             <input type="file" name="csv_file" accept=".csv" class="form-control" id="csvFileInput">
-            <small class="text-muted">Format: <code>name,grade</code> (e.g., "John Smith,2"). Max file size: 1MB, Max 100 players.</small>
+            <small class="text-muted">Format: name,grade (Max 1MB, 100 players)</small>
           </div>
           <div class="col-md-4">
-            <button type="submit" name="upload_csv" value="true" class="btn-base btn-info w-100" onclick="return validateCSVUpload()" formnovalidate>
-              📎 Upload CSV
+            <button type="submit" name="upload_csv" value="true" class="btn-base btn-secondary w-100" onclick="return validateCSVUpload()" formnovalidate>
+              Upload CSV
             </button>
           </div>
         </div>
         {% if error %}
           <div class="alert alert-danger mt-3 mb-0">
-            <i class="bi bi-exclamation-triangle"></i> {{ error }}
+            {{ error }}
           </div>
         {% endif %}
-      </div>
-    </div>
+      </div> -->
 
-    <!-- Current Players List -->
-    <div class="card-base" id="players-section">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="section-title mb-0">👥 Current Players</h4>
-        <div class="badge badge-base status-info">{{ players|length }} players</div>
-      </div>
-      
+      <!-- Players List -->
       {% if players %}
-        <div class="row g-3">
+        <div class="row g-3" style="margin-top: 1rem;">
           {% for player in players %}
             <div class="col-md-6 col-lg-4">
               <div class="player-card">
@@ -111,13 +105,13 @@
                   <div class="player-name">{{ player.name|e }}</div>
                   <div class="player-grade">Grade {{ player.grade }}</div>
                   {% if player.max_rounds is defined %}
-                    <div class="badge badge-base status-warning">{{ player.max_rounds }} rounds max</div>
+                    <div class="badge-base status-warning">{{ player.max_rounds }} rounds max</div>
                   {% endif %}
                 </div>
                 <div class="player-actions">
-                  <button type="button" class="btn-base btn-accent btn-sm" 
+                  <button type="button" class="btn-base btn-outline-secondary btn-sm" 
                          onclick="confirmRemovePlayer('{{ player.name|e }}')">
-                    🗑️ Remove
+                    Remove
                   </button>
                 </div>
               </div>
@@ -127,25 +121,25 @@
       {% else %}
         <div class="empty-state">
           <div class="empty-icon">👥</div>
-          <h6>No Players Added Yet</h6>
-          <p class="text-muted">Add players individually or upload a CSV file to get started.</p>
+          <h6>No Players Added</h6>
+          <p class="text-muted">Add players to get started</p>
         </div>
       {% endif %}
     </div>
     
     <!-- Action Controls -->
     {% if players %}
-    <div class="card-base">
+    <div class="card-base" style="text-align: center;">
       <div class="action-controls">
         <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()">
-          🎯 Organize Matches
+          Organize Matches
         </button>
         <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()">
-          🔀 Reshuffle All
+          Reshuffle All
         </button>
         <button type="button" class="btn-base btn-outline-danger" 
                onclick="confirmReset()">
-          🔁 Reset Everything
+          Reset
         </button>
       </div>
     </div>
@@ -155,7 +149,7 @@
     {% if matchups and rounds %}
     <div class="card-base" id="matches-section">
       <div class="schedule-header">
-        <h4 class="section-title">📋 Match Schedule</h4>
+        <h4 class="section-title">📋 Matches</h4>
       </div>
 
       <!-- Schedule by Round -->
@@ -167,7 +161,7 @@
               <button type="button" class="btn-base btn-info btn-sm"
                      onclick="reshuffleRound({{ round_num }})"
                      data-round="{{ round_num }}">
-                🔀 Reshuffle
+                Reshuffle
               </button>
             </div>
             
@@ -227,7 +221,7 @@
             
             {% if sitting_out %}
               <div class="sitting-out">
-                <strong>🪑 Sitting out:</strong> {{ sitting_out|join(', ')|e }}
+                <strong>Sitting out:</strong> {{ sitting_out|join(', ')|e }}
               </div>
             {% endif %}
           </div>
@@ -238,11 +232,11 @@
     <div class="card-base">
       <div class="empty-state">
         <div class="empty-icon">📋</div>
-        <h6>No Matches Organized Yet</h6>
-        <p class="text-muted">Click "Organize Matches" to create a balanced match schedule.</p>
+        <h6>Ready to Organize</h6>
+        <p class="text-muted">Click "Organize Matches" to create your schedule</p>
         {% if players|length < (2 if match_type == "singles" else 4) %}
           <div class="alert alert-warning mt-3">
-            ⚠️ You need at least {{ 2 if match_type == "singles" else 4 }} players for {{ match_type }} matches.
+            Need at least {{ 2 if match_type == "singles" else 4 }} players for {{ match_type }} matches
           </div>
         {% endif %}
       </div>
@@ -250,29 +244,7 @@
     {% endif %}
   </form>
 
-  <!-- Timer Widget -->
-  {% if matchups and rounds %}
-  <div class="card-base">
-    <div class="timer-widget">
-      <h5 class="timer-title">⏱️ Match Timer</h5>
-      <div class="timer-display" id="main-timer-display">20:00</div>
-      <div class="timer-controls">
-        <button class="btn-base btn-success btn-sm" onclick="startClock(document.getElementById('main-timer-display'))">
-          ▶️ Start
-        </button>
-        <button class="btn-base btn-warning btn-sm" onclick="pauseClock()">
-          ⏸️ Pause
-        </button>
-        <div class="timer-input">
-          <input type="number" id="custom-minutes" class="form-control" min="1" max="60" value="20" placeholder="Min">
-          <button class="btn-base btn-outline-secondary btn-sm" onclick="setClockInput(document.getElementById('main-timer-display'))">
-            Set
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
+
 
 {% endblock %}
 
@@ -356,7 +328,7 @@ function removeAllEmptyStates() {
   const emptyStates = document.querySelectorAll('.empty-state');
   emptyStates.forEach(state => {
     const card = state.closest('.card-base');
-    if (card && card.id !== 'players-section') {
+    if (card && !card.querySelector('.player-card')) {
       card.remove();
     }
   });
@@ -374,7 +346,7 @@ function reattachEventHandlers() {
   });
 }
 
-// Main organize matches function - FIXED VERSION
+// Main organize matches function
 function organizeMatches() {
   if (!validateOrganizeMatches()) {
     return;
@@ -383,7 +355,7 @@ function organizeMatches() {
   // Show loading state
   const button = event.target;
   const originalText = button.innerHTML;
-  button.innerHTML = '⏳ Organizing...';
+  button.innerHTML = 'Organizing...';
   button.disabled = true;
   
   const formData = new FormData();
@@ -542,59 +514,6 @@ function confirmReset() {
   }
 }
 
-// Timer functions
-function updateClockDisplay(display) {
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
-  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  
-  if (timeRemaining <= 0) {
-    display.style.color = 'var(--danger)';
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-    showMessage('Time\'s up!', 'warning');
-  } else if (timeRemaining <= 60) {
-    display.style.color = 'var(--warning)';
-  } else {
-    display.style.color = 'var(--navy)';
-  }
-}
-
-function startClock(display) {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-  }
-  
-  isPaused = false;
-  timerInterval = setInterval(() => {
-    if (!isPaused && timeRemaining > 0) {
-      timeRemaining--;
-      updateClockDisplay(display);
-    }
-  }, 1000);
-}
-
-function pauseClock() {
-  isPaused = !isPaused;
-  const button = event.target;
-  button.textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
-}
-
-function setClockInput(display) {
-  const customMinutes = document.getElementById('custom-minutes').value;
-  if (customMinutes && customMinutes > 0 && customMinutes <= 60) {
-    timeRemaining = parseInt(customMinutes) * 60;
-    updateClockDisplay(display);
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-    isPaused = false;
-    document.querySelector('[onclick*="pauseClock"]').textContent = '⏸️ Pause';
-  }
-}
 
 // Message display function
 function showMessage(message, type = 'info') {
@@ -610,6 +529,7 @@ function showMessage(message, type = 'info') {
   messageDiv.style.right = '20px';
   messageDiv.style.zIndex = '9999';
   messageDiv.style.maxWidth = '300px';
+  messageDiv.style.fontSize = '0.875rem';
   messageDiv.textContent = message;
   
   document.body.appendChild(messageDiv);
