@@ -8,6 +8,22 @@
     <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
   </div>
 
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'warning' if category == 'warning' else 'danger' if category == 'error' else 'info' }}" role="alert">
+            <strong>
+              {% if category == 'success' %}✅{% elif category == 'warning' %}⚠️{% elif category == 'error' %}❌{% else %}ℹ️{% endif %}
+            </strong>
+            {{ message|e }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <form method="POST" action="/index" enctype="multipart/form-data">
     <!-- CSRF Token Protection (only if available) -->
     {% if csrf_available %}
@@ -162,6 +178,15 @@
     </div>
     {% endif %}
 
+    <!-- Error Display -->
+    {% if error %}
+      <div class="card-base">
+        <div class="alert alert-danger">
+          <strong>❌</strong> {{ error|e }}
+        </div>
+      </div>
+    {% endif %}
+
     <!-- Match Schedule -->
     {% if matchups and rounds %}
     <div class="card-base" id="matches-section">
@@ -271,6 +296,22 @@
 let timerInterval = null;
 let isPaused = false;
 let timeRemaining = 20 * 60; // 20 minutes in seconds
+
+// Auto-hide flash messages
+document.addEventListener('DOMContentLoaded', function() {
+  const flashMessages = document.querySelectorAll('.flash-messages .alert');
+  flashMessages.forEach(function(message) {
+    setTimeout(function() {
+      message.style.opacity = '0';
+      message.style.transition = 'opacity 0.5s ease-out';
+      setTimeout(function() {
+        if (message.parentNode) {
+          message.remove();
+        }
+      }, 500);
+    }, 5000); // Hide after 5 seconds
+  });
+});
 
 // Validation Functions
 function validateAddPlayer() {
@@ -441,6 +482,34 @@ function organizeMatches() {
       currentToken.value = newToken.value;
     }
     
+    // Handle flash messages
+    const newFlashMessages = doc.querySelector('.flash-messages');
+    const currentFlashMessages = document.querySelector('.flash-messages');
+    
+    if (newFlashMessages) {
+      if (currentFlashMessages) {
+        currentFlashMessages.innerHTML = newFlashMessages.innerHTML;
+      } else {
+        // Insert flash messages after page title
+        const pageTitle = document.querySelector('.page-title-container');
+        pageTitle.insertAdjacentHTML('afterend', '<div class="flash-messages">' + newFlashMessages.innerHTML + '</div>');
+      }
+      
+      // Auto-hide new flash messages
+      const flashMessages = document.querySelectorAll('.flash-messages .alert');
+      flashMessages.forEach(function(message) {
+        setTimeout(function() {
+          message.style.opacity = '0';
+          message.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(function() {
+            if (message.parentNode) {
+              message.remove();
+            }
+          }, 500);
+        }, 5000);
+      });
+    }
+    
     // Remove any existing empty states
     removeAllEmptyStates();
     
@@ -483,9 +552,6 @@ function organizeMatches() {
     // Final cleanup
     setTimeout(removeAllEmptyStates, 100);
     
-    // Show success message
-    showMessage('Matches organized successfully!', 'success');
-    
   })
   .catch(error => {
     console.error('Error organizing matches:', error);
@@ -510,6 +576,12 @@ function organizeMatches() {
 // Simplified reshuffle functions
 function reshuffleAll() {
   if (confirm('This will reshuffle all players and create new matches. Continue?')) {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Reshuffling...';
+    button.disabled = true;
+    
     saveScrollPosition();
     const form = document.querySelector('form');
     const hiddenInput = document.createElement('input');
@@ -522,6 +594,14 @@ function reshuffleAll() {
 }
 
 function reshuffleRound(roundNum) {
+  // Show loading state for the specific reshuffle button
+  const button = document.querySelector(`[data-round="${roundNum}"]`);
+  if (button) {
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Reshuffling...';
+    button.disabled = true;
+  }
+  
   saveScrollPosition();
   const form = document.querySelector('form');
   const hiddenInput = document.createElement('input');
@@ -547,6 +627,12 @@ function confirmRemovePlayer(playerName) {
 
 function confirmReset() {
   if (confirm('This will remove all players and matches. Are you sure?')) {
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Resetting...';
+    button.disabled = true;
+    
     const form = document.querySelector('form');
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'hidden';
@@ -556,7 +642,6 @@ function confirmReset() {
     form.submit();
   }
 }
-
 
 // Message display function
 function showMessage(message, type = 'info') {

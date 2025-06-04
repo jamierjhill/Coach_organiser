@@ -79,8 +79,8 @@ def validate_player_name(name):
     
     name = name.strip()
     
-    if len(name) > 20:
-        return False, "Player name too long (max 20 characters)"
+    if len(name) > 50:
+        return False, "Player name too long (max 50 characters)"
     
     # Check for dangerous CSV injection characters
     dangerous_chars = ['=', '+', '-', '@', '\t', '\r', '\n']
@@ -449,6 +449,7 @@ def index():
                 session.pop("matchups", None)
                 session.pop("player_match_counts", None)
                 session.pop("rounds", None)
+                flash(f"Player '{name_to_remove}' removed successfully", "success")
 
         # CSV upload with enhanced security
         elif "upload_csv" in request.form:
@@ -474,6 +475,7 @@ def index():
         # Reset everything
         elif "reset" in request.form:
             session.clear()
+            flash("All players and matches cleared successfully", "success")
             return redirect("/")
 
         # Add individual player with enhanced validation
@@ -521,6 +523,7 @@ def index():
                             
                             players.append(player)
                             session["players"] = players
+                            flash(f"Player '{name}' added successfully", "success")
                             # Clear form by redirecting
                             return redirect("/")
                 except (TypeError, ValueError):
@@ -573,6 +576,11 @@ def index():
                             "rounds": rounds
                         })
                         
+                        flash(f"Round {round_to_reshuffle} reshuffled successfully", "success")
+                        
+                    else:
+                        error = f"Unable to reshuffle round {round_to_reshuffle} - not enough available players"
+                        
             except (ValueError, TypeError):
                 error = "Invalid round number format"
 
@@ -605,6 +613,13 @@ def index():
                         "player_match_counts": player_match_counts,
                         "rounds": rounds
                     })
+                    
+                    # Flash success message
+                    if "reshuffle" in request.form:
+                        flash("All matches reshuffled successfully", "success")
+                    else:
+                        flash("Matches organized successfully", "success")
+                        
                 except Exception as e:
                     error = "Error organizing matches. Please try again."
 

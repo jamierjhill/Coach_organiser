@@ -1,41 +1,41 @@
 /* =============================================
-   TENNIS MATCH ORGANIZER - NAVY & TEAL THEME
+   TENNIS MATCH ORGANIZER - UX-OPTIMIZED DESIGN
    Clean, intuitive, and user-focused interface
    ============================================= */
 
 /* =============================================
-   1. CSS VARIABLES - NAVY & TEAL PALETTE
+   1. CSS VARIABLES - UX-OPTIMIZED PALETTE
    ============================================= */
 :root {
-  /* Navy & Teal Color Palette */
-  --primary: #00223e;
-  --primary-light: #1a3a56;
-  --accent: #00a07e;
-  --accent-light: #33b399;
-  --accent-dark: #008066;
-  --background: #fafaf8;
-  --surface: #fafaf8;
-  --surface-hover: #f3f6f9;
-  --border: #e1e5e9;
-  --border-light: #f0f2f4;
+  /* UX-Optimized Color Palette */
+  --primary: #1a1a1a;
+  --primary-light: #2d2d2d;
+  --accent: #4a90e2;
+  --accent-light: #6ba3e8;
+  --accent-dark: #3a7bd5;
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-hover: #f8f9fa;
+  --border: #e5e5e5;
+  --border-light: #f0f0f0;
   
   /* Text Colors */
-  --text-primary: #00223e;
-  --text-secondary: #4a5568;
-  --text-muted: #718096;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
   
   /* Status Colors */
-  --success: #00a07e;
+  --success: #10b981;
   --warning: #f59e0b;
-  --danger: #e53e3e;
-  --info: #00a07e;
+  --danger: #ef4444;
+  --info: #3b82f6;
   
-  /* Design Properties */
+  /* Minimal Design Properties */
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow-subtle: 0 1px 3px rgba(0, 34, 62, 0.08);
-  --shadow-soft: 0 4px 12px rgba(0, 34, 62, 0.12);
-  --shadow-focus: 0 0 0 3px rgba(0, 160, 126, 0.15);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(74, 144, 226, 0.12);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Spacing System */
@@ -87,7 +87,7 @@ body {
   }
 }
 
-/* Header */
+/* Minimal Header */
 .navbar {
   background: var(--surface) !important;
   border-bottom: 1px solid var(--border-light);
@@ -149,7 +149,7 @@ body {
 }
 
 /* =============================================
-   4. CARD SYSTEM
+   4. MINIMAL CARD SYSTEM
    ============================================= */
 .card-base {
   background: var(--surface);
@@ -185,7 +185,7 @@ body {
 }
 
 /* =============================================
-   5. BUTTON SYSTEM
+   5. MINIMAL BUTTON SYSTEM
    ============================================= */
 .btn-base {
   display: inline-flex;
@@ -239,7 +239,17 @@ body {
   color: var(--text-primary);
 }
 
-.btn-outline-danger {
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-warning {
+  background: var(--warning);
+  color: white;
+}
+
+.btn-danger, .btn-outline-danger {
   background: transparent;
   color: var(--danger);
   border: 1px solid var(--danger);
@@ -253,10 +263,6 @@ body {
 .btn-info {
   background: var(--info);
   color: white;
-}
-
-.btn-info:hover {
-  background: var(--accent-dark);
 }
 
 /* Button Sizes */
@@ -279,7 +285,7 @@ body {
 }
 
 /* =============================================
-   6. FORM COMPONENTS
+   6. MINIMAL FORM COMPONENTS
    ============================================= */
 .form-label {
   display: block;
@@ -289,7 +295,7 @@ body {
   margin-bottom: var(--space-sm);
 }
 
-.form-control {
+.form-control, .input-base {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
@@ -302,13 +308,13 @@ body {
   min-height: 44px;
 }
 
-.form-control:focus {
+.form-control:focus, .input-base:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--shadow-focus);
 }
 
-.form-control::placeholder {
+.form-control::placeholder, .input-base::placeholder {
   color: var(--text-muted);
 }
 
@@ -377,7 +383,7 @@ body {
 }
 
 /* =============================================
-   8. MATCH SCHEDULE
+   8. MATCH SCHEDULE - MINIMAL DESIGN
    ============================================= */
 .schedule-header {
   display: flex;
@@ -394,7 +400,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--primary);
+  background: var(--text-primary);
   color: white;
   padding: var(--space-lg);
   border-radius: var(--radius-sm);
@@ -471,8 +477,8 @@ body {
 }
 
 .sitting-out {
-  background: rgba(0, 160, 126, 0.08);
-  border: 1px solid rgba(0, 160, 126, 0.15);
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
   border-radius: var(--radius-sm);
   padding: var(--space-sm) var(--space-lg);
   color: var(--info);
@@ -481,7 +487,52 @@ body {
 }
 
 /* =============================================
-   9. BADGES AND STATUS
+   9. TIMER WIDGET - MINIMAL
+   ============================================= */
+.timer-widget {
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.timer-title {
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  font-weight: 600;
+}
+
+.timer-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+  background: var(--surface-hover);
+  padding: var(--space-xl);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-controls {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.timer-input {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.timer-input input {
+  width: 80px;
+}
+
+/* =============================================
+   10. BADGES AND STATUS - MINIMAL
    ============================================= */
 .badge-base {
   display: inline-block;
@@ -492,18 +543,28 @@ body {
   line-height: 1;
 }
 
-.status-info {
-  background: rgba(0, 160, 126, 0.12);
-  color: var(--info);
+.status-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
 .status-warning {
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.1);
   color: var(--warning);
 }
 
+.status-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.status-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--info);
+}
+
 /* =============================================
-   10. ALERTS
+   11. ALERTS - MINIMAL
    ============================================= */
 .alert {
   padding: var(--space-lg);
@@ -515,20 +576,73 @@ body {
   gap: var(--space-sm);
 }
 
-.alert-danger {
-  background: rgba(229, 62, 62, 0.08);
-  border-color: rgba(229, 62, 62, 0.2);
-  color: var(--danger);
+.alert-success {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--success);
 }
 
 .alert-warning {
-  background: rgba(245, 158, 11, 0.08);
+  background: rgba(245, 158, 11, 0.05);
   border-color: rgba(245, 158, 11, 0.2);
   color: var(--warning);
 }
 
+.alert-danger {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: var(--info);
+}
+
 /* =============================================
-   11. EMPTY STATE
+   12. FLASH MESSAGES
+   ============================================= */
+.flash-messages {
+  margin-bottom: var(--space-xl);
+}
+
+.flash-messages .alert {
+  border-radius: var(--radius-sm);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  transition: opacity 0.5s ease-out;
+  animation: slideInFromTop 0.4s ease-out;
+  box-shadow: var(--shadow-subtle);
+}
+
+.flash-messages .alert:last-child {
+  margin-bottom: 0;
+}
+
+.flash-messages .alert strong {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+/* Flash message animations */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================
+   13. EMPTY STATE - MINIMAL
    ============================================= */
 .empty-state {
   text-align: center;
@@ -549,7 +663,7 @@ body {
 }
 
 /* =============================================
-   12. ACTION CONTROLS
+   14. ACTION CONTROLS
    ============================================= */
 .action-controls {
   display: flex;
@@ -564,14 +678,24 @@ body {
     align-items: stretch;
   }
   
+  .timer-controls {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
   .vs-match, .doubles-match {
     flex-direction: column;
     gap: var(--space-sm);
   }
+  
+  .timer-display {
+    font-size: 2rem;
+    padding: var(--space-lg);
+  }
 }
 
 /* =============================================
-   13. UTILITY CLASSES
+   15. UTILITY CLASSES
    ============================================= */
 .text-center { text-align: center; }
 .text-muted { color: var(--text-muted); }
@@ -587,7 +711,7 @@ body {
 .flex-wrap { flex-wrap: wrap; }
 
 /* =============================================
-   14. FOCUS STYLES FOR ACCESSIBILITY
+   16. FOCUS STYLES FOR ACCESSIBILITY
    ============================================= */
 .btn-base:focus,
 .form-control:focus {
@@ -596,7 +720,7 @@ body {
 }
 
 /* =============================================
-   15. REDUCED MOTION SUPPORT
+   17. REDUCED MOTION SUPPORT
    ============================================= */
 @media (prefers-reduced-motion: reduce) {
   *,
