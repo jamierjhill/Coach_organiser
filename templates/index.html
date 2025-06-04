@@ -29,7 +29,7 @@
           <label class="form-label">Rounds</label>
           <div class="input-group">
             <span class="input-group-text">🔄</span>
-            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required>
+            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required id="totalRounds">
           </div>
         </div>
         <div class="col-md-4">
@@ -52,11 +52,11 @@
       <!-- Add Player -->
       <div class="card-section">
         <div class="row g-3 align-items-end">
-          <div class="col-md-5">
+          <div class="col-md-4">
             <label class="form-label">Name</label>
             <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName" maxlength="50" pattern="[a-zA-Z0-9\s\-']+" title="Only letters, numbers, spaces, hyphens and apostrophes allowed">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label class="form-label">Grade</label>
             <select name="grade" class="form-control" id="playerGrade" required>
               <option value="">Select</option>
@@ -65,6 +65,23 @@
               <option value="3">3 (Medium)</option>
               <option value="4">4 (Beginner)</option>
             </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Max Rounds</label>
+            <select name="max_rounds" class="form-control" id="playerMaxRounds">
+              <option value="">All rounds</option>
+              <option value="1">1 round only</option>
+              <option value="2">2 rounds max</option>
+              <option value="3">3 rounds max</option>
+              <option value="4">4 rounds max</option>
+              <option value="5">5 rounds max</option>
+              <option value="6">6 rounds max</option>
+              <option value="7">7 rounds max</option>
+              <option value="8">8 rounds max</option>
+              <option value="9">9 rounds max</option>
+              <option value="10">10 rounds max</option>
+            </select>
+            
           </div>
           <div class="col-md-4">
             <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" onclick="return validateAddPlayer()">
@@ -80,7 +97,7 @@
           <div class="col-md-8">
             <label class="form-label">Upload CSV</label>
             <input type="file" name="csv_file" accept=".csv" class="form-control" id="csvFileInput">
-            <small class="text-muted">Format: name,grade (Max 1MB, 100 players)</small>
+            <small class="text-muted">Format: name,grade,max_rounds (Max 1MB, 100 players). max_rounds column is optional.</small>
           </div>
           <div class="col-md-4">
             <button type="submit" name="upload_csv" value="true" class="btn-base btn-secondary w-100" onclick="return validateCSVUpload()" formnovalidate>
@@ -93,7 +110,7 @@
             {{ error }}
           </div>
         {% endif %}
-      </div> -->
+      </div>-->
 
       <!-- Players List -->
       {% if players %}
@@ -105,7 +122,7 @@
                   <div class="player-name">{{ player.name|e }}</div>
                   <div class="player-grade">Grade {{ player.grade }}</div>
                   {% if player.max_rounds is defined %}
-                    <div class="badge-base status-warning">{{ player.max_rounds }} rounds max</div>
+                    <div class="badge-base status-warning" style="margin-top: 4px;">{{ player.max_rounds }} round{{ 's' if player.max_rounds != 1 else '' }} max</div>
                   {% endif %}
                 </div>
                 <div class="player-actions">
@@ -259,6 +276,8 @@ let timeRemaining = 20 * 60; // 20 minutes in seconds
 function validateAddPlayer() {
   const name = document.getElementById('playerName').value.trim();
   const grade = document.getElementById('playerGrade').value;
+  const maxRounds = document.getElementById('playerMaxRounds').value;
+  const totalRounds = parseInt(document.getElementById('totalRounds').value);
   
   if (!name) {
     alert('Please enter a player name');
@@ -267,6 +286,12 @@ function validateAddPlayer() {
   
   if (!grade) {
     alert('Please select a grade');
+    return false;
+  }
+  
+  // Validate max rounds if specified
+  if (maxRounds && parseInt(maxRounds) > totalRounds) {
+    alert(`Max rounds (${maxRounds}) cannot exceed total rounds (${totalRounds})`);
     return false;
   }
   
@@ -302,6 +327,24 @@ function validateOrganizeMatches() {
   }
   
   return true;
+}
+
+// Update max rounds options when total rounds changes
+function updateMaxRoundsOptions() {
+  const totalRoundsInput = document.getElementById('totalRounds');
+  const maxRoundsSelect = document.getElementById('playerMaxRounds');
+  const totalRounds = parseInt(totalRoundsInput.value) || 10;
+  
+  // Clear existing options except "All rounds"
+  maxRoundsSelect.innerHTML = '<option value="">All rounds</option>';
+  
+  // Add options up to total rounds
+  for (let i = 1; i <= Math.min(totalRounds, 10); i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `${i} round${i !== 1 ? 's' : ''} ${i === 1 ? 'only' : 'max'}`;
+    maxRoundsSelect.appendChild(option);
+  }
 }
 
 // CSRF Token helper
@@ -558,6 +601,17 @@ document.addEventListener('DOMContentLoaded', function() {
   if (urlParams.get('success')) {
     document.getElementById('playerName').value = '';
     document.getElementById('playerGrade').value = '';
+    document.getElementById('playerMaxRounds').value = '';
+  }
+  
+  // Initialize max rounds dropdown
+  updateMaxRoundsOptions();
+  
+  // Update max rounds options when total rounds changes
+  const totalRoundsInput = document.getElementById('totalRounds');
+  if (totalRoundsInput) {
+    totalRoundsInput.addEventListener('change', updateMaxRoundsOptions);
+    totalRoundsInput.addEventListener('input', updateMaxRoundsOptions);
   }
 });
 

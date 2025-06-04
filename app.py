@@ -186,8 +186,10 @@ def process_csv_upload_secure(file, existing_players):
         # Parse CSV
         reader = csv.DictReader(io.StringIO(content))
         
-        if not reader.fieldnames or 'name' not in reader.fieldnames or 'grade' not in reader.fieldnames:
-            return [], "CSV must have 'name' and 'grade' columns"
+        # Check for required columns
+        required_columns = ['name', 'grade']
+        if not reader.fieldnames or not all(col in reader.fieldnames for col in required_columns):
+            return [], "CSV must have 'name' and 'grade' columns. Optional: 'max_rounds'"
         
         new_players = []
         added_count = 0
@@ -200,6 +202,7 @@ def process_csv_upload_secure(file, existing_players):
             
             name = sanitize_csv_field(row.get("name", "")).strip()
             grade_str = sanitize_csv_field(row.get("grade", "")).strip()
+            max_rounds_str = sanitize_csv_field(row.get("max_rounds", "")).strip()
             
             # Validate name with enhanced security
             is_valid_name, name_error = validate_player_name(name)
@@ -220,13 +223,32 @@ def process_csv_upload_secure(file, existing_players):
                 errors.append(f"Row {row_num}: Invalid grade format")
                 continue
             
+            # Validate max_rounds (optional)
+            max_rounds = None
+            if max_rounds_str:
+                try:
+                    max_rounds = int(max_rounds_str.strip("'\""))
+                    if not (1 <= max_rounds <= 10):
+                        skipped_count += 1
+                        errors.append(f"Row {row_num}: Max rounds must be between 1 and 10")
+                        continue
+                except (ValueError, TypeError):
+                    skipped_count += 1
+                    errors.append(f"Row {row_num}: Invalid max_rounds format")
+                    continue
+            
             # Check for duplicates with existing players
             if any(p["name"].lower() == name.lower() for p in existing_players + new_players):
                 skipped_count += 1
                 errors.append(f"Row {row_num}: Player '{name}' already exists")
                 continue
             
-            new_players.append({"name": name, "grade": grade})
+            # Create player dictionary
+            player = {"name": name, "grade": grade}
+            if max_rounds is not None:
+                player["max_rounds"] = max_rounds
+            
+            new_players.append(player)
             added_count += 1
         
         # Prepare result message
@@ -458,6 +480,7 @@ def index():
         elif "add_player" in request.form:
             name = request.form.get("name", "").strip()
             grade_str = request.form.get("grade", "")
+            max_rounds_str = request.form.get("max_rounds", "").strip()
             
             # Sanitize name input
             name = sanitize_csv_field(name)
@@ -478,10 +501,28 @@ def index():
                     elif len(players) >= 100:
                         error = "Maximum 100 players allowed"
                     else:
-                        players.append({"name": name, "grade": grade})
-                        session["players"] = players
-                        # Clear form by redirecting
-                        return redirect("/")
+                        # Validate max_rounds (optional)
+                        max_rounds = None
+                        if max_rounds_str:
+                            try:
+                                max_rounds = int(max_rounds_str)
+                                if not (1 <= max_rounds <= 10):
+                                    error = "Max rounds must be between 1 and 10"
+                                elif max_rounds > num_matches:
+                                    error = f"Max rounds cannot exceed total rounds ({num_matches})"
+                            except (ValueError, TypeError):
+                                error = "Invalid max rounds format"
+                        
+                        if not error:
+                            # Create player dictionary
+                            player = {"name": name, "grade": grade}
+                            if max_rounds is not None:
+                                player["max_rounds"] = max_rounds
+                            
+                            players.append(player)
+                            session["players"] = players
+                            # Clear form by redirecting
+                            return redirect("/")
                 except (TypeError, ValueError):
                     error = "Invalid grade selected"
 
