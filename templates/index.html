@@ -8,22 +8,6 @@
     <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
   </div>
 
-  <!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'success' if category == 'success' else 'warning' if category == 'warning' else 'danger' if category == 'error' else 'info' }}" role="alert">
-            <strong>
-              {% if category == 'success' %}✅{% elif category == 'warning' %}⚠️{% elif category == 'error' %}❌{% else %}ℹ️{% endif %}
-            </strong>
-            {{ message|e }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
   <form method="POST" action="/index" enctype="multipart/form-data">
     <!-- CSRF Token Protection (only if available) -->
     {% if csrf_available %}
@@ -97,7 +81,6 @@
               <option value="9">9 rounds max</option>
               <option value="10">10 rounds max</option>
             </select>
-            
           </div>
           <div class="col-md-4">
             <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" onclick="return validateAddPlayer()">
@@ -107,26 +90,14 @@
         </div>
       </div>
 
-      <!-- CSV Upload 
-      <div class="card-section">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-8">
-            <label class="form-label">Upload CSV</label>
-            <input type="file" name="csv_file" accept=".csv" class="form-control" id="csvFileInput">
-            <small class="text-muted">Format: name,grade,max_rounds (Max 1MB, 100 players). max_rounds column is optional.</small>
-          </div>
-          <div class="col-md-4">
-            <button type="submit" name="upload_csv" value="true" class="btn-base btn-secondary w-100" onclick="return validateCSVUpload()" formnovalidate>
-              Upload CSV
-            </button>
+      <!-- Error Display (for server-side validation errors only) -->
+      {% if error %}
+        <div class="card-section">
+          <div class="alert alert-danger">
+            <strong>❌</strong> {{ error|e }}
           </div>
         </div>
-        {% if error %}
-          <div class="alert alert-danger mt-3 mb-0">
-            {{ error }}
-          </div>
-        {% endif %}
-      </div>-->
+      {% endif %}
 
       <!-- Players List -->
       {% if players %}
@@ -176,15 +147,6 @@
         </button>
       </div>
     </div>
-    {% endif %}
-
-    <!-- Error Display -->
-    {% if error %}
-      <div class="card-base">
-        <div class="alert alert-danger">
-          <strong>❌</strong> {{ error|e }}
-        </div>
-      </div>
     {% endif %}
 
     <!-- Match Schedule -->
@@ -286,8 +248,6 @@
     {% endif %}
   </form>
 
-
-
 {% endblock %}
 
 {% block extra_js %}
@@ -302,19 +262,11 @@ let touchStartX = 0;
 let touchEndX = 0;
 let currentRound = 1;
 
-// Auto-hide flash messages
+// Auto-hide any remaining flash messages (cleanup)
 document.addEventListener('DOMContentLoaded', function() {
   const flashMessages = document.querySelectorAll('.flash-messages .alert');
   flashMessages.forEach(function(message) {
-    setTimeout(function() {
-      message.style.opacity = '0';
-      message.style.transition = 'opacity 0.5s ease-out';
-      setTimeout(function() {
-        if (message.parentNode) {
-          message.remove();
-        }
-      }, 500);
-    }, 5000); // Hide after 5 seconds
+    message.style.display = 'none';
   });
   
   // Initialize mobile features
@@ -383,7 +335,7 @@ function navigateToRound(roundNumber) {
     currentRound = roundNumber;
     
     // Show navigation feedback
-    showMobileMessage(`Round ${roundNumber}`, 'info');
+    showMobileMessage(`Round ${roundNumber}`, 'info', 1500);
   }
 }
 
@@ -431,7 +383,7 @@ function adjustViewportHeight() {
 }
 
 // Mobile-optimized message display
-function showMobileMessage(message, type = 'info', duration = 2000) {
+function showMobileMessage(message, type = 'info', duration = 3000) {
   // Remove existing messages
   const existingMessages = document.querySelectorAll('.mobile-message');
   existingMessages.forEach(msg => msg.remove());
@@ -453,8 +405,17 @@ function showMobileMessage(message, type = 'info', duration = 2000) {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: slideInFromTop 0.3s ease-out;
   `;
-  messageDiv.textContent = message;
   
+  // Add emoji based on type
+  let emoji = '';
+  switch(type) {
+    case 'success': emoji = '✅ '; break;
+    case 'warning': emoji = '⚠️ '; break;
+    case 'danger': emoji = '❌ '; break;
+    case 'info': emoji = 'ℹ️ '; break;
+  }
+  
+  messageDiv.textContent = emoji + message;
   document.body.appendChild(messageDiv);
   
   // Auto-remove
@@ -589,19 +550,19 @@ function reattachEventHandlers() {
   initializeMobileFeatures();
 }
 
-// Main organize matches function with mobile optimization
+// Main organize matches function with mobile messages
 function organizeMatches() {
   if (!validateOrganizeMatches()) {
     return;
   }
   
-  // Show loading state with mobile-friendly feedback
+  // Show loading state
   const button = event.target;
   const originalText = button.innerHTML;
   button.innerHTML = '<span>Organizing...</span>';
   button.disabled = true;
   
-  // Mobile loading indicator
+  // Show loading message
   showMobileMessage('Creating matches...', 'info', 10000);
   
   const formData = new FormData();
@@ -648,34 +609,6 @@ function organizeMatches() {
       currentToken.value = newToken.value;
     }
     
-    // Handle flash messages
-    const newFlashMessages = doc.querySelector('.flash-messages');
-    const currentFlashMessages = document.querySelector('.flash-messages');
-    
-    if (newFlashMessages) {
-      if (currentFlashMessages) {
-        currentFlashMessages.innerHTML = newFlashMessages.innerHTML;
-      } else {
-        // Insert flash messages after page title
-        const pageTitle = document.querySelector('.page-title-container');
-        pageTitle.insertAdjacentHTML('afterend', '<div class="flash-messages">' + newFlashMessages.innerHTML + '</div>');
-      }
-      
-      // Auto-hide new flash messages
-      const flashMessages = document.querySelectorAll('.flash-messages .alert');
-      flashMessages.forEach(function(message) {
-        setTimeout(function() {
-          message.style.opacity = '0';
-          message.style.transition = 'opacity 0.5s ease-out';
-          setTimeout(function() {
-            if (message.parentNode) {
-              message.remove();
-            }
-          }, 500);
-        }, 5000);
-      });
-    }
-    
     // Remove any existing empty states
     removeAllEmptyStates();
     
@@ -695,7 +628,7 @@ function organizeMatches() {
       }
       reattachEventHandlers();
       
-      // Mobile success feedback
+      // Show success message
       showMobileMessage('Matches organized successfully!', 'success');
     }
     
@@ -745,6 +678,8 @@ function organizeMatches() {
 // Enhanced reshuffle functions with mobile feedback
 function reshuffleAll() {
   if (confirm('This will reshuffle all players and create new matches. Continue?')) {
+    sessionStorage.setItem('lastAction', 'reshuffle_all');
+    
     // Show loading state
     const button = event.target;
     const originalText = button.innerHTML;
@@ -766,6 +701,9 @@ function reshuffleAll() {
 }
 
 function reshuffleRound(roundNum) {
+  sessionStorage.setItem('lastAction', 'reshuffle_round');
+  sessionStorage.setItem('reshuffleRoundNum', roundNum);
+  
   // Show loading state for the specific reshuffle button
   const button = document.querySelector(`[data-round="${roundNum}"]`);
   if (button) {
@@ -790,6 +728,8 @@ function reshuffleRound(roundNum) {
 // Player management functions with mobile feedback
 function confirmRemovePlayer(playerName) {
   if (confirm(`Remove ${playerName} from the session?`)) {
+    sessionStorage.setItem('lastAction', 'remove_player');
+    
     showMobileMessage(`Removing ${playerName}...`, 'info', 2000);
     
     const form = document.querySelector('form');
@@ -804,6 +744,8 @@ function confirmRemovePlayer(playerName) {
 
 function confirmReset() {
   if (confirm('This will remove all players and matches. Are you sure?')) {
+    sessionStorage.setItem('lastAction', 'reset');
+    
     // Show loading state
     const button = event.target;
     const originalText = button.innerHTML;
@@ -822,10 +764,49 @@ function confirmReset() {
   }
 }
 
+// Add a function to show success messages when page loads (for form submissions)
+function checkForSuccessActions() {
+  // Check if we just completed an action by looking at form data or URL changes
+  const playerCount = document.querySelectorAll('.player-card').length;
+  const hasMatches = document.querySelector('#matches-section') !== null;
+  
+  // Show appropriate success messages based on page state
+  if (sessionStorage.getItem('lastAction')) {
+    const lastAction = sessionStorage.getItem('lastAction');
+    sessionStorage.removeItem('lastAction');
+    
+    switch(lastAction) {
+      case 'add_player':
+        showMobileMessage('Player added successfully!', 'success');
+        break;
+      case 'remove_player':
+        showMobileMessage('Player removed successfully!', 'success');
+        break;
+      case 'reshuffle_all':
+        showMobileMessage('All matches reshuffled successfully!', 'success');
+        break;
+      case 'reshuffle_round':
+        const roundNum = sessionStorage.getItem('reshuffleRoundNum') || '';
+        sessionStorage.removeItem('reshuffleRoundNum');
+        showMobileMessage(`Round ${roundNum} reshuffled successfully!`, 'success');
+        break;
+      case 'reset':
+        showMobileMessage('All data cleared successfully!', 'success');
+        break;
+      case 'organize_matches':
+        showMobileMessage('Matches organized successfully!', 'success');
+        break;
+    }
+  }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   // Restore scroll position if returning from form submission
   restoreScrollPosition();
+  
+  // Check for success actions
+  setTimeout(checkForSuccessActions, 100);
   
   // Initialize timer display if present
   const timerDisplay = document.getElementById('main-timer-display');
@@ -863,6 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key === 'Enter') {
         e.preventDefault();
         if (validateAddPlayer()) {
+          sessionStorage.setItem('lastAction', 'add_player');
           document.querySelector('button[name="add_player"]').click();
         }
       }
@@ -902,6 +884,11 @@ style.textContent = `
     .schedule-container {
       scroll-behavior: smooth;
     }
+  }
+  
+  /* Hide any remaining flash messages */
+  .flash-messages {
+    display: none !important;
   }
 `;
 document.head.appendChild(style);

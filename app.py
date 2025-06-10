@@ -1,11 +1,11 @@
-# app.py - Secured Tennis Match Organizer with Enhanced CSV Security
+# app.py - Secured Tennis Match Organizer with Mobile Messages Only
 from dotenv import load_dotenv
 load_dotenv()
 
 import os, random, csv, io, re
 from datetime import timedelta
 from collections import defaultdict
-from flask import Flask, render_template, request, session, redirect, flash
+from flask import Flask, render_template, request, session, redirect
 
 # Only import CSRF if available
 try:
@@ -449,7 +449,6 @@ def index():
                 session.pop("matchups", None)
                 session.pop("player_match_counts", None)
                 session.pop("rounds", None)
-                flash(f"Player '{name_to_remove}' removed successfully", "success")
 
         # CSV upload with enhanced security
         elif "upload_csv" in request.form:
@@ -463,19 +462,12 @@ def index():
                 session.pop("matchups", None)
                 session.pop("player_match_counts", None)
                 session.pop("rounds", None)
-                
-                # Show success message
-                if "skipped" not in message:
-                    flash(message, "success")
-                else:
-                    flash(message, "warning")
             else:
                 error = message
 
         # Reset everything
         elif "reset" in request.form:
             session.clear()
-            flash("All players and matches cleared successfully", "success")
             return redirect("/")
 
         # Add individual player with enhanced validation
@@ -523,7 +515,6 @@ def index():
                             
                             players.append(player)
                             session["players"] = players
-                            flash(f"Player '{name}' added successfully", "success")
                             # Clear form by redirecting
                             return redirect("/")
                 except (TypeError, ValueError):
@@ -576,8 +567,6 @@ def index():
                             "rounds": rounds
                         })
                         
-                        flash(f"Round {round_to_reshuffle} reshuffled successfully", "success")
-                        
                     else:
                         error = f"Unable to reshuffle round {round_to_reshuffle} - not enough available players"
                         
@@ -613,12 +602,6 @@ def index():
                         "player_match_counts": player_match_counts,
                         "rounds": rounds
                     })
-                    
-                    # Flash success message
-                    if "reshuffle" in request.form:
-                        flash("All matches reshuffled successfully", "success")
-                    else:
-                        flash("Matches organized successfully", "success")
                         
                 except Exception as e:
                     error = "Error organizing matches. Please try again."
