@@ -22,21 +22,24 @@
           <label class="form-label">Courts</label>
           <div class="input-group">
             <span class="input-group-text">🏟️</span>
-            <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}" required>
+            <input type="number" class="form-control" name="courts" min="1" max="20" value="{{ courts }}" required 
+                   onchange="trackTennisEvent('change', 'Setup', 'courts_changed', this.value)">
           </div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Rounds</label>
           <div class="input-group">
             <span class="input-group-text">🔄</span>
-            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required id="totalRounds">
+            <input type="number" class="form-control" name="num_matches" min="1" max="10" value="{{ num_matches }}" required id="totalRounds"
+                   onchange="trackTennisEvent('change', 'Setup', 'rounds_changed', this.value)">
           </div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Format</label>
           <div class="input-group">
             <span class="input-group-text">🎾</span>
-            <select class="form-control" name="match_type" required>
+            <select class="form-control" name="match_type" required 
+                    onchange="trackTennisEvent('change', 'Setup', 'format_changed', '', {match_type: this.value})">
               <option value="singles" {% if match_type == "singles" %}selected{% endif %}>Singles</option>
               <option value="doubles" {% if match_type == "doubles" %}selected{% endif %}>Doubles</option>
             </select>
@@ -54,11 +57,15 @@
         <div class="row g-3 align-items-end">
           <div class="col-md-4">
             <label class="form-label">Name</label>
-            <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName" maxlength="50" pattern="[a-zA-Z0-9\s\-']+" title="Only letters, numbers, spaces, hyphens and apostrophes allowed">
+            <input type="text" name="name" class="form-control" placeholder="Enter player name" id="playerName" 
+                   maxlength="50" pattern="[a-zA-Z0-9\s\-']+" 
+                   title="Only letters, numbers, spaces, hyphens and apostrophes allowed"
+                   onfocus="trackTennisEvent('focus', 'Player Management', 'name_field_focus')">
           </div>
           <div class="col-md-2">
             <label class="form-label">Grade</label>
-            <select name="grade" class="form-control" id="playerGrade" required>
+            <select name="grade" class="form-control" id="playerGrade" required
+                    onchange="trackTennisEvent('change', 'Player Management', 'grade_selected', this.value)">
               <option value="">Select</option>
               <option value="1">1 (Strongest)</option>
               <option value="2">2 (Strong)</option>
@@ -68,7 +75,8 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Max Rounds</label>
-            <select name="max_rounds" class="form-control" id="playerMaxRounds">
+            <select name="max_rounds" class="form-control" id="playerMaxRounds"
+                    onchange="trackTennisEvent('change', 'Player Management', 'max_rounds_selected', this.value)">
               <option value="">All rounds</option>
               <option value="1">1 round only</option>
               <option value="2">2 rounds max</option>
@@ -83,7 +91,9 @@
             </select>
           </div>
           <div class="col-md-4">
-            <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" onclick="return validateAddPlayer()">
+            <button type="submit" name="add_player" value="true" class="btn-base btn-accent w-100" 
+                    onclick="return validateAddPlayer()"
+                    onmouseenter="trackTennisEvent('hover', 'Player Management', 'add_player_button')">
               Add Player
             </button>
           </div>
@@ -97,6 +107,10 @@
             <strong>❌</strong> {{ error|e }}
           </div>
         </div>
+        <script>
+          // Track errors for analytics
+          trackError('form_validation', '{{ error|e|replace("'", "\\'") }}', 'player_management');
+        </script>
       {% endif %}
 
       <!-- Players List -->
@@ -114,7 +128,8 @@
                 </div>
                 <div class="player-actions">
                   <button type="button" class="btn-base btn-outline-secondary btn-sm" 
-                         onclick="confirmRemovePlayer('{{ player.name|e }}')">
+                         onclick="confirmRemovePlayer('{{ player.name|e }}')"
+                         onmouseenter="trackTennisEvent('hover', 'Player Management', 'remove_player_button')">
                     Remove
                   </button>
                 </div>
@@ -135,14 +150,16 @@
     {% if players %}
     <div class="card-base" style="text-align: center;">
       <div class="action-controls">
-        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()">
+        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()"
+                onmouseenter="trackTennisEvent('hover', 'Match Organization', 'organize_button')">
           Organize Matches
         </button>
-        <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()">
+        <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()"
+                onmouseenter="trackTennisEvent('hover', 'Match Organization', 'reshuffle_all_button')">
           Reshuffle All
         </button>
-        <button type="button" class="btn-base btn-outline-danger" 
-               onclick="confirmReset()">
+        <button type="button" class="btn-base btn-outline-danger" onclick="confirmReset()"
+                onmouseenter="trackTennisEvent('hover', 'Session Management', 'reset_button')">
           Reset
         </button>
       </div>
@@ -164,14 +181,15 @@
               <h5 class="round-title">Round {{ round_num }}</h5>
               <button type="button" class="btn-base btn-info btn-sm mobile-touch-target"
                      onclick="reshuffleRound({{ round_num }})"
-                     data-round="{{ round_num }}">
+                     data-round="{{ round_num }}"
+                     onmouseenter="trackTennisEvent('hover', 'Match Organization', 'reshuffle_round_button', {{ round_num }})">
                 Reshuffle
               </button>
             </div>
             
             <div class="matches-grid">
               {% for court_num, match in matches %}
-                <div class="match-card">
+                <div class="match-card" onclick="trackTennisEvent('click', 'Match Interaction', 'match_card_click', {{ round_num }}, {court: {{ court_num }}})">
                   <div class="court-label">Court {{ court_num }}</div>
                   <div class="match-players">
                     {% if match|length == 2 %}
@@ -248,19 +266,67 @@
     {% endif %}
   </form>
 
+  <!-- Track initial page load data -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Track initial page state
+      const initialData = {
+        player_count: {{ players|length }},
+        match_type: '{{ match_type }}',
+        court_count: {{ courts }},
+        rounds: {{ num_matches }},
+        has_matches: {{ 'true' if matchups and rounds else 'false' }}
+      };
+      
+      trackEngagement('page_load', initialData);
+      
+      // Track if user has existing session data
+      if (initialData.player_count > 0) {
+        trackEngagement('returning_session', {
+          players: initialData.player_count,
+          has_matches: initialData.has_matches
+        });
+      }
+      
+      // Track session type based on device
+      const isMobile = window.innerWidth <= 768;
+      trackTennisEvent('session_start', 'Device Type', isMobile ? 'mobile' : 'desktop', 1, {
+        screen_width: window.innerWidth,
+        screen_height: window.innerHeight
+      });
+    });
+  </script>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Timer variables
+// Enhanced analytics tracking for tennis app
+// Update global journey tracking
+userJourney.current_players = {{ players|length }};
+userJourney.current_match_type = '{{ match_type }}';
+userJourney.current_courts = {{ courts }};
+userJourney.current_rounds = {{ num_matches }};
+userJourney.has_matches = {{ 'true' if matchups and rounds else 'false' }};
+
+// Timer variables with analytics
 let timerInterval = null;
 let isPaused = false;
 let timeRemaining = 20 * 60; // 20 minutes in seconds
+let timerStartTime = null;
 
 // Mobile-specific variables
 let touchStartX = 0;
 let touchEndX = 0;
 let currentRound = 1;
+
+// Track timer usage
+function trackTimerEvent(action, value) {
+  trackTennisEvent(action, 'Timer', 'round_timer', value, {
+    match_type: userJourney.current_match_type,
+    players: userJourney.current_players
+  });
+}
 
 // Auto-hide any remaining flash messages (cleanup)
 document.addEventListener('DOMContentLoaded', function() {
@@ -271,15 +337,55 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize mobile features
   initializeMobileFeatures();
+  
+  // Track page elements interaction
+  setupElementTracking();
 });
 
-// Mobile feature initialization
+// Setup tracking for various page elements
+function setupElementTracking() {
+  // Track form field interactions
+  const nameField = document.getElementById('playerName');
+  if (nameField) {
+    let nameFieldStartTime = null;
+    nameField.addEventListener('focus', function() {
+      nameFieldStartTime = Date.now();
+    });
+    nameField.addEventListener('blur', function() {
+      if (nameFieldStartTime) {
+        const timeSpent = Date.now() - nameFieldStartTime;
+        if (timeSpent > 2000) { // Only track if they spent more than 2 seconds
+          trackTennisEvent('field_engagement', 'Form Interaction', 'name_field_time', Math.round(timeSpent / 1000));
+        }
+      }
+    });
+  }
+  
+  // Track section visibility
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const sectionName = entry.target.querySelector('.section-title')?.textContent || 'unknown';
+        trackTennisEvent('section_view', 'Content Engagement', sectionName.replace(/[^\w\s]/gi, '').trim());
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  document.querySelectorAll('.card-base').forEach(card => {
+    observer.observe(card);
+  });
+}
+
+// Mobile feature initialization with analytics
 function initializeMobileFeatures() {
   // Add touch gesture support for round navigation
   const scheduleContainer = document.querySelector('.schedule-container');
   if (scheduleContainer && window.innerWidth <= 768) {
     scheduleContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
     scheduleContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Track mobile gesture usage
+    trackTennisEvent('mobile_features', 'Interface', 'gesture_support_enabled');
   }
   
   // Add mobile-specific button feedback
@@ -296,7 +402,7 @@ function initializeMobileFeatures() {
   adjustViewportHeight();
 }
 
-// Touch gesture handlers
+// Touch gesture handlers with analytics
 function handleTouchStart(e) {
   touchStartX = e.changedTouches[0].screenX;
 }
@@ -313,6 +419,9 @@ function handleSwipeGesture() {
   if (Math.abs(swipeDistance) > swipeThreshold) {
     const rounds = document.querySelectorAll('.round-section');
     if (rounds.length <= 1) return;
+    
+    const direction = swipeDistance > 0 ? 'right' : 'left';
+    trackTennisEvent('swipe_gesture', 'Mobile Interaction', direction, Math.abs(swipeDistance));
     
     if (swipeDistance > 0 && currentRound > 1) {
       // Swipe right - previous round
@@ -333,6 +442,9 @@ function navigateToRound(roundNumber) {
       inline: 'nearest'
     });
     currentRound = roundNumber;
+    
+    // Track round navigation
+    trackTennisEvent('round_navigation', 'Match Viewing', 'round_' + roundNumber, roundNumber);
     
     // Show navigation feedback
     showMobileMessage(`Round ${roundNumber}`, 'info', 1500);
@@ -359,11 +471,13 @@ function initializeStickyElements() {
     if (actionControls) {
       actionControls.style.position = 'sticky';
       actionControls.style.bottom = '0';
+      trackTennisEvent('ui_adaptation', 'Mobile Interface', 'sticky_controls_enabled');
     }
     
     if (timerWidget && document.querySelector('#matches-section')) {
       timerWidget.style.position = 'sticky';
       timerWidget.style.top = '80px';
+      trackTennisEvent('ui_adaptation', 'Mobile Interface', 'sticky_timer_enabled');
     }
   }
 }
@@ -379,11 +493,16 @@ function adjustViewportHeight() {
   window.addEventListener('resize', setVH);
   window.addEventListener('orientationchange', () => {
     setTimeout(setVH, 100);
+    // Track orientation changes
+    trackTennisEvent('orientation_change', 'Mobile Interaction', screen.orientation?.type || 'unknown');
   });
 }
 
-// Mobile-optimized message display
+// Mobile-optimized message display with analytics
 function showMobileMessage(message, type = 'info', duration = 3000) {
+  // Track mobile message display
+  trackTennisEvent('mobile_message', 'User Feedback', type, 1, {message: message.substring(0, 50)});
+  
   // Remove existing messages
   const existingMessages = document.querySelectorAll('.mobile-message');
   existingMessages.forEach(msg => msg.remove());
@@ -430,25 +549,30 @@ function showMobileMessage(message, type = 'info', duration = 3000) {
   }, duration);
 }
 
-// Validation Functions
+// Enhanced validation with analytics
 function validateAddPlayer() {
   const name = document.getElementById('playerName').value.trim();
   const grade = document.getElementById('playerGrade').value;
   const maxRounds = document.getElementById('playerMaxRounds').value;
   const totalRounds = parseInt(document.getElementById('totalRounds').value);
   
+  const validationStart = Date.now();
+  
   if (!name) {
+    trackError('validation_error', 'empty_name', 'add_player');
     showMobileMessage('Please enter a player name', 'warning');
     return false;
   }
   
   if (!grade) {
+    trackError('validation_error', 'no_grade_selected', 'add_player');
     showMobileMessage('Please select a grade', 'warning');
     return false;
   }
   
   // Validate max rounds if specified
   if (maxRounds && parseInt(maxRounds) > totalRounds) {
+    trackError('validation_error', 'max_rounds_exceeds_total', 'add_player');
     showMobileMessage(`Max rounds (${maxRounds}) cannot exceed total rounds (${totalRounds})`, 'warning');
     return false;
   }
@@ -457,10 +581,16 @@ function validateAddPlayer() {
   const existingPlayers = document.querySelectorAll('.player-name');
   for (let player of existingPlayers) {
     if (player.textContent.toLowerCase() === name.toLowerCase()) {
+      trackError('validation_error', 'duplicate_player_name', 'add_player');
       showMobileMessage('Player with this name already exists', 'warning');
       return false;
     }
   }
+  
+  // Track successful validation
+  const validationTime = Date.now() - validationStart;
+  trackPerformance('form_validation_time', validationTime, 'add_player');
+  trackTennisEvent('validation_success', 'Player Management', 'add_player_validated');
   
   return true;
 }
@@ -468,9 +598,17 @@ function validateAddPlayer() {
 function validateCSVUpload() {
   const fileInput = document.getElementById('csvFileInput');
   if (!fileInput.files.length) {
+    trackError('validation_error', 'no_csv_file_selected', 'csv_upload');
     showMobileMessage('Please select a CSV file', 'warning');
     return false;
   }
+  
+  const file = fileInput.files[0];
+  trackTennisEvent('csv_upload_attempt', 'Data Management', 'file_selected', file.size, {
+    file_name: file.name,
+    file_type: file.type
+  });
+  
   return true;
 }
 
@@ -480,9 +618,15 @@ function validateOrganizeMatches() {
   const minPlayers = matchType === 'singles' ? 2 : 4;
   
   if (players.length < minPlayers) {
+    trackError('validation_error', 'insufficient_players', 'organize_matches');
     showMobileMessage(`You need at least ${minPlayers} players for ${matchType} matches`, 'warning');
     return false;
   }
+  
+  trackTennisEvent('organize_matches_validated', 'Match Organization', 'validation_passed', players.length, {
+    match_type: matchType,
+    player_count: players.length
+  });
   
   return true;
 }
@@ -492,6 +636,9 @@ function updateMaxRoundsOptions() {
   const totalRoundsInput = document.getElementById('totalRounds');
   const maxRoundsSelect = document.getElementById('playerMaxRounds');
   const totalRounds = parseInt(totalRoundsInput.value) || 10;
+  
+  // Track configuration changes
+  trackTennisEvent('config_change', 'Setup', 'total_rounds_updated', totalRounds);
   
   // Clear existing options except "All rounds"
   maxRoundsSelect.innerHTML = '<option value="">All rounds</option>';
@@ -550,11 +697,25 @@ function reattachEventHandlers() {
   initializeMobileFeatures();
 }
 
-// Main organize matches function with mobile messages
+// Main organize matches function with enhanced analytics
 function organizeMatches() {
   if (!validateOrganizeMatches()) {
     return;
   }
+  
+  const startTime = Date.now();
+  const playerCount = document.querySelectorAll('.player-card').length;
+  const matchType = document.querySelector('select[name="match_type"]').value;
+  const courts = parseInt(document.querySelector('input[name="courts"]').value);
+  const rounds = parseInt(document.querySelector('input[name="num_matches"]').value);
+  
+  // Track organize attempt
+  trackFeatureUsage('organize_matches', true, {
+    match_type: matchType,
+    player_count: playerCount,
+    court_count: courts,
+    rounds: rounds
+  });
   
   // Show loading state
   const button = event.target;
@@ -594,6 +755,21 @@ function organizeMatches() {
     return response.text();
   })
   .then(html => {
+    const processTime = Date.now() - startTime;
+    
+    // Track successful organization
+    trackPerformance('organize_matches_time', processTime, 'ajax_success');
+    trackEngagement('matches_organized', {
+      match_type: matchType,
+      player_count: playerCount,
+      court_count: courts,
+      rounds: rounds,
+      processing_time: processTime
+    });
+    
+    // Update journey tracking
+    userJourney.matches_organized++;
+    
     // Remove loading message
     const loadingMsg = document.querySelector('.mobile-message');
     if (loadingMsg) loadingMsg.remove();
@@ -630,6 +806,10 @@ function organizeMatches() {
       
       // Show success message
       showMobileMessage('Matches organized successfully!', 'success');
+      
+      // Track match cards created
+      const matchCards = document.querySelectorAll('.match-card');
+      trackTennisEvent('matches_created', 'Match Organization', 'cards_generated', matchCards.length);
     }
     
     // Add timer widget if not present and matches were created
@@ -647,6 +827,7 @@ function organizeMatches() {
         if (display) {
           timeRemaining = 20 * 60; // Reset to 20 minutes
           updateClockDisplay(display);
+          trackTennisEvent('timer_initialized', 'Timer', 'auto_created');
         }
       }
     }
@@ -656,7 +837,13 @@ function organizeMatches() {
     
   })
   .catch(error => {
+    const errorTime = Date.now() - startTime;
     console.error('Error organizing matches:', error);
+    
+    // Track error
+    trackError('organize_matches_ajax_error', error.message, 'ajax_fallback');
+    trackPerformance('organize_matches_error_time', errorTime, 'ajax_error');
+    
     showMobileMessage('Error organizing matches. Trying alternative method...', 'warning');
     
     // Fallback to form submission if AJAX fails
@@ -675,9 +862,19 @@ function organizeMatches() {
   });
 }
 
-// Enhanced reshuffle functions with mobile feedback
+// Enhanced reshuffle functions with comprehensive analytics
 function reshuffleAll() {
   if (confirm('This will reshuffle all players and create new matches. Continue?')) {
+    const playerCount = document.querySelectorAll('.player-card').length;
+    const matchType = document.querySelector('select[name="match_type"]').value;
+    
+    // Track reshuffle attempt
+    trackFeatureUsage('reshuffle_all', true, {
+      match_type: matchType,
+      player_count: playerCount
+    });
+    
+    userJourney.reshuffles++;
     sessionStorage.setItem('lastAction', 'reshuffle_all');
     
     // Show loading state
@@ -697,10 +894,20 @@ function reshuffleAll() {
     hiddenInput.value = 'true';
     form.appendChild(hiddenInput);
     form.submit();
+  } else {
+    // Track cancelled reshuffle
+    trackTennisEvent('reshuffle_cancelled', 'Match Organization', 'user_cancelled_reshuffle_all');
   }
 }
 
 function reshuffleRound(roundNum) {
+  // Track round reshuffle attempt
+  trackFeatureUsage('reshuffle_round', true, {
+    round_number: roundNum,
+    match_type: document.querySelector('select[name="match_type"]').value
+  });
+  
+  userJourney.reshuffles++;
   sessionStorage.setItem('lastAction', 'reshuffle_round');
   sessionStorage.setItem('reshuffleRoundNum', roundNum);
   
@@ -725,9 +932,15 @@ function reshuffleRound(roundNum) {
   form.submit();
 }
 
-// Player management functions with mobile feedback
+// Player management functions with enhanced analytics
 function confirmRemovePlayer(playerName) {
   if (confirm(`Remove ${playerName} from the session?`)) {
+    // Track player removal
+    trackFeatureUsage('remove_player', true, {
+      player_name: playerName.substring(0, 20), // Truncate for privacy
+      remaining_players: document.querySelectorAll('.player-card').length - 1
+    });
+    
     sessionStorage.setItem('lastAction', 'remove_player');
     
     showMobileMessage(`Removing ${playerName}...`, 'info', 2000);
@@ -739,11 +952,24 @@ function confirmRemovePlayer(playerName) {
     hiddenInput.value = playerName;
     form.appendChild(hiddenInput);
     form.submit();
+  } else {
+    // Track cancelled removal
+    trackTennisEvent('remove_player_cancelled', 'Player Management', 'user_cancelled_removal');
   }
 }
 
 function confirmReset() {
   if (confirm('This will remove all players and matches. Are you sure?')) {
+    const currentPlayers = document.querySelectorAll('.player-card').length;
+    const hasMatches = document.querySelector('#matches-section') !== null;
+    
+    // Track session reset
+    trackFeatureUsage('reset_session', true, {
+      players_removed: currentPlayers,
+      had_matches: hasMatches,
+      session_duration: Date.now() - userJourney.start_time
+    });
+    
     sessionStorage.setItem('lastAction', 'reset');
     
     // Show loading state
@@ -761,10 +987,13 @@ function confirmReset() {
     hiddenInput.value = 'true';
     form.appendChild(hiddenInput);
     form.submit();
+  } else {
+    // Track cancelled reset
+    trackTennisEvent('reset_cancelled', 'Session Management', 'user_cancelled_reset');
   }
 }
 
-// Add a function to show success messages when page loads (for form submissions)
+// Enhanced success message tracking
 function checkForSuccessActions() {
   // Check if we just completed an action by looking at form data or URL changes
   const playerCount = document.querySelectorAll('.player-card').length;
@@ -777,30 +1006,37 @@ function checkForSuccessActions() {
     
     switch(lastAction) {
       case 'add_player':
+        userJourney.players_added++;
         showMobileMessage('Player added successfully!', 'success');
+        trackEngagement('player_added', {player_count: playerCount});
         break;
       case 'remove_player':
         showMobileMessage('Player removed successfully!', 'success');
+        trackEngagement('player_removed', {player_count: playerCount});
         break;
       case 'reshuffle_all':
         showMobileMessage('All matches reshuffled successfully!', 'success');
+        trackEngagement('all_matches_reshuffled', {player_count: playerCount});
         break;
       case 'reshuffle_round':
         const roundNum = sessionStorage.getItem('reshuffleRoundNum') || '';
         sessionStorage.removeItem('reshuffleRoundNum');
         showMobileMessage(`Round ${roundNum} reshuffled successfully!`, 'success');
+        trackEngagement('round_reshuffled', {round: roundNum, player_count: playerCount});
         break;
       case 'reset':
         showMobileMessage('All data cleared successfully!', 'success');
+        trackEngagement('session_reset', {});
         break;
       case 'organize_matches':
         showMobileMessage('Matches organized successfully!', 'success');
+        trackEngagement('matches_organized_success', {player_count: playerCount});
         break;
     }
   }
 }
 
-// Initialize on page load
+// Initialize on page load with comprehensive analytics
 document.addEventListener('DOMContentLoaded', function() {
   // Restore scroll position if returning from form submission
   restoreScrollPosition();
@@ -834,15 +1070,27 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize mobile features
   initializeMobileFeatures();
+  
+  // Track successful page load
+  trackPerformance('page_load_complete', Date.now() - performance.navigationStart, 'full_page');
+  
+  // Track user's browser capabilities
+  trackTennisEvent('browser_capabilities', 'Technical', 'features_supported', 1, {
+    touch_support: 'ontouchstart' in window,
+    local_storage: typeof(Storage) !== "undefined",
+    fetch_support: typeof fetch !== 'undefined',
+    intersection_observer: typeof IntersectionObserver !== 'undefined'
+  });
 });
 
-// Prevent form submission on Enter key in player name field
+// Prevent form submission on Enter key in player name field with analytics
 document.addEventListener('DOMContentLoaded', function() {
   const playerNameInput = document.getElementById('playerName');
   if (playerNameInput) {
     playerNameInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        trackTennisEvent('keyboard_shortcut', 'User Interface', 'enter_key_add_player');
         if (validateAddPlayer()) {
           sessionStorage.setItem('lastAction', 'add_player');
           document.querySelector('button[name="add_player"]').click();
@@ -851,6 +1099,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Timer-specific clock display function (placeholder - would need implementation)
+function updateClockDisplay(display) {
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
 // Add CSS for mobile animations and feedback
 const style = document.createElement('style');

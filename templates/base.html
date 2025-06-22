@@ -7,13 +7,166 @@
   
   <title>{% block title %}🎾 Coaches Hub{% endblock %}</title>
   
-  <!-- Google tag (gtag.js) -->
+  <!-- Enhanced Google Analytics with improved tracking -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-FL37QBZMLC');
+    
+    // Enhanced GA configuration
+    gtag('config', 'G-FL37QBZMLC', {
+      // Enhanced measurement for better insights
+      enhanced_measurements: true,
+      
+      // Custom parameters for tennis app
+      custom_map: {
+        'custom_parameter_1': 'match_type',
+        'custom_parameter_2': 'player_count',
+        'custom_parameter_3': 'court_count'
+      },
+      
+      // Page view tracking with custom data
+      page_title: document.title,
+      page_location: window.location.href
+    });
+    
+    // Custom event tracking functions for tennis app
+    window.trackTennisEvent = function(action, category, label, value, customParams) {
+      const eventData = {
+        event_category: category || 'Tennis App',
+        event_label: label || '',
+        value: value || 0
+      };
+      
+      // Add custom parameters if provided
+      if (customParams) {
+        Object.assign(eventData, customParams);
+      }
+      
+      gtag('event', action, eventData);
+    };
+    
+    // Track user engagement milestones
+    window.trackEngagement = function(milestone, details) {
+      gtag('event', 'engagement', {
+        event_category: 'User Engagement',
+        event_label: milestone,
+        custom_parameter_1: details.match_type || '',
+        custom_parameter_2: details.player_count || 0,
+        custom_parameter_3: details.court_count || 0
+      });
+    };
+    
+    // Track feature usage
+    window.trackFeatureUsage = function(feature, success, details) {
+      gtag('event', 'feature_usage', {
+        event_category: 'Feature Usage',
+        event_label: feature,
+        success: success,
+        match_type: details.match_type || '',
+        player_count: details.player_count || 0,
+        court_count: details.court_count || 0,
+        rounds: details.rounds || 0
+      });
+    };
+    
+    // Track session quality metrics
+    window.trackSessionQuality = function(quality, details) {
+      gtag('event', 'session_quality', {
+        event_category: 'Session Quality',
+        event_label: quality,
+        players_added: details.players_added || 0,
+        matches_organized: details.matches_organized || 0,
+        reshuffles: details.reshuffles || 0,
+        session_duration: details.session_duration || 0
+      });
+    };
+    
+    // Track errors and issues
+    window.trackError = function(error_type, error_message, context) {
+      gtag('event', 'exception', {
+        description: error_type + ': ' + error_message,
+        fatal: false,
+        error_context: context || 'unknown',
+        event_category: 'Errors'
+      });
+    };
+    
+    // Track performance metrics
+    window.trackPerformance = function(metric, value, context) {
+      gtag('event', 'timing_complete', {
+        name: metric,
+        value: value,
+        event_category: 'Performance',
+        event_label: context || ''
+      });
+    };
+    
+    // Enhanced page view tracking with custom dimensions
+    window.trackPageView = function(page_path, custom_data) {
+      const pageData = {
+        page_path: page_path,
+        page_title: document.title
+      };
+      
+      if (custom_data) {
+        Object.assign(pageData, custom_data);
+      }
+      
+      gtag('config', 'G-FL37QBZMLC', pageData);
+    };
+    
+    // Track user journey milestones
+    let userJourney = {
+      start_time: Date.now(),
+      players_added: 0,
+      matches_organized: 0,
+      reshuffles: 0,
+      errors: 0
+    };
+    
+    // Auto-track page engagement time
+    let pageStartTime = Date.now();
+    let isPageVisible = true;
+    
+    // Track when user becomes inactive
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        isPageVisible = false;
+        const engagementTime = Date.now() - pageStartTime;
+        if (engagementTime > 10000) { // Only track if engaged for more than 10 seconds
+          gtag('event', 'page_engagement', {
+            event_category: 'Engagement',
+            event_label: 'page_time',
+            value: Math.round(engagementTime / 1000), // Convert to seconds
+            page_path: window.location.pathname
+          });
+        }
+      } else {
+        isPageVisible = true;
+        pageStartTime = Date.now();
+      }
+    });
+    
+    // Track when user leaves page
+    window.addEventListener('beforeunload', function() {
+      if (isPageVisible) {
+        const totalEngagementTime = Date.now() - pageStartTime;
+        const sessionDuration = Date.now() - userJourney.start_time;
+        
+        // Track session summary
+        gtag('event', 'session_summary', {
+          event_category: 'Session Complete',
+          session_duration: Math.round(sessionDuration / 1000),
+          players_added: userJourney.players_added,
+          matches_organized: userJourney.matches_organized,
+          reshuffles: userJourney.reshuffles,
+          errors: userJourney.errors,
+          final_engagement: Math.round(totalEngagementTime / 1000)
+        });
+      }
+    });
   </script>
   
   <!-- Optimized CSS loading -->
@@ -27,7 +180,7 @@
   <!-- Minimal Header -->
   <header class="navbar">
     <div class="container">
-      <a class="navbar-brand" href="/">
+      <a class="navbar-brand" href="/" onclick="trackTennisEvent('click', 'Navigation', 'brand_logo')">
         <span>🎾</span>
         <span>Coaches Hub</span>
       </a>
