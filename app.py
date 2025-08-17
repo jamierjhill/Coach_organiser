@@ -2,10 +2,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import os, random, csv, io, re
+import os, random, csv, io, re, time
 from datetime import timedelta
 from collections import defaultdict
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, abort
 
 # Only import CSRF if available
 try:
@@ -16,16 +16,61 @@ except ImportError:
     CSRF_AVAILABLE = False
 
 from utils import organize_matches
+# Simplified imports - keeping only CAPTCHA and basic CSRF
+import hashlib
+
+def generate_csrf_token():
+    """Generate CSRF token - use Flask-WTF if available"""
+    if CSRF_AVAILABLE:
+        try:
+            from flask_wtf.csrf import generate_csrf
+            return generate_csrf()
+        except:
+            pass
+    
+    # Fallback to simple token
+    if 'csrf_token' not in session:
+        session['csrf_token'] = hashlib.sha256(
+            f"{time.time()}{request.remote_addr}".encode()
+        ).hexdigest()
+    return session['csrf_token']
+from captcha import simple_captcha, math_captcha, require_captcha_after_failures
+# Email service removed - using simple email link instead
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_key_UNSAFE_FOR_PRODUCTION")
 
-# Initialize CSRF Protection only if available
-if CSRF_AVAILABLE:
+# Session counter functionality
+SESSION_COUNTER_FILE = "session_counter.txt"
+
+
+def get_session_count():
+    """Get the current session count"""
+    try:
+        if os.path.exists(SESSION_COUNTER_FILE):
+            with open(SESSION_COUNTER_FILE, 'r') as f:
+                return int(f.read().strip())
+        return 0
+    except:
+        return 0
+
+def increment_session_count():
+    """Increment and save the session count"""
+    try:
+        count = get_session_count() + 1
+        with open(SESSION_COUNTER_FILE, 'w') as f:
+            f.write(str(count))
+        return count
+    except:
+        return get_session_count()
+
+
+# Initialize CSRF Protection only if available and in production
+if CSRF_AVAILABLE and os.getenv("FLASK_ENV") == "production":
     csrf = CSRFProtect(app)
     # CSRF Configuration
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
-    app.config['WTF_CSRF_SSL_STRICT'] = os.getenv("FLASK_ENV") == "production"
+    app.config['WTF_CSRF_SSL_STRICT'] = True
 
 # Check if running in production
 IS_PRODUCTION = os.getenv("FLASK_ENV") == "production"
@@ -38,30 +83,13 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB
 
 @app.before_request
-def make_session_permanent():
+def before_request():
     session.permanent = True
 
 @app.after_request
-def add_security_headers(response):
-    # Enhanced security headers
+def add_basic_headers(response):
+    # Basic security headers only
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    
-    # Only add HSTS in production
-    if IS_PRODUCTION:
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    
-    # Updated CSP to allow Google Analytics
-    response.headers['Content-Security-Policy'] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com; "
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-        "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://region1.analytics.google.com; "
-        "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com"
-    )
-    
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
 def sanitize_csv_field(field_value):
@@ -412,8 +440,9 @@ def reshuffle_single_round(players, courts, match_type, round_to_reshuffle, exis
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
+# Simplified security - only basic rate limiting
 def index():
-    """Main match organizer page with enhanced security."""
+    """Main session organizer page."""
     
     # Get current session data
     players = session.get("players", [])
@@ -427,6 +456,65 @@ def index():
     error = None
 
     if request.method == "POST":
+        # Basic CSRF check only if available and in production
+        if CSRF_AVAILABLE and os.getenv("FLASK_ENV") == "production":
+            try:
+                from flask_wtf.csrf import validate_csrf
+                validate_csrf(request.form.get('csrf_token'))
+            except Exception as e:
+                error = "Security validation failed. Please refresh and try again."
+                return render_template(
+                    "index.html",
+                    players=players, matchups=matchups, courts=courts,
+                    num_matches=num_matches, match_type=match_type,
+                    player_match_counts=player_match_counts, rounds=rounds,
+                    error=error, csrf_available=CSRF_AVAILABLE,
+                    csrf_token=generate_csrf_token(),
+                    require_captcha=False,
+                    session_count=get_session_count()
+                )
+        
+        # Simplified - no honeypot checks
+        
+        # Check if CAPTCHA is required due to previous failures
+        failures = session.get('form_failures', 0)
+        if failures >= 5:  # Increased threshold
+            captcha_response = request.form.get('captcha_response', '').strip()
+            if not captcha_response:
+                error = "CAPTCHA required after multiple attempts"
+                return render_template(
+                    "index.html",
+                    players=players, matchups=matchups, courts=courts,
+                    num_matches=num_matches, match_type=match_type,
+                    player_match_counts=player_match_counts, rounds=rounds,
+                    error=error, csrf_available=CSRF_AVAILABLE,
+                    csrf_token=generate_csrf_token(),
+                    require_captcha=True,
+                    captcha_image=simple_captcha.generate_captcha(),
+                    math_question=math_captcha.generate_math_captcha()
+                )
+            
+            # Validate CAPTCHA
+            image_valid, _ = simple_captcha.validate_captcha(captcha_response)
+            math_valid, _ = math_captcha.validate_math_captcha(captcha_response)
+            
+            if not (image_valid or math_valid):
+                session['form_failures'] = session.get('form_failures', 0) + 1
+                error = "Invalid CAPTCHA. Please try again."
+                return render_template(
+                    "index.html",
+                    players=players, matchups=matchups, courts=courts,
+                    num_matches=num_matches, match_type=match_type,
+                    player_match_counts=player_match_counts, rounds=rounds,
+                    error=error, csrf_available=CSRF_AVAILABLE,
+                    csrf_token=generate_csrf_token(),
+                    require_captcha=True,
+                    captcha_image=simple_captcha.generate_captcha(),
+                    math_question=math_captcha.generate_math_captcha()
+                )
+            
+            # Reset failure count on successful CAPTCHA
+            session['form_failures'] = 0
         # Update session configuration with validation
         try:
             courts_input = int(request.form.get("courts", courts))
@@ -451,6 +539,7 @@ def index():
         if "remove_player" in request.form:
             name_to_remove = request.form.get("remove_player", "").strip()
             if name_to_remove:
+                # Basic validation only
                 players = [p for p in players if p["name"] != name_to_remove]
                 session["players"] = players
                 # Clear matches when player is removed
@@ -484,13 +573,16 @@ def index():
             grade_str = request.form.get("grade", "")
             max_rounds_str = request.form.get("max_rounds", "").strip()
             
-            # Sanitize name input
-            name = sanitize_csv_field(name)
+            # Simplified validation
+            name = name.strip()
             
-            # Validate name
-            is_valid_name, name_error = validate_player_name(name)
-            if not is_valid_name:
-                error = name_error
+            # Basic name validation
+            if not name or len(name) == 0:
+                error = "Player name cannot be empty"
+            elif len(name) > 50:
+                error = "Player name too long (max 50 characters)"
+            elif not re.match(r"^[a-zA-Z0-9\s\-'.]+$", name):
+                error = "Player name contains invalid characters"
             else:
                 try:
                     grade = int(grade_str)
@@ -516,6 +608,8 @@ def index():
                                 error = "Invalid max rounds format"
                         
                         if not error:
+                            # Player added successfully
+                            
                             # Create player dictionary
                             player = {"name": name, "grade": grade}
                             if max_rounds is not None:
@@ -523,6 +617,8 @@ def index():
                             
                             players.append(player)
                             session["players"] = players
+                            # Reset failure count on success
+                            session['form_failures'] = 0
                             # Clear form by redirecting
                             return redirect("/")
                 except (TypeError, ValueError):
@@ -581,12 +677,13 @@ def index():
             except (ValueError, TypeError):
                 error = "Invalid round number format"
 
-        # Organize matches with validation
-        elif "organize_matches" in request.form or "reshuffle" in request.form:
+        # Organize sessions with validation  
+        elif "organize_sessions" in request.form or "organize_matches" in request.form or "reshuffle" in request.form:
+            # Organizing sessions
             min_players = 2 if match_type == "singles" else 4
             
             if len(players) < min_players:
-                error = f"Need at least {min_players} players for {match_type} matches"
+                error = f"Need at least {min_players} players for {match_type} sessions"
             elif len(players) > 100:
                 error = "Too many players (max 100)"
             else:
@@ -610,10 +707,23 @@ def index():
                         "player_match_counts": player_match_counts,
                         "rounds": rounds
                     })
+                    
+                    # Increment session counter for new organizations (not reshuffles)
+                    if "organize_sessions" in request.form or "organize_matches" in request.form:
+                        increment_session_count()
                         
                 except Exception as e:
-                    error = "Error organizing matches. Please try again."
+                    error = "Error organizing sessions. Please try again."
 
+    # Determine if CAPTCHA is required
+    failures = session.get('form_failures', 0)
+    require_captcha = failures >= 3
+    
+    captcha_data = {}
+    if require_captcha:
+        captcha_data['captcha_image'] = simple_captcha.generate_captcha()
+        captcha_data['math_question'] = math_captcha.generate_math_captcha()
+    
     return render_template(
         "index.html",
         players=players,
@@ -624,11 +734,112 @@ def index():
         player_match_counts=player_match_counts,
         rounds=rounds,
         error=error,
-        csrf_available=CSRF_AVAILABLE
+        csrf_available=CSRF_AVAILABLE,
+        csrf_token=generate_csrf_token(),
+        require_captcha=require_captcha,
+        session_count=get_session_count(),
+        **captcha_data
     )
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    """Contact page with form"""
+    error = None
+    success = None
+    
+    if request.method == "POST":
+        # Get form data
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        subject = request.form.get("subject", "").strip()
+        message = request.form.get("message", "").strip()
+        
+        # Basic validation
+        if not name:
+            error = "Name is required"
+        elif len(name) > 50:
+            error = "Name too long (max 50 characters)"
+        elif not email:
+            error = "Email is required"
+        elif len(email) > 100:
+            error = "Email too long (max 100 characters)"
+        elif not subject:
+            error = "Subject is required"
+        elif not message:
+            error = "Message is required"
+        elif len(message) > 1000:
+            error = "Message too long (max 1000 characters)"
+        elif len(message) < 10:
+            error = "Message too short (min 10 characters)"
+        else:
+            # Basic email validation
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, email):
+                error = "Please enter a valid email address"
+            elif subject not in ['bug_report', 'feature_request', 'support', 'feedback', 'other']:
+                error = "Please select a valid subject"
+            else:
+                # For now, just show success message
+                # In production, you would send the email here
+                success = "Thank you for your message! We'll get back to you soon."
+                
+                # Log the contact attempt (optional)
+                print(f"Contact form submission: {name} ({email}) - {subject}")
+    
+    return render_template("contact.html", error=error, success=success)
+
+@app.route("/captcha/image")
+# Rate limiting removed
+def get_captcha_image():
+    """Generate new CAPTCHA image"""
+    from flask import jsonify
+    try:
+        image_data = simple_captcha.generate_captcha()
+        return jsonify({'image': image_data})
+    except Exception as e:
+        # Error generating CAPTCHA
+        return jsonify({'error': 'Unable to generate CAPTCHA'}), 500
+
+@app.route("/captcha/math")
+# Rate limiting removed
+def get_math_captcha():
+    """Generate new math CAPTCHA"""
+    from flask import jsonify
+    try:
+        question = math_captcha.generate_math_captcha()
+        return jsonify({'question': question})
+    except Exception as e:
+        # Error generating CAPTCHA
+        return jsonify({'error': 'Unable to generate math CAPTCHA'}), 500
+
+# Admin test email route removed with email service
+
+@app.route("/security/status")
+# Rate limiting removed
+def security_status():
+    """Security status endpoint for monitoring"""
+    from flask import jsonify
+    
+    # Simplified status
+    status = {
+        'status': 'running',
+        'csrf_available': CSRF_AVAILABLE
+    }
+    
+    return jsonify(status)
+
+@app.errorhandler(429)
+def rate_limit_exceeded(error):
+    """Handle rate limit exceeded"""
+    return render_template('error.html', 
+                         error_code=429, 
+                         error_message="Too many requests. Please slow down."), 429
 
 @app.errorhandler(400)
 def bad_request(error):
+    print(f"DEBUG: 400 error handler called: {error}")
+    print(f"DEBUG: Error description: {getattr(error, 'description', 'No description')}")
     return render_template('error.html', error_code=400, error_message="Bad Request"), 400
 
 @app.errorhandler(404)
@@ -645,5 +856,5 @@ def server_error(error):
 
 if __name__ == "__main__":
     # For development only - disable debug in production
-    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+    debug_mode = True  # Force debug mode for debugging
     app.run(host='0.0.0.0', port=5000, debug=debug_mode)

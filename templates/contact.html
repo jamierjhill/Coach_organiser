@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Tennis Session Organizer{% endblock %}
+
+{% block content %}
+  <div class="page-title-container">
+    <h1 class="page-title">Contact Us</h1>
+    <p class="page-subtitle">Get in touch for support or questions</p>
+  </div>
+
+  <!-- Contact Form -->
+  <div class="card-base">
+    <h4 class="section-title">📧 Send us a Message</h4>
+    
+    <form method="POST" action="/contact" id="contact-form">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="name">Your Name *</label>
+          <input type="text" 
+                 name="name" 
+                 id="name"
+                 class="form-control" 
+                 placeholder="Enter your name" 
+                 required
+                 maxlength="50">
+        </div>
+        
+        <div class="col-md-6">
+          <label class="form-label" for="email">Your Email *</label>
+          <input type="email" 
+                 name="email" 
+                 id="email"
+                 class="form-control" 
+                 placeholder="your.email@example.com" 
+                 required
+                 maxlength="100">
+        </div>
+      </div>
+      
+      <div class="mt-3">
+        <label class="form-label" for="subject">Subject *</label>
+        <select name="subject" id="subject" class="form-control" required>
+          <option value="">Select a topic</option>
+          <option value="bug_report">🐛 Bug Report</option>
+          <option value="feature_request">🚀 Feature Request</option>
+          <option value="support">❓ Support Question</option>
+          <option value="feedback">💭 General Feedback</option>
+          <option value="other">📝 Other</option>
+        </select>
+      </div>
+      
+      <div class="mt-3">
+        <label class="form-label" for="message">Message *</label>
+        <textarea name="message" 
+                  id="message"
+                  class="form-control" 
+                  rows="6" 
+                  placeholder="Please describe your question, issue, or feedback..."
+                  required
+                  maxlength="1000"></textarea>
+        <small class="text-muted">Maximum 1000 characters</small>
+      </div>
+      
+      <!-- Success/Error Messages -->
+      {% if success %}
+        <div class="mt-3">
+          <div class="alert alert-success">
+            <strong>✅</strong> {{ success }}
+          </div>
+        </div>
+      {% endif %}
+      
+      {% if error %}
+        <div class="mt-3">
+          <div class="alert alert-danger">
+            <strong>❌</strong> {{ error }}
+          </div>
+        </div>
+      {% endif %}
+      
+      <div class="mt-4">
+        <button type="submit" class="btn-base btn-accent btn-lg">
+          📤 Send Message
+        </button>
+        <button type="button" class="btn-base btn-secondary ms-2" onclick="clearForm()">
+          🗑️ Clear Form
+        </button>
+      </div>
+      
+      <div class="mt-3">
+        <small class="text-muted">
+          * Required fields. Your message will be sent to our support team.
+        </small>
+      </div>
+    </form>
+  </div>
+
+
+  <!-- Back to App -->
+  <div class="text-center mt-4">
+    <a href="/" class="btn-base btn-secondary">
+      🏠 Back to Tennis Session Organizer
+    </a>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function clearForm() {
+  if (confirm('Are you sure you want to clear the form?')) {
+    document.getElementById('contact-form').reset();
+  }
+}
+
+// Character counter for message field
+document.addEventListener('DOMContentLoaded', function() {
+  const messageField = document.getElementById('message');
+  const maxLength = 1000;
+  
+  // Create character counter
+  const counter = document.createElement('div');
+  counter.className = 'text-muted small mt-1';
+  counter.style.textAlign = 'right';
+  messageField.parentNode.appendChild(counter);
+  
+  function updateCounter() {
+    const remaining = maxLength - messageField.value.length;
+    counter.textContent = `${messageField.value.length}/${maxLength} characters`;
+    
+    if (remaining < 50) {
+      counter.style.color = '#dc3545'; // Red warning
+    } else if (remaining < 100) {
+      counter.style.color = '#fd7e14'; // Orange warning
+    } else {
+      counter.style.color = '#6c757d'; // Default gray
+    }
+  }
+  
+  messageField.addEventListener('input', updateCounter);
+  updateCounter(); // Initial count
+});
+</script>
+{% endblock %}

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Free tennis match organizer for coaches. Create balanced matches instantly with our grade-based algorithm.">
+  <meta name="description" content="Free tennis session organizer for coaches. Create balanced sessions instantly with our grade-based algorithm.">
   
-  <title>{% block title %}🎾 Coaches Hub{% endblock %}</title>
+  <title>{% block title %}🎾 Tennis Session Organizer{% endblock %}</title>
   
   <!-- Enhanced Google Analytics with improved tracking -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FL37QBZMLC"></script>
@@ -177,13 +177,31 @@
 </head>
 
 <body>
-  <!-- Minimal Header -->
-  <header class="navbar">
+  <!-- Enhanced Header with Navigation -->
+  <header class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" href="/" onclick="trackTennisEvent('click', 'Navigation', 'brand_logo')">
         <span>🎾</span>
-        <span>Coaches Hub</span>
+        <span>Tennis Session Organizer</span>
       </a>
+      
+      <!-- Navigation Toggle for Mobile -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
+              style="border: none; padding: 0.25rem 0.5rem;">
+        <span style="font-size: 1.2rem;">☰</span>
+      </button>
+      
+      <!-- Navigation Menu -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/" onclick="trackTennisEvent('click', 'Navigation', 'home_link')">
+              🏠 Home
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </header>
 
@@ -196,7 +214,10 @@
   <footer style="text-align: center; padding: 2rem 0; color: var(--text-muted); border-top: 1px solid var(--border-light); margin-top: 3rem;">
     <div class="container">
       <p style="margin: 0; font-size: 0.875rem;">
-        Coaches Hub
+        Tennis Session Organizer | 
+        <a href="/contact" style="color: var(--text-muted); text-decoration: none;">
+          📧 Contact
+        </a>
       </p>
     </div>
   </footer>

@@ -1,17 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}🎾 Tennis Match Organizer{% endblock %}
+{% block title %}🎾 Tennis Session Organizer{% endblock %}
 
 {% block content %}
-  <div class="page-title-container">
-    <h1 class="page-title">Tennis Match Organizer</h1>
-    <p class="page-subtitle">Create fair and balanced tennis matches in seconds</p>
+  <!-- Compact Header -->
+  <div style="text-align: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">🎾 Tennis Session Organizer</h2>
+    <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
+      Add players → Set courts & rounds → Organize balanced sessions instantly
+    </p>
+    {% if session_count > 0 %}
+    <small class="text-muted" style="display: block; margin-top: 0.25rem;">
+      🎉 {{ session_count }} sessions organized
+    </small>
+    {% endif %}
   </div>
 
   <form method="POST" action="/index" enctype="multipart/form-data">
-    <!-- CSRF Token Protection (only if available) -->
-    {% if csrf_available %}
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <!-- CSRF Token Protection -->
+    {% if csrf_token %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
     {% endif %}
     
     <!-- Session Setup -->
@@ -100,6 +108,51 @@
         </div>
       </div>
 
+      <!-- CAPTCHA Section (shown when required) -->
+      {% if require_captcha %}
+        <div class="card-section">
+          <div class="alert alert-warning">
+            <strong>🔒</strong> Security verification required after multiple attempts
+          </div>
+          
+          <div class="row g-3 align-items-center mt-2">
+            <div class="col-md-6">
+              <label class="form-label">Image CAPTCHA</label>
+              <div class="captcha-container">
+                {% if captcha_image %}
+                  <img src="{{ captcha_image }}" alt="CAPTCHA" id="captcha-img" 
+                       style="border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; cursor: pointer;"
+                       onclick="refreshCaptcha()" title="Click to refresh">
+                  <br>
+                {% endif %}
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshCaptcha()">
+                  🔄 New Image
+                </button>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label">OR Math Challenge</label>
+              <div class="math-captcha">
+                {% if math_question %}
+                  <div id="math-question" style="font-weight: bold; margin-bottom: 8px;">{{ math_question }}</div>
+                {% endif %}
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshMathCaptcha()">
+                  🔄 New Question
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-3">
+            <label class="form-label">Enter CAPTCHA answer:</label>
+            <input type="text" name="captcha_response" class="form-control" 
+                   placeholder="Enter the text or number" required
+                   style="max-width: 200px;">
+          </div>
+        </div>
+      {% endif %}
+
       <!-- Error Display (for server-side validation errors only) -->
       {% if error %}
         <div class="card-section">
@@ -152,7 +205,7 @@
       <div class="action-controls">
         <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()"
                 onmouseenter="trackTennisEvent('hover', 'Match Organization', 'organize_button')">
-          Organize Matches
+          Organize Sessions
         </button>
         <button type="button" class="btn-base btn-secondary" onclick="reshuffleAll()"
                 onmouseenter="trackTennisEvent('hover', 'Match Organization', 'reshuffle_all_button')">
@@ -170,7 +223,7 @@
     {% if matchups and rounds %}
     <div class="card-base" id="matches-section">
       <div class="schedule-header">
-        <h4 class="section-title">📋 Matches</h4>
+        <h4 class="section-title">📋 Sessions</h4>
       </div>
 
       <!-- Schedule by Round -->
@@ -255,10 +308,10 @@
       <div class="empty-state">
         <div class="empty-icon">📋</div>
         <h6>Ready to Organize</h6>
-        <p class="text-muted">Click "Organize Matches" to create your schedule</p>
+        <p class="text-muted">Click "Organize Sessions" to create your schedule</p>
         {% if players|length < (2 if match_type == "singles" else 4) %}
           <div class="alert alert-warning mt-3">
-            Need at least {{ 2 if match_type == "singles" else 4 }} players for {{ match_type }} matches
+            Need at least {{ 2 if match_type == "singles" else 4 }} players for {{ match_type }} sessions
           </div>
         {% endif %}
       </div>
@@ -1105,6 +1158,37 @@ function updateClockDisplay(display) {
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;
   display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// CAPTCHA refresh functions
+function refreshCaptcha() {
+  fetch('/captcha/image')
+    .then(response => response.json())
+    .then(data => {
+      if (data.image) {
+        document.getElementById('captcha-img').src = data.image;
+        trackTennisEvent('security_action', 'CAPTCHA', 'image_refreshed');
+      }
+    })
+    .catch(error => {
+      console.error('Error refreshing CAPTCHA:', error);
+      showMobileMessage('Error loading new CAPTCHA', 'warning');
+    });
+}
+
+function refreshMathCaptcha() {
+  fetch('/captcha/math')
+    .then(response => response.json())
+    .then(data => {
+      if (data.question) {
+        document.getElementById('math-question').textContent = data.question;
+        trackTennisEvent('security_action', 'CAPTCHA', 'math_refreshed');
+      }
+    })
+    .catch(error => {
+      console.error('Error refreshing math CAPTCHA:', error);
+      showMobileMessage('Error loading new question', 'warning');
+    });
 }
 
 // Add CSS for mobile animations and feedback
