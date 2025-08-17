@@ -16,6 +16,7 @@ except ImportError:
     CSRF_AVAILABLE = False
 
 from utils import organize_matches
+from weather_service import WeatherService
 # Simplified imports - keeping only CAPTCHA and basic CSRF
 import hashlib
 
@@ -39,6 +40,9 @@ from captcha import simple_captcha, math_captcha, require_captcha_after_failures
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_key_UNSAFE_FOR_PRODUCTION")
+
+# Initialize weather service
+weather_service = WeatherService()
 
 # Session counter functionality
 SESSION_COUNTER_FILE = "session_counter.txt"
@@ -741,6 +745,49 @@ def index():
         **captcha_data
     )
 
+@app.route("/weather", methods=["GET"])
+def weather():
+    """Weather forecast page for coaches"""
+    forecast_data = None
+    error = None
+    current_weather = None
+    
+    # Check if we have postcode in URL parameters (from form submission redirect)
+    postcode = request.args.get("postcode", "").strip().upper()
+    country_code = request.args.get("country_code", "GB").strip().upper()
+    
+    if postcode:
+        # Basic validation
+        if len(postcode) < 2 or len(postcode) > 20:
+            error = "Please enter a valid postcode"
+        else:
+            try:
+                # Get weather forecast
+                forecast_data = weather_service.get_weather_forecast(postcode, country_code)
+                
+                if forecast_data and "error" in forecast_data:
+                    error = forecast_data["error"]
+                    forecast_data = None
+                else:
+                    # Also get current weather
+                    current_weather = weather_service.get_current_weather(postcode, country_code)
+                    if current_weather and "error" in current_weather:
+                        current_weather = None
+                    
+                    # Store in session for easy access
+                    session["last_weather_postcode"] = postcode
+                    session["last_weather_country"] = country_code
+                    
+            except Exception as e:
+                error = f"Error processing request: {str(e)}"
+    
+    return render_template("weather.html", 
+                         forecast_data=forecast_data, 
+                         current_weather=current_weather,
+                         error=error,
+                         last_postcode=session.get("last_weather_postcode", ""),
+                         last_country=session.get("last_weather_country", "GB"))
+
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
     """Contact page with form"""
@@ -882,8 +929,6 @@ def rate_limit_exceeded(error):
 
 @app.errorhandler(400)
 def bad_request(error):
-    print(f"DEBUG: 400 error handler called: {error}")
-    print(f"DEBUG: Error description: {getattr(error, 'description', 'No description')}")
     return render_template('error.html', error_code=400, error_message="Bad Request"), 400
 
 @app.errorhandler(404)

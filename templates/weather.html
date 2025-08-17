@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block title %}🌤️ Weather Forecast - Tennis Session Organizer{% endblock %}
+
+{% block content %}
+  <!-- Header -->
+  <div style="text-align: center; margin-bottom: 1.5rem;">
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">🌤️ Weather Forecast</h2>
+    <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
+      Check weather conditions for tennis sessions
+    </p>
+  </div>
+
+  <!-- Weather Search Form -->
+  <div class="card-base">
+    <h4 class="section-title">📍 Location</h4>
+    <form method="GET" action="/weather">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label">Postcode</label>
+          <div class="input-group">
+            <span class="input-group-text">📮</span>
+            <input type="text" name="postcode" class="form-control" 
+                   placeholder="Enter postcode" 
+                   value="{{ last_postcode }}"
+                   maxlength="15" 
+                   style="text-transform: uppercase;" required>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Country</label>
+          <div class="input-group">
+            <span class="input-group-text">🌍</span>
+            <select name="country_code" class="form-control" required>
+              <option value="GB" {% if last_country == "GB" %}selected{% endif %}>United Kingdom</option>
+              <option value="US" {% if last_country == "US" %}selected{% endif %}>United States</option>
+              <option value="AU" {% if last_country == "AU" %}selected{% endif %}>Australia</option>
+              <option value="CA" {% if last_country == "CA" %}selected{% endif %}>Canada</option>
+              <option value="DE" {% if last_country == "DE" %}selected{% endif %}>Germany</option>
+              <option value="FR" {% if last_country == "FR" %}selected{% endif %}>France</option>
+              <option value="ES" {% if last_country == "ES" %}selected{% endif %}>Spain</option>
+              <option value="IT" {% if last_country == "IT" %}selected{% endif %}>Italy</option>
+              <option value="NL" {% if last_country == "NL" %}selected{% endif %}>Netherlands</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn-base btn-accent w-100">
+            Get Forecast
+          </button>
+        </div>
+        <div class="col-md-2">
+          <a href="/" class="btn-base btn-outline-secondary w-100">
+            Back to Sessions
+          </a>
+        </div>
+      </div>
+    </form>
+
+    <!-- Error Display -->
+    {% if error %}
+      <div class="alert alert-danger mt-3">
+        <strong>❌</strong> {{ error|e }}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Current Weather -->
+  {% if current_weather and not error %}
+  <div class="card-base">
+    <h4 class="section-title">🎾 Current Tennis Conditions</h4>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <img src="https://openweathermap.org/img/wn/{{ current_weather.icon }}@2x.png" 
+               alt="{{ current_weather.description }}" 
+               style="width: 60px; height: 60px;">
+          <div>
+            <div style="font-size: 2rem; font-weight: bold;">{{ current_weather.temperature }}°C</div>
+            <div style="color: #6c757d;">{{ current_weather.description }}</div>
+            <div style="font-size: 0.9rem; color: #6c757d;">
+              Feels like {{ current_weather.feels_like }}°C
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="current-tennis-assessment">
+          <h6>Tennis Impact:</h6>
+          <div class="current-conditions-list">
+            <!-- Temperature assessment -->
+            {% if current_weather.temperature < 8 %}
+              <div class="condition-alert warning">❄️ Too cold for comfortable play</div>
+            {% elif current_weather.temperature > 32 %}
+              <div class="condition-alert danger">🔥 Very hot - frequent breaks needed</div>
+            {% elif current_weather.temperature > 28 %}
+              <div class="condition-alert warning">☀️ Warm - ensure hydration</div>
+            {% elif current_weather.temperature >= 12 and current_weather.temperature <= 28 %}
+              <div class="condition-alert success">✅ Perfect temperature for tennis</div>
+            {% else %}
+              <div class="condition-alert info">🌡️ Cool but playable</div>
+            {% endif %}
+            
+            <!-- Wind assessment -->
+            {% if current_weather.wind_speed > 25 %}
+              <div class="condition-alert danger">💨 Very windy - ball control difficult</div>
+            {% elif current_weather.wind_speed > 15 %}
+              <div class="condition-alert warning">🌬️ Windy - affects ball trajectory</div>
+            {% elif current_weather.wind_speed > 8 %}
+              <div class="condition-alert info">🍃 Light breeze - minor ball effect</div>
+            {% else %}
+              <div class="condition-alert success">✅ Calm conditions - perfect for tennis</div>
+            {% endif %}
+            
+            <!-- Humidity assessment -->
+            {% if current_weather.humidity > 85 %}
+              <div class="condition-alert warning">💧 Very humid - courts play slower</div>
+            {% elif current_weather.humidity > 75 %}
+              <div class="condition-alert info">☁️ Humid - balls feel heavier</div>
+            {% endif %}
+          </div>
+          
+          <div style="font-size: 0.85rem; margin-top: 1rem; color: #6c757d;">
+            <div>💨 Wind: {{ current_weather.wind_speed }} km/h</div>
+            <div>💧 Humidity: {{ current_weather.humidity }}%</div>
+            <div>👁️ Visibility: {{ current_weather.visibility }} km</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 5-Day Forecast -->
+  {% if forecast_data and not error %}
+  <div class="card-base">
+    <div class="schedule-header">
+      <h4 class="section-title">📅 5-Day Forecast</h4>
+      <div style="font-size: 0.9rem; color: #6c757d;">
+        {{ forecast_data.location.name }}{% if forecast_data.location.country %}, {{ forecast_data.location.country }}{% endif %}
+        - Updated: {{ forecast_data.last_updated }}
+      </div>
+    </div>
+
+    <div class="forecast-container">
+      {% for date_key, day_data in forecast_data.daily_forecasts.items() %}
+        <div class="forecast-day-card">
+          <!-- Day Header -->
+          <div class="forecast-day-header">
+            <h5>{{ day_data.date }}</h5>
+            <div class="temp-range">{{ day_data.min_temp }}° - {{ day_data.max_temp }}°C</div>
+            
+            <!-- Tennis Conditions Badge -->
+            {% set condition_class = 'excellent' if day_data.tennis_conditions == 'Excellent' 
+                                    else 'good' if day_data.tennis_conditions == 'Good' 
+                                    else 'fair' if day_data.tennis_conditions == 'Fair' 
+                                    else 'poor' %}
+            <div class="tennis-conditions tennis-{{ condition_class }}">
+              🎾 {{ day_data.tennis_conditions }}
+            </div>
+          </div>
+
+          <!-- Tennis Details -->
+          <div class="tennis-details-card">
+            <div class="tennis-summary">
+              {{ day_data.tennis_details }}
+            </div>
+            
+            <!-- Tennis Stats -->
+            <div class="tennis-stats">
+              <div class="stat-item">
+                <span class="stat-icon">🌡️</span>
+                <span class="stat-label">Temp:</span>
+                <span class="stat-value">{{ day_data.tennis_stats.temperature_range }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">💨</span>
+                <span class="stat-label">Max Wind:</span>
+                <span class="stat-value">{{ day_data.tennis_stats.max_wind }}</span>
+              </div>
+              {% if day_data.tennis_stats.precipitation != '0.0mm' %}
+              <div class="stat-item">
+                <span class="stat-icon">🌧️</span>
+                <span class="stat-label">Rain:</span>
+                <span class="stat-value">{{ day_data.tennis_stats.precipitation }}</span>
+              </div>
+              {% endif %}
+              <div class="stat-item">
+                <span class="stat-icon">💧</span>
+                <span class="stat-label">Humidity:</span>
+                <span class="stat-value">{{ day_data.tennis_stats.avg_humidity }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hourly Forecasts -->
+          <div class="hourly-forecasts">
+            {% for forecast in day_data.forecasts %}
+              <div class="hourly-forecast">
+                <div class="forecast-time">{{ forecast.time }}</div>
+                <img src="https://openweathermap.org/img/wn/{{ forecast.icon }}.png" 
+                     alt="{{ forecast.description }}" 
+                     style="width: 30px; height: 30px;">
+                <div class="forecast-temp">{{ forecast.temperature }}°</div>
+                <div class="forecast-details">
+                  {% if forecast.precipitation > 0 %}
+                    <div>🌧️ {{ forecast.precipitation }}mm</div>
+                  {% endif %}
+                  {% if forecast.wind_speed > 15 %}
+                    <div>💨 {{ forecast.wind_speed }}km/h</div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tennis Playing Conditions Guide -->
+  <div class="card-base">
+    <h4 class="section-title">🎾 Tennis Conditions Guide</h4>
+    <div class="conditions-guide">
+      <div class="condition-item">
+        <span class="condition-badge tennis-excellent">Excellent</span>
+        <span><strong>Perfect for tennis:</strong> Ideal temperature (12-28°C), low wind (&lt;12 km/h), no rain, comfortable humidity</span>
+      </div>
+      <div class="condition-item">
+        <span class="condition-badge tennis-good">Good</span>
+        <span><strong>Good for tennis:</strong> Minor weather factors like light wind or slightly warm/cool temperatures</span>
+      </div>
+      <div class="condition-item">
+        <span class="condition-badge tennis-fair">Fair</span>
+        <span><strong>Playable but challenging:</strong> Windy conditions affect ball control, light rain possible, or temperature extremes</span>
+      </div>
+      <div class="condition-item">
+        <span class="condition-badge tennis-poor">Poor</span>
+        <span><strong>Not recommended:</strong> Heavy rain (wet courts), very windy (&gt;30 km/h), too hot (&gt;35°C) or too cold (&lt;5°C)</span>
+      </div>
+    </div>
+    
+    <!-- Tennis Tips -->
+    <div class="tennis-tips">
+      <h6>🏆 Tennis Weather Tips:</h6>
+      <ul>
+        <li><strong>Wind:</strong> Even light wind (10-15 km/h) can affect ball trajectory - adjust your game accordingly</li>
+        <li><strong>Humidity:</strong> High humidity (&gt;75%) makes courts play slower and balls feel heavier</li>
+        <li><strong>Temperature:</strong> Balls bounce higher in warm weather and lower in cold weather</li>
+        <li><strong>Sun:</strong> Check hourly forecasts for sun position - avoid scheduling during peak glare times</li>
+        <li><strong>Rain:</strong> Even light drizzle can make courts slippery - wait 30+ minutes after rain stops</li>
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Empty State -->
+  {% if not forecast_data and not error %}
+  <div class="card-base">
+    <div class="empty-state">
+      <div class="empty-icon">🌤️</div>
+      <h6>Get Weather Forecast</h6>
+      <p class="text-muted">Enter a postcode above to check weather conditions for tennis sessions</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-uppercase postcode input
+document.addEventListener('DOMContentLoaded', function() {
+  const postcodeInput = document.querySelector('input[name="postcode"]');
+  if (postcodeInput) {
+    postcodeInput.addEventListener('input', function(e) {
+      e.target.value = e.target.value.toUpperCase();
+    });
+  }
+});
+</script>
+
+<style>
+/* Weather-specific styles */
+.forecast-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.forecast-day-card {
+  border: 1px solid #e3e6f0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: white;
+}
+
+.forecast-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e3e6f0;
+}
+
+.forecast-day-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.temp-range {
+  font-weight: bold;
+  color: #495057;
+}
+
+.tennis-conditions {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+  min-width: 120px;
+}
+
+.tennis-excellent {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.tennis-good {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.tennis-fair {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.tennis-poor {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.hourly-forecasts {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.hourly-forecast {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: #f8f9fa;
+  text-align: center;
+}
+
+.forecast-time {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.forecast-temp {
+  font-weight: bold;
+  margin: 0.25rem 0;
+}
+
+.forecast-details {
+  font-size: 0.7rem;
+  color: #6c757d;
+}
+
+.conditions-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.condition-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.condition-badge {
+  min-width: 80px;
+  text-align: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Current weather tennis assessment */
+.current-tennis-assessment h6 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.current-conditions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.condition-alert {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.condition-alert.success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 3px solid #28a745;
+}
+
+.condition-alert.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-left: 3px solid #17a2b8;
+}
+
+.condition-alert.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border-left: 3px solid #ffc107;
+}
+
+.condition-alert.danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 3px solid #dc3545;
+}
+
+/* Tennis-specific styles */
+.tennis-details-card {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid var(--accent-color);
+}
+
+.tennis-summary {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.tennis-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.stat-icon {
+  font-size: 1rem;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: bold;
+  color: #495057;
+}
+
+.tennis-tips {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #e8f4f8;
+  border-radius: 6px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.tennis-tips h6 {
+  color: #0ea5e9;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.tennis-tips ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #374151;
+}
+
+.tennis-tips li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.tennis-tips strong {
+  color: #1f2937;
+}
+
+@media (max-width: 768px) {
+  .forecast-day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .hourly-forecasts {
+    gap: 0.5rem;
+  }
+  
+  .hourly-forecast {
+    min-width: 60px;
+    padding: 0.25rem;
+  }
+  
+  .condition-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .tennis-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tennis-tips {
+    margin-top: 1rem;
+    padding: 0.75rem;
+  }
+}
+</style>
+{% endblock %}
