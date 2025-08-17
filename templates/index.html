@@ -3,17 +3,33 @@
 {% block title %}🎾 Tennis Session Organizer{% endblock %}
 
 {% block content %}
-  <!-- Compact Header -->
-  <div style="text-align: center; margin-bottom: 1.5rem;">
+  <!-- Compact Header with Progress -->
+  <div class="header-container slideIn" style="text-align: center; margin-bottom: 1.5rem;">
     <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">🎾 Tennis Session Organizer</h2>
     <p style="margin: 0.5rem 0 0 0; color: #6c757d; font-size: 0.9rem;">
       Add players → Set courts & rounds → Organize balanced sessions instantly
     </p>
     {% if session_count > 0 %}
     <small class="text-muted" style="display: block; margin-top: 0.25rem;">
-      🎉 {{ session_count }} sessions organized
+      🎉 {{ session_count }} sessions organized using this app
     </small>
     {% endif %}
+    
+    <!-- Progress Indicator -->
+    <div class="progress-steps">
+      <div class="progress-step {% if players %}completed{% else %}active{% endif %}">
+        <div class="progress-step-icon">👥</div>
+        <div class="progress-step-label">Add Players</div>
+      </div>
+      <div class="progress-step {% if players and not matchups %}active{% elif matchups %}completed{% endif %}">
+        <div class="progress-step-icon">⚙️</div>
+        <div class="progress-step-label">Configure</div>
+      </div>
+      <div class="progress-step {% if matchups %}completed{% endif %}">
+        <div class="progress-step-icon">🎾</div>
+        <div class="progress-step-label">Organize</div>
+      </div>
+    </div>
   </div>
 
   <form method="POST" action="/index" enctype="multipart/form-data">
@@ -171,7 +187,7 @@
         <div class="row g-3" style="margin-top: 1rem;">
           {% for player in players %}
             <div class="col-md-6 col-lg-4">
-              <div class="player-card">
+              <div class="player-card grade-{{ player.grade }} bounceIn">
                 <div class="player-info">
                   <div class="player-name">{{ player.name|e }}</div>
                   <div class="player-grade">Grade {{ player.grade }}</div>
@@ -201,9 +217,9 @@
     
     <!-- Action Controls -->
     {% if players %}
-    <div class="card-base" style="text-align: center;">
+    <div class="card-base slideIn" style="text-align: center;">
       <div class="action-controls">
-        <button type="button" class="btn-base btn-accent btn-lg" onclick="organizeMatches()"
+        <button type="button" class="btn-base btn-accent btn-lg pulse" onclick="organizeMatches()"
                 onmouseenter="trackTennisEvent('hover', 'Match Organization', 'organize_button')">
           Organize Sessions
         </button>
@@ -221,15 +237,15 @@
 
     <!-- Match Schedule -->
     {% if matchups and rounds %}
-    <div class="card-base" id="matches-section">
+    <div class="card-base fadeIn" id="matches-section">
       <div class="schedule-header">
         <h4 class="section-title">📋 Sessions</h4>
       </div>
 
-      <!-- Schedule by Round -->
+      <!-- Court Formation View -->
       <div id="schedule-round" class="schedule-container">
         {% for round_num, matches in rounds.items() %}
-          <div class="round-section" data-round="{{ round_num }}">
+          <div class="round-section slideIn" data-round="{{ round_num }}">
             <div class="round-header">
               <h5 class="round-title">Round {{ round_num }}</h5>
               <button type="button" class="btn-base btn-info btn-sm mobile-touch-target"
@@ -240,37 +256,48 @@
               </button>
             </div>
             
-            <div class="matches-grid">
+            <!-- Tennis Court Formation -->
+            <div class="court-visual">
               {% for court_num, match in matches %}
-                <div class="match-card" onclick="trackTennisEvent('click', 'Match Interaction', 'match_card_click', {{ round_num }}, {court: {{ court_num }}})">
-                  <div class="court-label">Court {{ court_num }}</div>
-                  <div class="match-players">
+                <div class="tennis-court bounceIn" style="animation-delay: {{ (court_num - 1) * 0.1 }}s">
+                  <div class="court-number">Court {{ court_num }}</div>
+                  <div class="court-field">
                     {% if match|length == 2 %}
-                      <div class="vs-match">
-                        <div class="player">
-                          <span class="name">{{ match[0].name|e }}</span>
-                          <span class="grade">G{{ match[0].grade }}</span>
+                      <!-- Singles Match -->
+                      <div class="singles-layout">
+                        <div class="player-position top grade-{{ match[0].grade }}">
+                          <div class="player-name">{{ match[0].name|e }}</div>
+                          <div class="player-grade">G{{ match[0].grade }}</div>
                         </div>
-                        <div class="vs">VS</div>
-                        <div class="player">
-                          <span class="name">{{ match[1].name|e }}</span>
-                          <span class="grade">G{{ match[1].grade }}</span>
+                        <div class="net"></div>
+                        <div class="player-position bottom grade-{{ match[1].grade }}">
+                          <div class="player-name">{{ match[1].name|e }}</div>
+                          <div class="player-grade">G{{ match[1].grade }}</div>
                         </div>
                       </div>
                     {% else %}
-                      <div class="doubles-match">
-                        <div class="team">
-                          <div class="team-players">
-                            <span class="name">{{ match[0].name|e }}</span> & <span class="name">{{ match[1].name|e }}</span>
+                      <!-- Doubles Match -->
+                      <div class="doubles-layout">
+                        <div class="team top-team">
+                          <div class="player-position top-left grade-{{ match[0].grade }}">
+                            <div class="player-name">{{ match[0].name|e }}</div>
+                            <div class="player-grade">G{{ match[0].grade }}</div>
                           </div>
-                          <span class="avg-grade">Avg G{{ ((match[0].grade + match[1].grade) / 2) | round(1) }}</span>
+                          <div class="player-position top-right grade-{{ match[1].grade }}">
+                            <div class="player-name">{{ match[1].name|e }}</div>
+                            <div class="player-grade">G{{ match[1].grade }}</div>
+                          </div>
                         </div>
-                        <div class="vs">VS</div>
-                        <div class="team">
-                          <div class="team-players">
-                            <span class="name">{{ match[2].name|e }}</span> & <span class="name">{{ match[3].name|e }}</span>
+                        <div class="net"></div>
+                        <div class="team bottom-team">
+                          <div class="player-position bottom-left grade-{{ match[2].grade }}">
+                            <div class="player-name">{{ match[2].name|e }}</div>
+                            <div class="player-grade">G{{ match[2].grade }}</div>
                           </div>
-                          <span class="avg-grade">Avg G{{ ((match[2].grade + match[3].grade) / 2) | round(1) }}</span>
+                          <div class="player-position bottom-right grade-{{ match[3].grade }}">
+                            <div class="player-name">{{ match[3].name|e }}</div>
+                            <div class="player-grade">G{{ match[3].grade }}</div>
+                          </div>
                         </div>
                       </div>
                     {% endif %}

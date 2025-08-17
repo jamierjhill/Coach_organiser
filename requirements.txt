@@ -1,5 +1,49 @@
 # Tennis Match Organizer - Enhanced Security Dependencies
+
+# Core Flask dependencies
 Flask==2.3.3
-Flask-WTF==1.1.1
+Werkzeug==2.3.7
+
+# Environment variables
 python-dotenv==1.0.0
+
+# CSRF protection (optional but recommended)
+Flask-WTF==1.1.1
 WTForms==3.0.1
+
+# Image processing for CAPTCHA
+Pillow==10.0.1
+
+# Security enhancements
+itsdangerous==2.1.2
+
+# Development and testing (optional)
+pytest==7.4.2
+pytest-flask==1.2.0
+
+# Production WSGI server (optional)
+gunicorn==21.2.0
+
+# For enhanced security logging (optional)
+python-json-logger==2.0.7
+
+# For better session management (optional)
+Flask-Session==0.5.0
+redis==5.0.0
+
+# For database persistence (optional upgrade)
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==2.0.23
+
+# For rate limiting with Redis backend (optional)
+Flask-Limiter==3.5.0
+
+# For monitoring and metrics (optional)
+prometheus-client==0.17.1
+
+# Additional security headers (optional)
+flask-talisman==1.1.0
+
+# Email functionality
+# Note: smtplib and email modules are built into Python
+# No additional packages needed for basic email sending

@@ -748,6 +748,15 @@ def contact():
     success = None
     
     if request.method == "POST":
+        # CSRF validation for production
+        if CSRF_AVAILABLE and os.getenv("FLASK_ENV") == "production":
+            try:
+                from flask_wtf.csrf import validate_csrf
+                validate_csrf(request.form.get('csrf_token'))
+            except Exception as e:
+                error = "Security validation failed. Please refresh and try again."
+                return render_template("contact.html", error=error, csrf_token=generate_csrf_token())
+        
         # Get form data
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
@@ -787,7 +796,7 @@ def contact():
                 # Log the contact attempt (optional)
                 print(f"Contact form submission: {name} ({email}) - {subject}")
     
-    return render_template("contact.html", error=error, success=success)
+    return render_template("contact.html", error=error, success=success, csrf_token=generate_csrf_token())
 
 @app.route("/captcha/image")
 # Rate limiting removed
