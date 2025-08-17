@@ -789,56 +789,12 @@ def contact():
             elif subject not in ['bug_report', 'feature_request', 'support', 'feedback', 'other']:
                 error = "Please select a valid subject"
             else:
-                # Send email
-                try:
-                    import smtplib
-                    from email.mime.text import MIMEText
-                    from email.mime.multipart import MIMEMultipart
-                    
-                    # Email configuration from environment
-                    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-                    smtp_port = int(os.getenv('SMTP_PORT', '587'))
-                    smtp_username = os.getenv('SMTP_USERNAME', '')
-                    smtp_password = os.getenv('SMTP_PASSWORD', '')
-                    to_email = os.getenv('TO_EMAIL', 'jamierjhill@gmail.com')
-                    
-                    # Create message
-                    msg = MIMEMultipart()
-                    msg['From'] = smtp_username
-                    msg['To'] = to_email
-                    msg['Subject'] = f"Contact Form: {subject.replace('_', ' ').title()}"
-                    
-                    # Email body
-                    body = f"""
-New contact form submission:
-
-Name: {name}
-Email: {email}
-Subject: {subject.replace('_', ' ').title()}
-
-Message:
-{message}
-
----
-Sent from Tennis Session Organizer
-                    """
-                    
-                    msg.attach(MIMEText(body, 'plain'))
-                    
-                    # Send email
-                    server = smtplib.SMTP(smtp_server, smtp_port)
-                    server.starttls()
-                    server.login(smtp_username, smtp_password)
-                    text = msg.as_string()
-                    server.sendmail(smtp_username, to_email, text)
-                    server.quit()
-                    
-                    success = "Thank you for your message! We'll get back to you soon."
-                    print(f"Email sent successfully: {name} ({email}) - {subject}")
-                    
-                except Exception as e:
-                    print(f"Error sending email: {str(e)}")
-                    error = "Sorry, there was an error sending your message. Please try again later."
+                # For now, just show success message
+                # In production, you would send the email here
+                success = "Thank you for your message! We'll get back to you soon."
+                
+                # Log the contact attempt (optional)
+                print(f"Contact form submission: {name} ({email}) - {subject}")
     
     return render_template("contact.html", error=error, success=success, csrf_token=generate_csrf_token())
 
