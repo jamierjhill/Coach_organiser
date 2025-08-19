@@ -795,11 +795,44 @@ def contact():
     success = None
     
     if request.method == "POST":
-        # Get form data
+        # Get form data first
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
         subject = request.form.get("subject", "").strip()
         message = request.form.get("message", "").strip()
+        
+        # Check if CAPTCHA is required due to previous failures
+        failures = session.get('contact_form_failures', 0)
+        require_captcha = failures >= 2  # Require CAPTCHA after 2 failures
+        
+        if require_captcha:
+            captcha_response = request.form.get('captcha_response', '').strip()
+            if not captcha_response:
+                error = "CAPTCHA required after multiple failed attempts"
+                session['contact_form_failures'] = session.get('contact_form_failures', 0) + 1
+                return render_template("contact.html", 
+                                     error=error, 
+                                     success=success,
+                                     require_captcha=True,
+                                     captcha_image=simple_captcha.generate_captcha(),
+                                     math_question=math_captcha.generate_math_captcha())
+            
+            # Validate CAPTCHA
+            image_valid, _ = simple_captcha.validate_captcha(captcha_response)
+            math_valid, _ = math_captcha.validate_math_captcha(captcha_response)
+            
+            if not (image_valid or math_valid):
+                session['contact_form_failures'] = session.get('contact_form_failures', 0) + 1
+                error = "Invalid CAPTCHA. Please try again."
+                return render_template("contact.html", 
+                                     error=error, 
+                                     success=success,
+                                     require_captcha=True,
+                                     captcha_image=simple_captcha.generate_captcha(),
+                                     math_question=math_captcha.generate_math_captcha())
+            
+            # Reset failure count on successful CAPTCHA
+            session['contact_form_failures'] = 0
         
         # Basic validation
         if not name:
@@ -826,28 +859,32 @@ def contact():
                 error = "Please enter a valid email address"
             elif subject not in ['bug_report', 'feature_request', 'support', 'feedback', 'other']:
                 error = "Please select a valid subject"
-            else:
-                # Send email
-                try:
-                    import smtplib
-                    from email.mime.text import MIMEText
-                    from email.mime.multipart import MIMEMultipart
-                    
-                    # Email configuration from environment
-                    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-                    smtp_port = int(os.getenv('SMTP_PORT', '587'))
-                    smtp_username = os.getenv('SMTP_USERNAME', '')
-                    smtp_password = os.getenv('SMTP_PASSWORD', '')
-                    to_email = os.getenv('TO_EMAIL', 'jamierjhill@gmail.com')
-                    
-                    # Create message
-                    msg = MIMEMultipart()
-                    msg['From'] = smtp_username
-                    msg['To'] = to_email
-                    msg['Subject'] = f"Contact Form: {subject.replace('_', ' ').title()}"
-                    
-                    # Email body
-                    body = f"""
+        
+        # If there was a validation error, increment failure count
+        if error:
+            session['contact_form_failures'] = session.get('contact_form_failures', 0) + 1
+        else:
+            # Send email
+            try:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+                
+                # Email configuration from environment
+                smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+                smtp_port = int(os.getenv('SMTP_PORT', '587'))
+                smtp_username = os.getenv('SMTP_USERNAME', '')
+                smtp_password = os.getenv('SMTP_PASSWORD', '')
+                to_email = os.getenv('TO_EMAIL', 'jamierjhill@gmail.com')
+                
+                # Create message
+                msg = MIMEMultipart()
+                msg['From'] = smtp_username
+                msg['To'] = to_email
+                msg['Subject'] = f"Contact Form: {subject.replace('_', ' ').title()}"
+                
+                # Email body
+                body = f"""
 New contact form submission:
 
 Name: {name}
@@ -859,26 +896,38 @@ Message:
 
 ---
 Sent from Tennis Session Organizer
-                    """
-                    
-                    msg.attach(MIMEText(body, 'plain'))
-                    
-                    # Send email
-                    server = smtplib.SMTP(smtp_server, smtp_port)
-                    server.starttls()
-                    server.login(smtp_username, smtp_password)
-                    text = msg.as_string()
-                    server.sendmail(smtp_username, to_email, text)
-                    server.quit()
-                    
-                    success = "Thank you for your message! We'll get back to you soon."
-                    print(f"Email sent successfully: {name} ({email}) - {subject}")
-                    
-                except Exception as e:
-                    print(f"Error sending email: {str(e)}")
-                    error = "Sorry, there was an error sending your message. Please try again later."
+                """
+                
+                msg.attach(MIMEText(body, 'plain'))
+                
+                # Send email
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.starttls()
+                server.login(smtp_username, smtp_password)
+                text = msg.as_string()
+                server.sendmail(smtp_username, to_email, text)
+                server.quit()
+                
+                success = "Thank you for your message! We'll get back to you soon."
+                print(f"Email sent successfully: {name} ({email}) - {subject}")
+                
+            except Exception as e:
+                print(f"Error sending email: {str(e)}")
+                error = "Sorry, there was an error sending your message. Please try again later."
     
-    return render_template("contact.html", error=error, success=success)
+    # Determine if CAPTCHA is required
+    failures = session.get('contact_form_failures', 0)
+    require_captcha = failures >= 2
+    
+    captcha_data = {}
+    if require_captcha:
+        captcha_data['require_captcha'] = True
+        captcha_data['captcha_image'] = simple_captcha.generate_captcha()
+        captcha_data['math_question'] = math_captcha.generate_math_captcha()
+    else:
+        captcha_data['require_captcha'] = False
+    
+    return render_template("contact.html", error=error, success=success, **captcha_data)
 
 @app.route("/captcha/image")
 # Rate limiting removed

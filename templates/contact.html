@@ -61,6 +61,45 @@
         <small class="text-muted">Maximum 1000 characters</small>
       </div>
       
+      <!-- CAPTCHA Section -->
+      {% if require_captcha %}
+      <div class="mt-3">
+        <label class="form-label">Security Verification *</label>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card-base p-3">
+              <h6>Image CAPTCHA</h6>
+              {% if captcha_image %}
+                <img src="{{ captcha_image }}" alt="CAPTCHA" class="img-fluid mb-2" style="max-width: 120px;">
+                <br>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshCaptcha()">🔄 New Image</button>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card-base p-3">
+              <h6>Math CAPTCHA</h6>
+              {% if math_question %}
+                <p class="mb-2"><strong>{{ math_question }}</strong></p>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshMathCaptcha()">🔄 New Question</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="mt-2">
+          <label class="form-label" for="captcha_response">Your Answer *</label>
+          <input type="text" 
+                 name="captcha_response" 
+                 id="captcha_response"
+                 class="form-control" 
+                 placeholder="Enter the characters from the image OR answer the math question" 
+                 required
+                 maxlength="10">
+          <small class="text-muted">Solve either the image CAPTCHA or the math question above</small>
+        </div>
+      </div>
+      {% endif %}
+      
       <!-- Success/Error Messages -->
       {% if success %}
         <div class="mt-3">
@@ -139,5 +178,30 @@ document.addEventListener('DOMContentLoaded', function() {
   messageField.addEventListener('input', updateCounter);
   updateCounter(); // Initial count
 });
+
+// CAPTCHA refresh functions
+function refreshCaptcha() {
+  fetch('/captcha/image')
+    .then(response => response.json())
+    .then(data => {
+      if (data.image) {
+        document.querySelector('img[alt="CAPTCHA"]').src = data.image;
+        document.getElementById('captcha_response').value = '';
+      }
+    })
+    .catch(error => console.error('Error refreshing CAPTCHA:', error));
+}
+
+function refreshMathCaptcha() {
+  fetch('/captcha/math')
+    .then(response => response.json())
+    .then(data => {
+      if (data.question) {
+        document.querySelector('.card-base p strong').textContent = data.question;
+        document.getElementById('captcha_response').value = '';
+      }
+    })
+    .catch(error => console.error('Error refreshing math CAPTCHA:', error));
+}
 </script>
 {% endblock %}
